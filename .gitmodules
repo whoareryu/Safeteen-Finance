@@ -1,0 +1,9 @@
+[submodule "backend"]
+	path = backend
+	url = https://github.com/whoareryu/cloud.whoareryu.api.git
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/whoareryu/cloud.whoareryu.www.git
+[submodule "docs"]
+	path = docs
+	url = https://github.com/whoareryu/cloud.whoareryu.docs.git
