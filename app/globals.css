@@ -124,6 +124,77 @@
   }
 }
 
+/* 메인 페이지 */
+main.home-main {
+  position: relative;
+}
+
+/* 헤더 좌측 — 오늘의 날씨 */
+#weather-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--secondary) / 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  backdrop-filter: blur(8px);
+  max-width: min(260px, 48vw);
+}
+
+.weather-icon-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.weather-icon-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.weather-icon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--primary));
+}
+
+.weather-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#weather-temp {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#weather-desc {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#weather-container.weather-error {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.35);
+}
+
 @keyframes neon-line-drift-h {
   0% {
     transform: translate(-50%, -50%) translateX(78vw) rotate(var(--neon-skew, 0deg));

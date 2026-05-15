@@ -17,32 +17,38 @@ function XIcon({ className }: { className?: string }) {
 
 export default function SocialFooter() {
   return (
-    <div className="flex items-center justify-center gap-6 py-6">
-      <a
-        href="https://github.com/Whoareryu"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
-      >
-        <Github className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-        <div className="flex flex-col">
-          <span className="text-xs text-muted-foreground">GitHub</span>
-          <span className="text-sm font-medium text-foreground">@Whoareryu</span>
-        </div>
-      </a>
+    <div className="flex flex-col items-center gap-4 py-6">
+      <div className="flex flex-wrap items-center justify-center gap-6">
+        <a
+          href="https://github.com/Whoareryu"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
+        >
+          <Github className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">GitHub</span>
+            <span className="text-sm font-medium text-foreground">@Whoareryu</span>
+          </div>
+        </a>
 
-      <a
-        href="https://x.com/Who_are_ryu__"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
-      >
-        <XIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-        <div className="flex flex-col">
-          <span className="text-xs text-muted-foreground">X (Twitter)</span>
-          <span className="text-sm font-medium text-foreground">@Who_are_ryu__</span>
-        </div>
-      </a>
+        <a
+          href="https://x.com/Who_are_ryu__"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
+        >
+          <XIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">X (Twitter)</span>
+            <span className="text-sm font-medium text-foreground">@Who_are_ryu__</span>
+          </div>
+        </a>
+      </div>
+
+      <div className="pointer-events-none inline-flex items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm text-muted-foreground select-none">
+        문의사항 fbwns1234@gmail.com
+      </div>
     </div>
   );
 }

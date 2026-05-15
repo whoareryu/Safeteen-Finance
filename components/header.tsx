@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { User, LogIn, Home } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
+import WeatherWidget from "./weather-widget";
 
 export default function Header() {
+  const pathname = usePathname();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const showWeather = pathname === "/";
 
   const openLogin = () => {
     setAuthMode("login");
@@ -35,6 +39,7 @@ export default function Header() {
             <Home className="h-4 w-4" aria-hidden />
             HOME
           </Link>
+          {showWeather ? <WeatherWidget /> : null}
         </div>
 
         <nav className="flex items-center gap-3">

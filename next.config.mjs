@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -6,6 +8,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  async rewrites() {
+    return [
+      {
+        source: "/api/chat",
+        destination: `${backendUrl}/chat`,
+      },
+    ];
+  },
+};
 
-export default nextConfig
+export default nextConfig;

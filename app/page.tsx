@@ -2,7 +2,7 @@ import HeroSection from "@/components/hero-section";
 
 export default function Home() {
   return (
-    <main className="h-screen overflow-hidden bg-transparent">
+    <main className="home-main h-screen overflow-hidden bg-transparent">
       <HeroSection />
     </main>
   );
