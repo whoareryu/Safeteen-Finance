@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
-import NeonFlowLines from '@/components/neon-flow-lines'
+import { AuthProvider } from '@/components/auth-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -37,12 +37,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark bg-background">
+    <html lang="en" className="bg-white">
       <body className="font-sans antialiased">
-        <NeonFlowLines />
-        <Header />
-        <div className="relative z-10 min-h-screen bg-transparent">{children}</div>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <AuthProvider>
+          <Header />
+          <div className="relative z-10 min-h-screen bg-transparent">{children}</div>
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </AuthProvider>
       </body>
     </html>
   )

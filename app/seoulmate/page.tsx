@@ -74,7 +74,7 @@ export default function SeoulMatePage() {
   const open = CATEGORIES.find((c) => c.id === openId);
 
   return (
-    <main className="min-h-screen bg-transparent px-6 pb-16 pt-24">
+    <main className="min-h-screen bg-white px-6 pb-16 pt-24">
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-10">
         <div className="flex w-full flex-col items-center gap-4">
           <div className="flex flex-wrap items-end justify-center gap-3 md:gap-5">
@@ -104,12 +104,12 @@ export default function SeoulMatePage() {
             return (
               <div
                 key={cat.id}
-                className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+                className="card-light overflow-hidden"
               >
                 <button
                   type="button"
                   onClick={() => toggle(cat.id)}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-muted/50"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-neutral-100"
                   aria-expanded={isOpen}
                 >
                   <span className="flex flex-col gap-0.5">
@@ -128,7 +128,7 @@ export default function SeoulMatePage() {
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-border bg-muted/20 px-4 py-4">
+                  <div className="border-t border-neutral-200 bg-neutral-50/80 px-4 py-4">
                     <p className="mb-3 text-xs text-muted-foreground">
                       아래는 UI 구조용 예시입니다. 이후 실제 추천 데이터로
                       교체됩니다.
@@ -137,7 +137,7 @@ export default function SeoulMatePage() {
                       {cat.placeholderPlaces.map((p) => (
                         <li
                           key={p.name}
-                          className="flex items-start gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5"
+                          className="flex items-start gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2.5"
                         >
                           <MapPin
                             className="mt-0.5 h-4 w-4 shrink-0 text-primary"

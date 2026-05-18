@@ -23,12 +23,12 @@ export default function SocialFooter() {
           href="https://github.com/Whoareryu"
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
+          className="surface-white group flex items-center gap-3 px-5 py-3"
         >
-          <Github className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <Github className="w-5 h-5 text-neutral-500 transition-colors group-hover:text-neutral-800" />
           <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">GitHub</span>
-            <span className="text-sm font-medium text-foreground">@Whoareryu</span>
+            <span className="text-xs text-neutral-500">GitHub</span>
+            <span className="text-sm font-medium text-neutral-800">@Whoareryu</span>
           </div>
         </a>
 
@@ -36,17 +36,17 @@ export default function SocialFooter() {
           href="https://x.com/Who_are_ryu__"
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-card/80 transition-all"
+          className="surface-white group flex items-center gap-3 px-5 py-3"
         >
-          <XIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <XIcon className="w-5 h-5 text-neutral-500 transition-colors group-hover:text-neutral-800" />
           <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">X (Twitter)</span>
-            <span className="text-sm font-medium text-foreground">@Who_are_ryu__</span>
+            <span className="text-xs text-neutral-500">X (Twitter)</span>
+            <span className="text-sm font-medium text-neutral-800">@Who_are_ryu__</span>
           </div>
         </a>
       </div>
 
-      <div className="pointer-events-none inline-flex items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm text-muted-foreground select-none">
+      <div className="pointer-events-none inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-neutral-50 px-5 py-3 text-sm text-neutral-600 shadow-sm select-none">
         문의사항 fbwns1234@gmail.com
       </div>
     </div>

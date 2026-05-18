@@ -73,9 +73,9 @@ export default function TitanicHomePage() {
   const onDragLeave = () => setDragActive(false);
 
   return (
-    <main className="min-h-screen bg-transparent px-4 pb-16 pt-24">
+    <main className="min-h-screen bg-white px-4 pb-16 pt-24">
       <div className="mx-auto max-w-lg space-y-10">
-        <div className="relative overflow-hidden rounded-2xl border border-border shadow-lg">
+        <div className="relative overflow-hidden rounded-2xl border border-neutral-300 shadow-lg">
           <div
             className="absolute inset-0 scale-105 bg-cover bg-center"
             style={{ backgroundImage: "url(/images/titanic-hero.png)" }}
@@ -93,13 +93,13 @@ export default function TitanicHomePage() {
           </div>
         </div>
 
-        <div className="space-y-8 rounded-2xl border border-border bg-card/80 p-6 shadow-sm backdrop-blur-sm">
+        <div className="card-light space-y-8 p-6">
           <p className="text-center text-sm text-muted-foreground">
-            <code className="rounded-md bg-muted px-1.5 py-0.5 text-foreground/90">
+            <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 text-neutral-800">
               titanic.csv
             </code>{" "}
             는 아래 두 가지 방법 중 하나로 업로드할 수 있습니다. 서버에는 항상{" "}
-            <code className="rounded-md bg-muted px-1.5 py-0.5 text-foreground/90">
+            <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 text-neutral-800">
               uploads/titanic/titanic.csv
             </code>{" "}
             로 저장됩니다.
@@ -120,7 +120,7 @@ export default function TitanicHomePage() {
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={status.type === "loading"}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-border bg-secondary/50 px-4 py-3 text-sm font-medium text-foreground transition hover:bg-secondary disabled:opacity-50"
+              className="btn-white flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-medium disabled:opacity-50"
             >
               <Upload className="h-4 w-4" />
               CSV 파일 선택…
@@ -143,8 +143,8 @@ export default function TitanicHomePage() {
               }}
               className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
                 dragActive
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40"
+                  ? "border-primary bg-primary/10 text-neutral-800"
+                  : "border-neutral-300 bg-neutral-50 text-neutral-600 hover:border-neutral-400 hover:bg-neutral-100"
               }`}
             >
               <Upload className="mb-2 h-8 w-8 opacity-70" />

@@ -4,25 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.12 0.01 260);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.01 260);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.01 260);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.7 0.18 280);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.01 260);
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.2 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 260);
+  --primary: oklch(0.55 0.18 280);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.01 260);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0.01 260);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.65 0.22 180);
-  --accent-foreground: oklch(0.12 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.28 0.02 260);
-  --input: oklch(0.2 0.01 260);
-  --ring: oklch(0.7 0.18 280);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.25 0.01 260);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0.01 260);
+  --accent: oklch(0.96 0.01 260);
+  --accent-foreground: oklch(0.25 0.01 260);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.82 0 0);
+  --input: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.18 280);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -40,38 +40,38 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.01 260);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.01 260);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.01 260);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.7 0.18 280);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.01 260);
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.2 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 260);
+  --primary: oklch(0.55 0.18 280);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.01 260);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0.01 260);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.65 0.22 180);
-  --accent-foreground: oklch(0.12 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.28 0.02 260);
-  --input: oklch(0.2 0.01 260);
-  --ring: oklch(0.7 0.18 280);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.25 0.01 260);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0.01 260);
+  --accent: oklch(0.96 0.01 260);
+  --accent-foreground: oklch(0.25 0.01 260);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.82 0 0);
+  --input: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.18 280);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.14 0.01 260);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.7 0.18 280);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.2 0.01 260);
+  --sidebar-primary: oklch(0.55 0.18 280);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.01 260);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.02 260);
-  --sidebar-ring: oklch(0.7 0.18 280);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.25 0.01 260);
+  --sidebar-border: oklch(0.82 0 0);
+  --sidebar-ring: oklch(0.55 0.18 280);
 }
 
 @theme inline {
@@ -120,13 +120,130 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
   }
 }
 
-/* 메인 페이지 */
+/* 메인 페이지 — 흰 배경 + 기존 그라데이션·포인트 색 유지 */
 main.home-main {
   position: relative;
+}
+
+main.home-main--white {
+  background-color: #ffffff;
+}
+
+/* dark 테마 변수 위에서 본문 가독성 (그라데이션 제목은 그대로) */
+main.home-main--white .home-on-white .text-primary {
+  color: oklch(0.55 0.18 280);
+}
+
+main.home-main--white .home-on-white :where(.text-muted-foreground) {
+  color: oklch(0.48 0.01 260);
+}
+
+main.home-main--white .home-on-white :where(.text-foreground) {
+  color: oklch(0.2 0.01 260);
+}
+
+@layer components {
+  .btn-white {
+    @apply rounded-lg border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+  }
+
+  .btn-white-pill {
+    @apply rounded-full border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+  }
+
+  .surface-white {
+    @apply rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+  }
+
+  .modal-overlay {
+    @apply bg-neutral-900/40 backdrop-blur-sm;
+  }
+
+  .modal-panel {
+    @apply relative w-full max-w-md rounded-2xl border border-neutral-300 bg-white p-8 text-neutral-800 shadow-xl;
+  }
+
+  .modal-divider {
+    @apply h-px w-full bg-neutral-200;
+  }
+
+  .modal-option {
+    @apply flex items-center justify-between gap-4 rounded-xl border border-neutral-300 bg-neutral-50 px-5 py-4 transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+  }
+
+  .input-light {
+    @apply w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+
+  .card-light {
+    @apply rounded-xl border border-neutral-300 bg-neutral-50 shadow-sm;
+  }
+}
+
+/* 사이트 공통 — 네비 (로고 그라데이션과 어울리는 연보라·시안 톤) */
+header.site-header--light {
+  border-color: oklch(0.84 0.04 285);
+  background: linear-gradient(
+    120deg,
+    oklch(0.96 0.03 285) 0%,
+    oklch(0.99 0.012 260) 42%,
+    oklch(0.97 0.028 215) 100%
+  );
+  box-shadow:
+    0 1px 0 oklch(0.9 0.04 285 / 0.65),
+    0 4px 14px oklch(0.45 0.06 280 / 0.07);
+  color: oklch(0.22 0.02 260);
+}
+
+header.site-header--light .text-muted-foreground {
+  color: oklch(0.45 0.03 260);
+}
+
+header.site-header--light .text-foreground {
+  color: oklch(0.2 0.02 260);
+}
+
+header.site-header--light .btn-white {
+  border-color: oklch(0.8 0.045 285);
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px oklch(0.4 0.05 280 / 0.1);
+}
+
+header.site-header--light .btn-white:hover {
+  border-color: oklch(0.68 0.1 285);
+  background-color: oklch(0.995 0.015 285);
+}
+
+header.site-header--light #weather-container {
+  border-color: oklch(0.72 0.08 285);
+  background-color: #ffffff;
+  color: oklch(0.2 0.02 260);
+  box-shadow:
+    0 1px 2px oklch(0.4 0.06 280 / 0.1),
+    0 0 0 1px oklch(0.92 0.03 285 / 0.8);
+}
+
+header.site-header--light #weather-container #weather-temp {
+  color: oklch(0.18 0.03 260);
+}
+
+header.site-header--light #weather-container #weather-desc {
+  color: oklch(0.42 0.04 260);
+  opacity: 1;
+}
+
+header.site-header--light #weather-container .weather-icon-fallback {
+  color: oklch(0.52 0.16 285);
+}
+
+header.site-header--light #weather-container.weather-error {
+  border-color: oklch(0.65 0.14 25);
+  background-color: oklch(0.98 0.02 25);
+  color: oklch(0.45 0.14 25);
 }
 
 /* 헤더 좌측 — 오늘의 날씨 */
@@ -136,11 +253,11 @@ main.home-main {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 9999px;
-  border: 1px solid hsl(var(--border));
-  background-color: hsl(var(--secondary) / 0.45);
+  border: 1px solid oklch(0.78 0 0);
+  background-color: oklch(0.985 0 0);
   font-size: 13px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: oklch(0.25 0.01 260);
   backdrop-filter: blur(8px);
   max-width: min(260px, 48vw);
 }
@@ -164,7 +281,7 @@ main.home-main {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: hsl(var(--primary));
+  color: oklch(0.55 0.18 280);
 }
 
 .weather-text {
@@ -191,8 +308,8 @@ main.home-main {
 }
 
 #weather-container.weather-error {
-  color: hsl(var(--destructive));
-  border-color: hsl(var(--destructive) / 0.35);
+  color: oklch(0.55 0.22 27);
+  border-color: oklch(0.55 0.22 27 / 0.35);
 }
 
 @keyframes neon-line-drift-h {
@@ -201,10 +318,10 @@ main.home-main {
     opacity: 0;
   }
   7% {
-    opacity: var(--neon-opacity-mid, 0.52);
+    opacity: var(--neon-opacity-mid, 0.82);
   }
   93% {
-    opacity: var(--neon-opacity-mid, 0.52);
+    opacity: var(--neon-opacity-mid, 0.82);
   }
   100% {
     transform: translate(-50%, -50%) translateX(-78vw) rotate(calc(var(--neon-skew, 0deg) * -1));

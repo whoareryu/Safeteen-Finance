@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Role = "user" | "assistant";
 
@@ -22,7 +23,12 @@ function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export default function GeminiChat() {
+type GeminiChatProps = {
+  variant?: "dark" | "apple";
+};
+
+export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
+  const isApple = variant === "apple";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<(typeof MODEL_OPTIONS)[number]["value"]>(
@@ -84,7 +90,10 @@ export default function GeminiChat() {
         setError("응답이 비어 있습니다.");
         return;
       }
-      setMessages((prev) => [...prev, { id: id(), role: "assistant", content: data.text! }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: id(), role: "assistant", content: data.text! },
+      ]);
     } catch {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
@@ -107,36 +116,68 @@ export default function GeminiChat() {
   }, [input]);
 
   const hasThread = messages.length > 0 || loading;
+  const canSend = input.trim().length > 0 && !loading;
+
+  const iconBtn = isApple
+    ? "rounded-full p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+    : "rounded-full p-2 text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]";
+
+  const toolBtn = isApple
+    ? "flex items-center gap-1.5 rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1.5 text-sm text-neutral-700 shadow-sm transition-colors hover:bg-neutral-100"
+    : "flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]";
 
   return (
     <div className="mx-auto w-full max-w-xl">
       {hasThread && (
         <div
           ref={listRef}
-          className="mb-3 max-h-[min(40vh,220px)] space-y-2 overflow-y-auto rounded-2xl border border-border/40 bg-card/30 px-3 py-2 text-left text-sm"
+          className={cn(
+            "mb-3 max-h-[min(40vh,220px)] space-y-2 overflow-y-auto rounded-2xl border px-3 py-2 text-left text-sm",
+            isApple
+              ? "border-neutral-300 bg-white shadow-sm"
+              : "border-border/40 bg-card/30"
+          )}
         >
           {messages.map((m) => (
             <div
               key={m.id}
-              className={
+              className={cn(
+                "rounded-xl px-2.5 py-1.5",
                 m.role === "user"
-                  ? "ml-6 rounded-xl rounded-br-sm bg-primary/15 px-2.5 py-1.5 text-foreground"
-                  : "mr-4 rounded-xl rounded-bl-sm bg-muted/40 px-2.5 py-1.5 text-foreground/90"
-              }
+                  ? isApple
+                    ? "ml-6 rounded-br-sm border border-neutral-300 bg-white text-neutral-800"
+                    : "ml-6 rounded-br-sm bg-primary/15 text-foreground"
+                  : isApple
+                    ? "mr-4 rounded-bl-sm bg-neutral-50 text-neutral-800"
+                    : "mr-4 rounded-bl-sm bg-muted/40 text-foreground/90"
+              )}
             >
               <p className="whitespace-pre-wrap break-words">{m.content}</p>
             </div>
           ))}
           {loading && (
-            <div className="mr-4 rounded-xl rounded-bl-sm bg-muted/40 px-2.5 py-1.5 text-muted-foreground">
+            <div
+              className={cn(
+                "mr-4 rounded-xl rounded-bl-sm px-2.5 py-1.5",
+                isApple
+                  ? "bg-neutral-50 text-neutral-500"
+                  : "bg-muted/40 text-muted-foreground"
+              )}
+            >
               답변 작성 중…
             </div>
           )}
         </div>
       )}
 
-      {/* 입력 영역은 세로 중앙에 두고, 전체 폭은 Gemini 웹에 가깝게 좁게 */}
-      <div className="flex min-h-[136px] w-full min-w-0 flex-col rounded-[28px] border border-white/[0.12] bg-[#1e1f20] px-4 pb-2.5 pt-3 text-[#e3e3e3] shadow-xl md:min-h-[152px]">
+      <div
+        className={cn(
+          "gemini-chat-shell flex min-h-[136px] w-full min-w-0 flex-col rounded-[28px] px-4 pb-2.5 pt-3 md:min-h-[152px]",
+          isApple
+            ? "border border-neutral-300 bg-white text-neutral-800 shadow-sm"
+            : "border border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3] shadow-xl"
+        )}
+      >
         <div className="flex min-h-[84px] flex-1 flex-col justify-center py-1">
           <textarea
             ref={textareaRef}
@@ -146,21 +187,37 @@ export default function GeminiChat() {
             onKeyDown={onKeyDown}
             placeholder="Gemini에게 물어보기"
             disabled={loading}
-            className="w-full max-h-[120px] min-h-[26px] resize-none overflow-y-auto bg-transparent text-left text-[15px] leading-relaxed text-[#f1f3f4] placeholder:text-[#9aa0a6] outline-none disabled:opacity-60"
+            className={cn(
+              "w-full max-h-[120px] min-h-[26px] resize-none overflow-y-auto bg-transparent text-left text-[15px] leading-relaxed outline-none disabled:opacity-60",
+              isApple
+                ? "text-neutral-900 placeholder:text-neutral-400"
+                : "text-[#f1f3f4] placeholder:text-[#9aa0a6]"
+            )}
           />
         </div>
 
         {error && (
-          <p className="mb-1 shrink-0 text-xs text-red-400" role="alert">
+          <p
+            className={cn(
+              "mb-1 shrink-0 text-xs",
+              isApple ? "text-red-600" : "text-red-400"
+            )}
+            role="alert"
+          >
             {error}
           </p>
         )}
 
-        <div className="mt-0.5 flex shrink-0 items-center justify-between gap-2 border-t border-white/[0.08] pt-2.5">
+        <div
+          className={cn(
+            "mt-0.5 flex shrink-0 items-center justify-between gap-2 border-t pt-2.5",
+            isApple ? "border-neutral-300" : "border-white/[0.08]"
+          )}
+        >
           <div className="flex items-center gap-0.5">
             <button
               type="button"
-              className="rounded-full p-2 text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]"
+              className={iconBtn}
               aria-label="첨부 (준비 중)"
               title="준비 중"
             >
@@ -168,7 +225,7 @@ export default function GeminiChat() {
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]"
+              className={toolBtn}
               aria-label="도구 (준비 중)"
               title="준비 중"
             >
@@ -183,40 +240,86 @@ export default function GeminiChat() {
                 value={model}
                 disabled={loading}
                 onChange={(e) =>
-                  setModel(e.target.value as (typeof MODEL_OPTIONS)[number]["value"])
+                  setModel(
+                    e.target.value as (typeof MODEL_OPTIONS)[number]["value"]
+                  )
                 }
-                className="appearance-none rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-3 pr-8 text-sm text-[#e8eaed] outline-none hover:bg-white/10 disabled:opacity-50"
+                className={cn(
+                  "appearance-none rounded-full border py-1.5 pl-3 pr-8 text-sm outline-none disabled:opacity-50",
+                  isApple
+                    ? "border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
+                    : "border-white/15 bg-white/[0.06] text-[#e8eaed] hover:bg-white/10"
+                )}
                 aria-label="모델 선택"
               >
                 {MODEL_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value} className="bg-[#1e1f20]">
+                  <option
+                    key={o.value}
+                    value={o.value}
+                    className={isApple ? "bg-neutral-50 text-neutral-800" : "bg-[#1e1f20]"}
+                  >
                     {o.label}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2 text-[#9aa0a6]" />
+              <ChevronDown
+                className={cn(
+                  "pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2",
+                  isApple ? "text-neutral-500" : "text-[#9aa0a6]"
+                )}
+              />
             </div>
 
             <button
               type="button"
-              className="rounded-full p-2 text-[#c4c7c5] opacity-60"
+              className={cn(iconBtn, !isApple && "opacity-60")}
               aria-label="음성 입력 (미지원)"
               title="미지원"
               disabled
             >
               <Mic className="size-5" strokeWidth={1.75} />
             </button>
+
+            <button
+              type="button"
+              onClick={() => void send()}
+              disabled={!canSend}
+              className={cn(
+                "rounded-full p-2 transition-colors disabled:cursor-not-allowed",
+                isApple
+                  ? canSend
+                    ? "bg-neutral-800 text-white hover:bg-neutral-700"
+                    : "text-neutral-300"
+                  : canSend
+                    ? "bg-[#8ab4f8] text-[#1e1f20] hover:bg-[#a8c7fa]"
+                    : "text-[#5f6368] opacity-60"
+              )}
+              aria-label="전송"
+              title="전송"
+            >
+              <SendHorizontal className="size-5" strokeWidth={1.75} />
+            </button>
           </div>
         </div>
       </div>
 
-      <p className="mx-auto mt-2.5 max-w-xl px-2 text-center text-[11px] leading-snug text-[#8e918f] sm:text-xs">
+      <p
+        className={cn(
+          "mx-auto mt-2.5 max-w-xl px-2 text-center text-[11px] leading-snug sm:text-xs",
+          isApple ? "text-neutral-500" : "text-[#8e918f]"
+        )}
+      >
         Gemini는 AI이며 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.{" "}
         <a
           href="https://gemini.google.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#a8c7fa] underline decoration-[#a8c7fa]/70 underline-offset-2 hover:text-[#c5d8fc]"
+          className={cn(
+            "underline underline-offset-2",
+            isApple
+              ? "text-blue-600 decoration-blue-600/50 hover:text-blue-700"
+              : "text-[#a8c7fa] decoration-[#a8c7fa]/70 hover:text-[#c5d8fc]"
+          )}
         >
           개인 정보 보호 및 Gemini
         </a>

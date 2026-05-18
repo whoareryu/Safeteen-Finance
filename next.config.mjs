@@ -14,6 +14,10 @@ const nextConfig = {
         source: "/api/chat",
         destination: `${backendUrl}/chat`,
       },
+      {
+        source: "/api/auth/:path*",
+        destination: `${backendUrl}/auth/:path*`,
+      },
     ];
   },
 };
