@@ -22,21 +22,15 @@ export default function Header() {
 
   return (
     <>
-      <header className="site-header--light fixed top-0 left-0 right-0 z-50 flex items-center justify-between border-b px-6 py-4 backdrop-blur-md">
-        <div className="flex items-center gap-4 md:gap-6">
-          <h1 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-2xl font-bold tracking-tight">
+      <header className="site-header--light fixed top-0 left-0 right-0 z-50 flex items-center justify-between border-b px-6 py-2">
+        <div className="relative z-10 flex min-w-0 items-center gap-4 md:gap-6">
+          <h1 className="text-2xl font-bold tracking-tight">
             <Link
               href="/"
               className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent hover:opacity-90"
             >
               Whoareryu
             </Link>
-            {ready && user ? (
-              <span className="text-sm font-medium text-muted-foreground md:text-base">
-                Hello,{" "}
-                <span className="text-foreground">{user.nickname}</span>
-              </span>
-            ) : null}
           </h1>
           <Link
             href="/"
@@ -48,7 +42,17 @@ export default function Header() {
           {showWeather ? <WeatherWidget /> : null}
         </div>
 
-        <nav className="flex items-center gap-3">
+        {ready && user ? (
+          <p
+            className="site-header-greeting pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap px-2 text-center text-lg font-semibold tracking-tight text-muted-foreground sm:text-xl md:text-2xl"
+            aria-live="polite"
+          >
+            Hello,{" "}
+            <span className="text-foreground">{user.nickname}</span> 님
+          </p>
+        ) : null}
+
+        <nav className="relative z-10 flex shrink-0 items-center gap-3">
           <Link href="/seoulmate" className="btn-white px-3 py-2 text-sm font-medium">
             SeoulMate
           </Link>

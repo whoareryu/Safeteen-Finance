@@ -91,7 +91,7 @@ export async function signup(payload: {
   email: string;
   nickname: string;
 }): Promise<AuthUser> {
-  const res = await authFetch("/api/auth/signup", {
+  const res = await authFetch("/api/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

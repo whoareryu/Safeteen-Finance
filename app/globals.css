@@ -4,24 +4,27 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.2 0.01 260);
-  --card: oklch(0.985 0 0);
-  --card-foreground: oklch(0.2 0.01 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.01 260);
+  /* fixed 네비게이션 높이 — 본문이 바에 가리지 않도록 */
+  --site-header-height: 4.5rem;
+  /* 눈 피로 완화 — 순백 대신 따뜻한 종이 톤 */
+  --background: oklch(0.965 0.012 95);
+  --foreground: oklch(0.24 0.02 260);
+  --card: oklch(0.988 0.007 95);
+  --card-foreground: oklch(0.24 0.02 260);
+  --popover: oklch(0.988 0.007 95);
+  --popover-foreground: oklch(0.24 0.02 260);
   --primary: oklch(0.55 0.18 280);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.25 0.01 260);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0.01 260);
-  --accent: oklch(0.96 0.01 260);
-  --accent-foreground: oklch(0.25 0.01 260);
+  --secondary: oklch(0.94 0.014 95);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.945 0.012 95);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.94 0.014 95);
+  --accent-foreground: oklch(0.28 0.02 260);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.82 0 0);
-  --input: oklch(0.985 0 0);
+  --border: oklch(0.86 0.018 92);
+  --input: oklch(0.978 0.01 95);
   --ring: oklch(0.55 0.18 280);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -40,24 +43,24 @@
 }
 
 .dark {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.2 0.01 260);
-  --card: oklch(0.985 0 0);
-  --card-foreground: oklch(0.2 0.01 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.01 260);
+  --background: oklch(0.965 0.012 95);
+  --foreground: oklch(0.24 0.02 260);
+  --card: oklch(0.988 0.007 95);
+  --card-foreground: oklch(0.24 0.02 260);
+  --popover: oklch(0.988 0.007 95);
+  --popover-foreground: oklch(0.24 0.02 260);
   --primary: oklch(0.55 0.18 280);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.25 0.01 260);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.48 0.01 260);
-  --accent: oklch(0.96 0.01 260);
-  --accent-foreground: oklch(0.25 0.01 260);
+  --secondary: oklch(0.94 0.014 95);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.945 0.012 95);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.94 0.014 95);
+  --accent-foreground: oklch(0.28 0.02 260);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.82 0 0);
-  --input: oklch(0.985 0 0);
+  --border: oklch(0.86 0.018 92);
+  --input: oklch(0.978 0.01 95);
   --ring: oklch(0.55 0.18 280);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -120,7 +123,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-white text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -130,7 +133,15 @@ main.home-main {
 }
 
 main.home-main--white {
-  background-color: #ffffff;
+  isolation: isolate;
+  background-color: var(--background);
+}
+
+.home-content-layer {
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 /* dark 테마 변수 위에서 본문 가독성 (그라데이션 제목은 그대로) */
@@ -146,17 +157,58 @@ main.home-main--white .home-on-white :where(.text-foreground) {
   color: oklch(0.2 0.01 260);
 }
 
+/* 네온선 — 글자 윤곽만 살짝 가림 (박스·배경 패치 없음) */
+main.home-main--white .home-on-white .neon-text-shield {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  text-shadow:
+    0 0 0.2em var(--background),
+    0 0 0.45em var(--background),
+    0 0 0.7em var(--background),
+    0 0 1em var(--background);
+}
+
+main.home-main--white .home-on-white .neon-hit-shield {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
+/* 그라데이션 제목 — 아래 불투명 글자로 네온 차단 */
+.neon-gradient-title {
+  position: relative;
+  display: inline-block;
+}
+
+.neon-gradient-title__underlay {
+  position: absolute;
+  inset: 0;
+  color: var(--foreground);
+  -webkit-text-fill-color: var(--foreground);
+  pointer-events: none;
+  user-select: none;
+}
+
+.neon-gradient-title__gradient {
+  position: relative;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
 @layer components {
   .btn-white {
-    @apply rounded-lg border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+    @apply rounded-lg border border-border bg-card text-foreground shadow-sm transition-colors hover:border-border hover:bg-secondary;
   }
 
   .btn-white-pill {
-    @apply rounded-full border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+    @apply rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:border-border hover:bg-secondary;
   }
 
   .surface-white {
-    @apply rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+    @apply rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:border-border hover:bg-secondary;
   }
 
   .modal-overlay {
@@ -164,39 +216,50 @@ main.home-main--white .home-on-white :where(.text-foreground) {
   }
 
   .modal-panel {
-    @apply relative w-full max-w-md rounded-2xl border border-neutral-300 bg-white p-8 text-neutral-800 shadow-xl;
+    @apply relative w-full max-w-md rounded-2xl border border-border bg-card p-8 text-foreground shadow-xl;
   }
 
   .modal-divider {
-    @apply h-px w-full bg-neutral-200;
+    @apply h-px w-full bg-border;
   }
 
   .modal-option {
-    @apply flex items-center justify-between gap-4 rounded-xl border border-neutral-300 bg-neutral-50 px-5 py-4 transition-colors hover:border-neutral-400 hover:bg-neutral-100;
+    @apply flex items-center justify-between gap-4 rounded-xl border border-border bg-secondary px-5 py-4 transition-colors hover:border-border hover:bg-muted;
   }
 
   .input-light {
-    @apply w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+    @apply w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
   }
 
   .card-light {
-    @apply rounded-xl border border-neutral-300 bg-neutral-50 shadow-sm;
+    @apply rounded-xl border border-border bg-card shadow-sm;
   }
 }
 
 /* 사이트 공통 — 네비 (로고 그라데이션과 어울리는 연보라·시안 톤) */
+.site-main-below-header {
+  padding-top: var(--site-header-height);
+  scroll-padding-top: var(--site-header-height);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --site-header-height: 4.75rem;
+  }
+}
+
 header.site-header--light {
-  border-color: oklch(0.84 0.04 285);
+  border-color: oklch(0.84 0.025 285);
   background: linear-gradient(
     120deg,
-    oklch(0.96 0.03 285) 0%,
-    oklch(0.99 0.012 260) 42%,
-    oklch(0.97 0.028 215) 100%
+    oklch(0.94 0.028 285) 0%,
+    oklch(0.965 0.012 95) 45%,
+    oklch(0.955 0.022 215) 100%
   );
   box-shadow:
-    0 1px 0 oklch(0.9 0.04 285 / 0.65),
-    0 4px 14px oklch(0.45 0.06 280 / 0.07);
-  color: oklch(0.22 0.02 260);
+    0 1px 0 oklch(0.88 0.03 285 / 0.5),
+    0 4px 14px oklch(0.45 0.06 280 / 0.06);
+  color: oklch(0.24 0.02 260);
 }
 
 header.site-header--light .text-muted-foreground {
@@ -208,19 +271,19 @@ header.site-header--light .text-foreground {
 }
 
 header.site-header--light .btn-white {
-  border-color: oklch(0.8 0.045 285);
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px oklch(0.4 0.05 280 / 0.1);
+  border-color: oklch(0.82 0.035 285);
+  background-color: var(--card);
+  box-shadow: 0 1px 2px oklch(0.4 0.05 280 / 0.08);
 }
 
 header.site-header--light .btn-white:hover {
-  border-color: oklch(0.68 0.1 285);
-  background-color: oklch(0.995 0.015 285);
+  border-color: oklch(0.72 0.07 285);
+  background-color: oklch(0.99 0.01 95);
 }
 
 header.site-header--light #weather-container {
-  border-color: oklch(0.72 0.08 285);
-  background-color: #ffffff;
+  border-color: oklch(0.78 0.05 285);
+  background-color: var(--card);
   color: oklch(0.2 0.02 260);
   box-shadow:
     0 1px 2px oklch(0.4 0.06 280 / 0.1),
@@ -253,8 +316,8 @@ header.site-header--light #weather-container.weather-error {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 9999px;
-  border: 1px solid oklch(0.78 0 0);
-  background-color: oklch(0.985 0 0);
+  border: 1px solid var(--border);
+  background-color: var(--card);
   font-size: 13px;
   font-weight: 600;
   color: oklch(0.25 0.01 260);

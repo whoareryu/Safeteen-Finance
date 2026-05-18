@@ -73,7 +73,7 @@ export default function TitanicHomePage() {
   const onDragLeave = () => setDragActive(false);
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-16 pt-24">
+    <main className="min-h-[calc(100dvh-var(--site-header-height))] bg-background px-4 pb-16 pt-6">
       <div className="mx-auto max-w-lg space-y-10">
         <div className="relative overflow-hidden rounded-2xl border border-neutral-300 shadow-lg">
           <div
@@ -95,11 +95,11 @@ export default function TitanicHomePage() {
 
         <div className="card-light space-y-8 p-6">
           <p className="text-center text-sm text-muted-foreground">
-            <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 text-neutral-800">
+            <code className="rounded-md bg-muted px-1.5 py-0.5 text-foreground">
               titanic.csv
             </code>{" "}
             는 아래 두 가지 방법 중 하나로 업로드할 수 있습니다. 서버에는 항상{" "}
-            <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 text-neutral-800">
+            <code className="rounded-md bg-muted px-1.5 py-0.5 text-foreground">
               uploads/titanic/titanic.csv
             </code>{" "}
             로 저장됩니다.
@@ -144,7 +144,7 @@ export default function TitanicHomePage() {
               className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
                 dragActive
                   ? "border-primary bg-primary/10 text-neutral-800"
-                  : "border-neutral-300 bg-neutral-50 text-neutral-600 hover:border-neutral-400 hover:bg-neutral-100"
+                  : "border-border bg-secondary text-muted-foreground hover:border-border hover:bg-muted"
               }`}
             >
               <Upload className="mb-2 h-8 w-8 opacity-70" />

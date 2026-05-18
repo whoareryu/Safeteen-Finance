@@ -78,9 +78,9 @@ export default function NeonFlowLines({ embedded = false }: NeonFlowLinesProps) 
   return (
     <div
       className={cn(
-        "pointer-events-none overflow-hidden",
+        "neon-flow-layer pointer-events-none overflow-hidden",
         embedded
-          ? "absolute inset-0 z-[1]"
+          ? "absolute inset-0 z-0"
           : "fixed inset-0 z-[8]"
       )}
       aria-hidden

@@ -37,11 +37,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-white">
+    <html lang="en" className="bg-background">
       <body className="font-sans antialiased">
         <AuthProvider>
           <Header />
-          <div className="relative z-10 min-h-screen bg-transparent">{children}</div>
+          <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
+            {children}
+          </div>
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </AuthProvider>
       </body>

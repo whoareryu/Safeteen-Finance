@@ -168,7 +168,7 @@ export default function AuthModal({
     const mail = email.trim();
 
     if (password !== passwordConfirm) {
-      setError(null);
+      setError("비밀번호가 일치하지 않습니다.");
       return;
     }
 

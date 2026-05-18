@@ -46,13 +46,13 @@ export default function HimediaCoursePicker() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-300 bg-neutral-50 px-5 py-4 text-left shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-100"
+          className="neon-hit-shield btn-white flex w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left"
         >
-          <span className="text-base font-semibold tracking-tight text-neutral-800 sm:text-lg">
+          <span className="text-base font-semibold tracking-tight sm:text-lg">
             하이미디어 재직자 AI 과정
           </span>
           <ChevronRight
-            className="h-5 w-5 shrink-0 text-neutral-500"
+            className="h-5 w-5 shrink-0 text-muted-foreground"
             aria-hidden
           />
         </button>
@@ -70,7 +70,7 @@ export default function HimediaCoursePicker() {
             <button
               type="button"
               onClick={close}
-              className="absolute right-4 top-4 rounded-lg border border-neutral-300 bg-neutral-50 p-2 text-neutral-600 transition-colors hover:border-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+              className="btn-white absolute right-4 top-4 p-2"
               aria-label="닫기"
             >
               <X className="h-5 w-5" />
@@ -84,7 +84,7 @@ export default function HimediaCoursePicker() {
                 하이미디어 재직자 AI 과정
               </span>
             </h2>
-            <p className="mb-6 text-center text-sm text-neutral-500">
+            <p className="mb-6 text-center text-sm text-muted-foreground">
               참여할 과정을 선택해 주세요.
             </p>
 
@@ -100,14 +100,14 @@ export default function HimediaCoursePicker() {
                   className="modal-option group"
                 >
                   <div className="min-w-0 text-left">
-                    <p className="text-base font-semibold text-neutral-800 group-hover:text-primary">
+                    <p className="text-base font-semibold text-foreground group-hover:text-primary">
                       {course.title}
                     </p>
-                    <p className="mt-0.5 text-sm text-neutral-500">
+                    <p className="mt-0.5 text-sm text-muted-foreground">
                       {course.description}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-neutral-500 transition-colors group-hover:text-primary" />
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
                 </Link>
               ))}
             </div>

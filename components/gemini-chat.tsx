@@ -29,6 +29,7 @@ type GeminiChatProps = {
 
 export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
   const isApple = variant === "apple";
+  const neonShield = isApple ? "neon-hit-shield" : "";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<(typeof MODEL_OPTIONS)[number]["value"]>(
@@ -74,15 +75,25 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
         model?: string;
         error?: boolean | string;
         message?: string;
+        detail?: string | unknown;
       };
 
       if (!res.ok) {
+        const detail =
+          typeof data.detail === "string"
+            ? data.detail
+            : Array.isArray(data.detail)
+              ? "요청 형식이 올바르지 않습니다."
+              : null;
         const msg =
-          typeof data.message === "string"
+          detail ??
+          (typeof data.message === "string"
             ? data.message
             : typeof data.error === "string"
               ? data.error
-              : "요청에 실패했습니다.";
+              : res.status === 502
+                ? "백엔드 또는 Gemini API 연결에 실패했습니다. backend 서버와 GEMINI_API_KEY를 확인하세요."
+                : "요청에 실패했습니다.");
         setError(msg);
         return;
       }
@@ -119,62 +130,21 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
   const canSend = input.trim().length > 0 && !loading;
 
   const iconBtn = isApple
-    ? "rounded-full p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+    ? "rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
     : "rounded-full p-2 text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]";
 
   const toolBtn = isApple
-    ? "flex items-center gap-1.5 rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1.5 text-sm text-neutral-700 shadow-sm transition-colors hover:bg-neutral-100"
+    ? "flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1.5 text-sm text-foreground shadow-sm transition-colors hover:bg-secondary"
     : "flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-[#c4c7c5] transition-colors hover:bg-white/10 hover:text-[#e8eaed]";
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      {hasThread && (
-        <div
-          ref={listRef}
-          className={cn(
-            "mb-3 max-h-[min(40vh,220px)] space-y-2 overflow-y-auto rounded-2xl border px-3 py-2 text-left text-sm",
-            isApple
-              ? "border-neutral-300 bg-white shadow-sm"
-              : "border-border/40 bg-card/30"
-          )}
-        >
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={cn(
-                "rounded-xl px-2.5 py-1.5",
-                m.role === "user"
-                  ? isApple
-                    ? "ml-6 rounded-br-sm border border-neutral-300 bg-white text-neutral-800"
-                    : "ml-6 rounded-br-sm bg-primary/15 text-foreground"
-                  : isApple
-                    ? "mr-4 rounded-bl-sm bg-neutral-50 text-neutral-800"
-                    : "mr-4 rounded-bl-sm bg-muted/40 text-foreground/90"
-              )}
-            >
-              <p className="whitespace-pre-wrap break-words">{m.content}</p>
-            </div>
-          ))}
-          {loading && (
-            <div
-              className={cn(
-                "mr-4 rounded-xl rounded-bl-sm px-2.5 py-1.5",
-                isApple
-                  ? "bg-neutral-50 text-neutral-500"
-                  : "bg-muted/40 text-muted-foreground"
-              )}
-            >
-              답변 작성 중…
-            </div>
-          )}
-        </div>
-      )}
-
       <div
         className={cn(
           "gemini-chat-shell flex min-h-[136px] w-full min-w-0 flex-col rounded-[28px] px-4 pb-2.5 pt-3 md:min-h-[152px]",
+          neonShield,
           isApple
-            ? "border border-neutral-300 bg-white text-neutral-800 shadow-sm"
+            ? "border border-border bg-card text-foreground shadow-sm"
             : "border border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3] shadow-xl"
         )}
       >
@@ -190,7 +160,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
             className={cn(
               "w-full max-h-[120px] min-h-[26px] resize-none overflow-y-auto bg-transparent text-left text-[15px] leading-relaxed outline-none disabled:opacity-60",
               isApple
-                ? "text-neutral-900 placeholder:text-neutral-400"
+                ? "text-foreground placeholder:text-muted-foreground"
                 : "text-[#f1f3f4] placeholder:text-[#9aa0a6]"
             )}
           />
@@ -211,7 +181,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
         <div
           className={cn(
             "mt-0.5 flex shrink-0 items-center justify-between gap-2 border-t pt-2.5",
-            isApple ? "border-neutral-300" : "border-white/[0.08]"
+            isApple ? "border-border" : "border-white/[0.08]"
           )}
         >
           <div className="flex items-center gap-0.5">
@@ -247,7 +217,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
                 className={cn(
                   "appearance-none rounded-full border py-1.5 pl-3 pr-8 text-sm outline-none disabled:opacity-50",
                   isApple
-                    ? "border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
+                    ? "border-border bg-card text-foreground hover:bg-secondary"
                     : "border-white/15 bg-white/[0.06] text-[#e8eaed] hover:bg-white/10"
                 )}
                 aria-label="모델 선택"
@@ -256,7 +226,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
                   <option
                     key={o.value}
                     value={o.value}
-                    className={isApple ? "bg-neutral-50 text-neutral-800" : "bg-[#1e1f20]"}
+                    className={isApple ? "bg-card text-foreground" : "bg-[#1e1f20]"}
                   >
                     {o.label}
                   </option>
@@ -265,7 +235,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
               <ChevronDown
                 className={cn(
                   "pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2",
-                  isApple ? "text-neutral-500" : "text-[#9aa0a6]"
+                  isApple ? "text-muted-foreground" : "text-[#9aa0a6]"
                 )}
               />
             </div>
@@ -288,8 +258,8 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
                 "rounded-full p-2 transition-colors disabled:cursor-not-allowed",
                 isApple
                   ? canSend
-                    ? "bg-neutral-800 text-white hover:bg-neutral-700"
-                    : "text-neutral-300"
+                    ? "bg-primary text-primary-foreground hover:opacity-90"
+                    : "text-muted-foreground/50"
                   : canSend
                     ? "bg-[#8ab4f8] text-[#1e1f20] hover:bg-[#a8c7fa]"
                     : "text-[#5f6368] opacity-60"
@@ -303,10 +273,54 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
         </div>
       </div>
 
+      {hasThread && (
+        <div
+          ref={listRef}
+          className={cn(
+            "mt-3 max-h-[min(40vh,220px)] space-y-2 overflow-y-auto rounded-2xl border px-3 py-2 text-left text-sm",
+            neonShield,
+            isApple
+              ? "border-border bg-card shadow-sm"
+              : "border-border/40 bg-card/30"
+          )}
+        >
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={cn(
+                "rounded-xl px-2.5 py-1.5",
+                m.role === "user"
+                  ? isApple
+                    ? "ml-6 rounded-br-sm border border-border bg-card text-foreground"
+                    : "ml-6 rounded-br-sm bg-primary/15 text-foreground"
+                  : isApple
+                    ? "mr-4 rounded-bl-sm bg-secondary text-foreground"
+                    : "mr-4 rounded-bl-sm bg-muted/40 text-foreground/90"
+              )}
+            >
+              <p className="whitespace-pre-wrap break-words">{m.content}</p>
+            </div>
+          ))}
+          {loading && (
+            <div
+              className={cn(
+                "mr-4 rounded-xl rounded-bl-sm px-2.5 py-1.5",
+                isApple
+                  ? "bg-secondary text-muted-foreground"
+                  : "bg-muted/40 text-muted-foreground"
+              )}
+            >
+              답변 작성 중…
+            </div>
+          )}
+        </div>
+      )}
+
       <p
         className={cn(
           "mx-auto mt-2.5 max-w-xl px-2 text-center text-[11px] leading-snug sm:text-xs",
-          isApple ? "text-neutral-500" : "text-[#8e918f]"
+          isApple && "neon-text-shield",
+          isApple ? "text-muted-foreground" : "text-[#8e918f]"
         )}
       >
         Gemini는 AI이며 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.{" "}
