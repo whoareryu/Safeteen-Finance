@@ -5,7 +5,7 @@
 
 :root {
   /* fixed 네비게이션 높이 — 본문이 바에 가리지 않도록 */
-  --site-header-height: 4.5rem;
+  --site-header-height: 5.75rem;
   /* 눈 피로 완화 — 순백 대신 따뜻한 종이 톤 */
   --background: oklch(0.965 0.012 95);
   --foreground: oklch(0.24 0.02 260);
@@ -244,8 +244,61 @@ main.home-main--white .home-on-white .neon-hit-shield {
 
 @media (min-width: 768px) {
   :root {
-    --site-header-height: 4.75rem;
+    --site-header-height: 3.25rem;
   }
+}
+
+/* Apple 스타일 네비·CTA·홈 */
+header.site-header--apple {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(251, 251, 253, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.apple-nav-cta {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1d1d1f;
+  transition: background 0.2s ease;
+}
+
+.apple-nav-cta:hover {
+  background: #fff;
+}
+
+.apple-cta-primary {
+  background: #0071e3;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.apple-cta-primary:hover {
+  background: #0077ed;
+}
+
+.apple-cta-secondary {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: #0071e3;
+}
+
+.apple-cta-secondary:hover {
+  background: #f5f5f7;
+}
+
+main.home-main--apple {
+  background: #fbfbfd;
+}
+
+.apple-product-tile {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+header.site-header--apple #weather-container {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: none;
 }
 
 header.site-header--light {
@@ -373,6 +426,14 @@ header.site-header--light #weather-container.weather-error {
 #weather-container.weather-error {
   color: oklch(0.55 0.22 27);
   border-color: oklch(0.55 0.22 27 / 0.35);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes neon-line-drift-h {

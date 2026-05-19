@@ -7,6 +7,13 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
   },
   async rewrites() {
     return [
@@ -19,8 +26,16 @@ const nextConfig = {
         destination: `${backendUrl}/signup`,
       },
       {
+        source: "/api/login",
+        destination: `${backendUrl}/login`,
+      },
+      {
         source: "/api/auth/:path*",
         destination: `${backendUrl}/auth/:path*`,
+      },
+      {
+        source: "/api/gourmet/:path*",
+        destination: `${backendUrl}/gourmet/:path*`,
       },
     ];
   },

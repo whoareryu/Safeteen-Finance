@@ -9,8 +9,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Whoareryu | AI Developer',
-  description: 'AI Developer studying at IBM x RedHat AI Academy - Building intelligent agents and AI solutions',
+  title: 'GourmetMate | 서울 맛집 AI 가이드',
+  description:
+    '서울 맛집을 AI로 카테고리별 검색·추천하고 메뉴·분위기 정보를 받아보는 GourmetMate',
   generator: 'v0.app',
   icons: {
     icon: [
