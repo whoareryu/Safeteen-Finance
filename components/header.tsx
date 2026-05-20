@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, LogIn, LogOut } from "lucide-react";
+import { ChevronDown, LogIn, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
 import WeatherWidget from "./weather-widget";
 import { useAuth } from "./auth-provider";
-import { CATEGORY_LINKS } from "@/lib/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +14,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useCategoryMenu } from "@/components/category-menu-context";
+
+function CategoryMenuButton() {
+  const { setOpen } = useCategoryMenu();
+  return (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-[#1d1d1f]/85 transition hover:bg-black/[0.06]"
+      aria-label="카테고리 메뉴 열기"
+    >
+      <Menu className="h-5 w-5" aria-hidden />
+      <span className="hidden sm:inline">메뉴</span>
+    </button>
+  );
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -31,51 +46,43 @@ export default function Header() {
   const isPortfolioActive =
     pathname === "/portfolio" || pathname.startsWith("/portfolio/");
 
+  const showCategoryMenu =
+    pathname === "/" ||
+    pathname.startsWith("/food/") ||
+    pathname.startsWith("/topics/") ||
+    pathname.startsWith("/restaurants/");
+
   return (
     <>
-      <header className="site-header--apple fixed top-0 left-0 right-0 z-50">
-        <div className="mx-auto flex h-[var(--site-header-height)] max-w-[1200px] items-center justify-between gap-4 px-4 md:px-6">
-          <Link
-            href="/"
-            className="shrink-0 text-lg font-semibold tracking-tight text-[#1d1d1f] hover:opacity-80 md:text-xl"
-          >
-            GourmetMate
-          </Link>
+      <header className="site-header--apple fixed top-0 left-0 right-0 z-50 w-full">
+        <div className="relative flex h-14 w-full items-center px-4 sm:px-6 lg:px-8 md:h-[var(--site-header-height)]">
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+            {showCategoryMenu ? <CategoryMenuButton /> : null}
+            <Link
+              href="/"
+              className="shrink-0 text-lg font-semibold tracking-tight text-[#1d1d1f] hover:opacity-80 md:text-xl"
+            >
+              GourmetMate
+            </Link>
+          </div>
 
           <nav
-            className="hidden flex-1 items-center justify-center gap-0.5 md:flex"
-            aria-label="주요 카테고리"
+            className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 md:block"
+            aria-label="주요 메뉴"
           >
-            {CATEGORY_LINKS.map((item) => {
-              const active =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "apple-nav-link shrink-0 rounded-md px-2 py-1.5 text-[11px] font-normal text-[#1d1d1f]/85 transition hover:bg-black/[0.04] hover:text-[#1d1d1f] lg:px-2.5 lg:text-xs xl:text-sm",
-                    active && "bg-black/[0.06] font-medium text-[#1d1d1f]"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-
             <DropdownMenu>
               <DropdownMenuTrigger
                 className={cn(
-                  "apple-nav-link inline-flex items-center gap-0.5 rounded-md px-2.5 py-1.5 text-xs font-normal text-[#1d1d1f]/85 outline-none transition hover:bg-black/[0.04] lg:px-3 lg:text-sm",
+                  "pointer-events-auto apple-nav-link inline-flex items-center gap-0.5 rounded-md px-3 py-1.5 text-sm font-normal text-[#1d1d1f]/85 outline-none transition hover:bg-black/[0.04]",
                   isPortfolioActive && "bg-black/[0.06] font-medium text-[#1d1d1f]"
                 )}
               >
                 Portfolio
                 <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="min-w-[10rem]">
+              <DropdownMenuContent align="center" className="min-w-[12rem]">
                 <DropdownMenuItem asChild>
-                  <Link href="/portfolio">전체 보기</Link>
+                  <Link href="/portfolio">하이미디어 재직자 과정</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/portfolio/seoulmate">SeoulMate</Link>
@@ -87,7 +94,17 @@ export default function Header() {
             </DropdownMenu>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+          <div className="ml-auto flex shrink-0 items-center justify-end gap-2 md:gap-3">
+            <Link
+              href="/portfolio"
+              className={cn(
+                "rounded-md px-2 py-1 text-xs text-[#1d1d1f]/85 md:hidden",
+                isPortfolioActive && "font-medium text-[#1d1d1f]"
+              )}
+            >
+              Portfolio
+            </Link>
+
             {showWeather ? (
               <div className="hidden sm:block">
                 <WeatherWidget />
@@ -120,36 +137,6 @@ export default function Header() {
             )}
           </div>
         </div>
-
-        {/* 모바일 카테고리 스크롤 */}
-        <nav
-          className="flex gap-1 overflow-x-auto border-t border-black/[0.06] px-3 py-2 md:hidden"
-          aria-label="모바일 카테고리"
-        >
-          {CATEGORY_LINKS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "shrink-0 rounded-full px-3 py-1 text-xs text-[#1d1d1f]/85",
-                (pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`)) &&
-                  "bg-[#1d1d1f] text-white"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href="/portfolio"
-            className={cn(
-              "shrink-0 rounded-full px-3 py-1 text-xs text-[#1d1d1f]/85",
-              isPortfolioActive && "bg-[#1d1d1f] text-white"
-            )}
-          >
-            Portfolio
-          </Link>
-        </nav>
       </header>
 
       <AuthModal

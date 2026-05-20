@@ -4,64 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Search, X } from "lucide-react";
 import type { NavCategory } from "@/lib/navigation";
-import RestaurantCard from "@/components/restaurant-card";
-
-type BrowseRestaurant = {
-  rank: number;
-  id: number;
-  name: string;
-  district: string;
-  description: string;
-  image_url: string;
-  view_count?: number;
-};
-
-type TopicRow = {
-  slug: string;
-  title: string;
-  subtitle: string;
-  emoji: string;
-  keywords: string[];
-  restaurants: BrowseRestaurant[];
-};
+import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
 
 type BrowseResponse = {
   category_slug: string;
   category_label: string;
   query: string | null;
   topic_count: number;
-  topics: TopicRow[];
+  topics: TopicRowData[];
 };
-
-function TopicRowSection({ row }: { row: TopicRow }) {
-  if (!row.restaurants.length) return null;
-
-  return (
-    <section className="mb-8" aria-labelledby={`topic-${row.slug}`}>
-      <div className="mb-3 px-4 md:px-8">
-        <h2
-          id={`topic-${row.slug}`}
-          className="flex items-center gap-2 text-lg font-semibold text-white md:text-xl"
-        >
-          <span className="text-xl" aria-hidden>
-            {row.emoji}
-          </span>
-          {row.title}
-        </h2>
-        <p className="mt-0.5 text-sm text-white/55">{row.subtitle}</p>
-      </div>
-      <div className="scrollbar-hide flex gap-3 overflow-x-auto px-4 pb-2 md:px-8">
-        {row.restaurants.map((r) => (
-          <RestaurantCard
-            key={`${row.slug}-${r.id}`}
-            restaurant={{ ...r, rank: r.rank }}
-            variant="dark"
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
 
 type CategoryBrowseProps = {
   category: NavCategory;

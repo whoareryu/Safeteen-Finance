@@ -13,6 +13,48 @@ interface AuthModalProps {
   initialView?: ModalView;
 }
 
+type AuthModalState = {
+  view: ModalView;
+  username: string;
+  password: string;
+  passwordConfirm: string;
+  email: string;
+  nickname: string;
+  showPassword: boolean;
+  showPasswordConfirm: boolean;
+  error: string | null;
+  submitting: boolean;
+  usernameChecked: boolean;
+  usernameAvailable: boolean | null;
+  usernameHint: string | null;
+  checkingUsername: boolean;
+  nicknameAvailable: boolean | null;
+  nicknameHint: string | null;
+  checkingNickname: boolean;
+};
+
+function createInitialState(view: ModalView): AuthModalState {
+  return {
+    view,
+    username: "",
+    password: "",
+    passwordConfirm: "",
+    email: "",
+    nickname: "",
+    showPassword: false,
+    showPasswordConfirm: false,
+    error: null,
+    submitting: false,
+    usernameChecked: false,
+    usernameAvailable: null,
+    usernameHint: null,
+    checkingUsername: false,
+    nicknameAvailable: null,
+    nicknameHint: null,
+    checkingNickname: false,
+  };
+}
+
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <label className="mb-1 block text-xs font-medium text-muted-foreground">
@@ -29,67 +71,77 @@ export default function AuthModal({
   initialView = "login",
 }: AuthModalProps) {
   const { login, signup } = useAuth();
-  const [view, setView] = useState<ModalView>(initialView);
+  const [state, setState] = useState<AuthModalState>(() =>
+    createInitialState(initialView)
+  );
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [email, setEmail] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const patch = (partial: Partial<AuthModalState>) => {
+    setState((prev) => ({ ...prev, ...partial }));
+  };
 
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const [usernameChecked, setUsernameChecked] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [usernameHint, setUsernameHint] = useState<string | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
-
-  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
-  const [nicknameHint, setNicknameHint] = useState<string | null>(null);
-  const [checkingNickname, setCheckingNickname] = useState(false);
+  const {
+    view,
+    username,
+    password,
+    passwordConfirm,
+    email,
+    nickname,
+    showPassword,
+    showPasswordConfirm,
+    error,
+    submitting,
+    usernameChecked,
+    usernameAvailable,
+    usernameHint,
+    checkingUsername,
+    nicknameAvailable,
+    nicknameHint,
+    checkingNickname,
+  } = state;
 
   const passwordMismatch =
     passwordConfirm.length > 0 && password !== passwordConfirm;
 
   useEffect(() => {
-    if (isOpen) setView(initialView);
+    if (isOpen) patch({ view: initialView });
   }, [isOpen, initialView]);
 
   useEffect(() => {
     if (!isOpen) return;
-    setError(null);
-    setUsernameChecked(false);
-    setUsernameAvailable(null);
-    setUsernameHint(null);
-    setNicknameAvailable(null);
-    setNicknameHint(null);
+    patch({
+      error: null,
+      usernameChecked: false,
+      usernameAvailable: null,
+      usernameHint: null,
+      nicknameAvailable: null,
+      nicknameHint: null,
+    });
   }, [isOpen, view]);
 
   useEffect(() => {
     if (view !== "signup" || !isOpen) return;
     const nick = nickname.trim();
     if (nick.length < 1) {
-      setNicknameAvailable(null);
-      setNicknameHint(null);
+      patch({ nicknameAvailable: null, nicknameHint: null });
       return;
     }
 
     const timer = window.setTimeout(async () => {
-      setCheckingNickname(true);
+      patch({ checkingNickname: true });
       try {
         const result = await checkNicknameAvailable(nick);
-        setNicknameAvailable(result.available);
-        setNicknameHint(result.message);
+        patch({
+          nicknameAvailable: result.available,
+          nicknameHint: result.message,
+        });
       } catch (e) {
-        setNicknameAvailable(null);
-        setNicknameHint(
-          e instanceof Error ? e.message : "닉네임 확인에 실패했습니다."
-        );
+        patch({
+          nicknameAvailable: null,
+          nicknameHint:
+            e instanceof Error ? e.message : "닉네임 확인에 실패했습니다.",
+        });
       } finally {
-        setCheckingNickname(false);
+        patch({ checkingNickname: false });
       }
     }, 450);
 
@@ -99,76 +151,100 @@ export default function AuthModal({
   if (!isOpen) return null;
 
   const resetAndClose = () => {
-    setUsername("");
-    setPassword("");
-    setPasswordConfirm("");
-    setEmail("");
-    setNickname("");
-    setError(null);
+    setState(createInitialState(initialView));
     onClose();
   };
 
-  const openSignup = () => {
-    setView("signup");
-    setError(null);
-  };
+  const openSignup = () => patch({ view: "signup", error: null });
+  const openLogin = () => patch({ view: "login", error: null });
 
-  const openLogin = () => {
-    setView("login");
-    setError(null);
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const field =
+      name === "password_confirm" ? "passwordConfirm" : name;
+    const updates: Partial<AuthModalState> = {
+      [field]: value,
+    } as Partial<AuthModalState>;
+
+    if (name === "username") {
+      updates.usernameChecked = false;
+      updates.usernameAvailable = null;
+      updates.usernameHint = null;
+    }
+    if (name === "nickname") {
+      updates.nicknameAvailable = null;
+      updates.nicknameHint = null;
+    }
+
+    patch(updates);
   };
 
   const handleCheckUsername = async () => {
     const id = username.trim();
     if (id.length < 3) {
-      setError("아이디는 3자 이상 입력해 주세요.");
+      patch({ error: "아이디는 3자 이상 입력해 주세요." });
       return;
     }
-    setCheckingUsername(true);
-    setError(null);
+    patch({ checkingUsername: true, error: null });
     try {
       const result = await checkUsernameAvailable(id);
-      setUsernameChecked(true);
-      setUsernameAvailable(result.available);
-      setUsernameHint(result.message);
-      if (!result.available) {
-        setError(null);
-      } else {
-        setError(null);
-      }
+      patch({
+        usernameChecked: true,
+        usernameAvailable: result.available,
+        usernameHint: result.message,
+        error: null,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "중복 확인에 실패했습니다.";
-      setError(msg);
-      setUsernameChecked(false);
-      setUsernameAvailable(null);
-      setUsernameHint(msg);
+      patch({
+        error: msg,
+        usernameChecked: false,
+        usernameAvailable: null,
+        usernameHint: msg,
+      });
     } finally {
-      setCheckingUsername(false);
+      patch({ checkingUsername: false });
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitting(true);
-    setError(null);
+    const formData = new FormData(e.currentTarget);
+    const formProps = Object.fromEntries(formData.entries()) as {
+      username: string;
+      password: string;
+    };
+
+    patch({ submitting: true, error: null });
     try {
-      await login(username.trim(), password);
+      await login(formProps.username.trim(), formProps.password);
       resetAndClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "로그인에 실패했습니다.");
+      patch({
+        error: err instanceof Error ? err.message : "로그인에 실패했습니다.",
+      });
     } finally {
-      setSubmitting(false);
+      patch({ submitting: false });
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const id = username.trim();
-    const nick = nickname.trim();
-    const mail = email.trim();
+    const formData = new FormData(e.currentTarget);
+    const formProps = Object.fromEntries(formData.entries()) as {
+      username: string;
+      password: string;
+      password_confirm: string;
+      email: string;
+      nickname: string;
+    };
 
-    if (password !== passwordConfirm) {
-      setError("비밀번호가 일치하지 않습니다.");
+    const id = formProps.username.trim();
+    const nick = formProps.nickname.trim();
+    const mail = formProps.email.trim();
+
+    if (formProps.password !== formProps.password_confirm) {
+      patch({ error: "비밀번호가 일치하지 않습니다." });
       return;
     }
 
@@ -177,15 +253,14 @@ export default function AuthModal({
         "입력하신 내용",
         "",
         `아이디: ${id}`,
-        `비밀번호: ${password}`,
-        `비밀번호 확인: ${passwordConfirm}`,
+        `비밀번호: ${formProps.password}`,
+        `비밀번호 확인: ${formProps.password_confirm}`,
         `이메일: ${mail}`,
         `닉네임: ${nick}`,
       ].join("\n")
     );
 
-    setSubmitting(true);
-    setError(null);
+    patch({ submitting: true, error: null });
 
     try {
       const idResult =
@@ -193,35 +268,37 @@ export default function AuthModal({
           ? { available: true, message: usernameHint ?? "사용 가능한 아이디입니다." }
           : await checkUsernameAvailable(id);
 
-      setUsernameChecked(true);
-      setUsernameAvailable(idResult.available);
-      setUsernameHint(idResult.message);
+      patch({
+        usernameChecked: true,
+        usernameAvailable: idResult.available,
+        usernameHint: idResult.message,
+      });
       if (!idResult.available) return;
 
       const nickResult = await checkNicknameAvailable(nick);
-      setNicknameAvailable(nickResult.available);
-      setNicknameHint(nickResult.message);
+      patch({
+        nicknameAvailable: nickResult.available,
+        nicknameHint: nickResult.message,
+      });
       if (!nickResult.available) return;
 
       await signup({
         username: id,
-        password,
-        password_confirm: passwordConfirm,
+        password: formProps.password,
+        password_confirm: formProps.password_confirm,
         email: mail,
         nickname: nick,
       });
       resetAndClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "회원가입에 실패했습니다.");
+      patch({
+        error: err instanceof Error ? err.message : "회원가입에 실패했습니다.",
+      });
     } finally {
-      setSubmitting(false);
+      patch({ submitting: false });
     }
   };
 
-
-
-
-  
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="modal-overlay absolute inset-0" onClick={resetAndClose} aria-hidden />
@@ -260,10 +337,11 @@ export default function AuthModal({
                   <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
+                    name="username"
                     autoComplete="username"
                     placeholder="아이디"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10`}
                     required
                   />
@@ -276,16 +354,17 @@ export default function AuthModal({
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    name="password"
                     autoComplete="current-password"
                     placeholder="비밀번호"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10 pr-10`}
                     required
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => patch({ showPassword: !showPassword })}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >
@@ -337,7 +416,10 @@ export default function AuthModal({
               </span>
             </h2>
 
-            <form onSubmit={handleSignup} className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
+            <form
+              onSubmit={handleSignup}
+              className="max-h-[70vh] space-y-3 overflow-y-auto pr-1"
+            >
               <div>
                 <FieldLabel>아이디</FieldLabel>
                 <div className="flex gap-2">
@@ -345,15 +427,11 @@ export default function AuthModal({
                     <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="text"
+                      name="username"
                       autoComplete="username"
                       placeholder="영문, 숫자, _ (3~32자)"
                       value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        setUsernameChecked(false);
-                        setUsernameAvailable(null);
-                        setUsernameHint(null);
-                      }}
+                      onChange={handleFieldChange}
                       className={`${inputClass} pl-10`}
                       required
                     />
@@ -384,17 +462,18 @@ export default function AuthModal({
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    name="password"
                     autoComplete="new-password"
                     placeholder="6자 이상"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10 pr-10`}
                     minLength={6}
                     required
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => patch({ showPassword: !showPassword })}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? (
@@ -412,17 +491,20 @@ export default function AuthModal({
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type={showPasswordConfirm ? "text" : "password"}
+                    name="password_confirm"
                     autoComplete="new-password"
                     placeholder="비밀번호 다시 입력"
                     value={passwordConfirm}
-                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10 pr-10`}
                     minLength={6}
                     required
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    onClick={() =>
+                      patch({ showPasswordConfirm: !showPasswordConfirm })
+                    }
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPasswordConfirm ? (
@@ -445,10 +527,11 @@ export default function AuthModal({
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="email"
+                    name="email"
                     autoComplete="email"
                     placeholder="example@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10`}
                     required
                   />
@@ -461,14 +544,11 @@ export default function AuthModal({
                   <AtSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
+                    name="nickname"
                     autoComplete="nickname"
                     placeholder="표시 이름"
                     value={nickname}
-                    onChange={(e) => {
-                      setNickname(e.target.value);
-                      setNicknameAvailable(null);
-                      setNicknameHint(null);
-                    }}
+                    onChange={handleFieldChange}
                     className={`${inputClass} pl-10`}
                     required
                   />

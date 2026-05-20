@@ -15,6 +15,18 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/history", destination: "/", permanent: true },
+      { source: "/nature", destination: "/food/hansik", permanent: true },
+      { source: "/notice", destination: "/", permanent: true },
+      { source: "/restaurant", destination: "/food/hansik", permanent: true },
+      { source: "/shopping", destination: "/", permanent: true },
+      { source: "/attraction", destination: "/", permanent: true },
+      { source: "/seoulmate", destination: "/portfolio/seoulmate", permanent: true },
+      { source: "/titanic", destination: "/portfolio/titanic", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

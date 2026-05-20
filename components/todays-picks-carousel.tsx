@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Eye, MapPin } from "lucide-react";
-import { recordRestaurantView } from "@/lib/gourmet";
+import RestaurantCard from "@/components/restaurant-card";
 import {
   Carousel,
   CarouselContent,
@@ -31,53 +29,21 @@ type TodayPicksResponse = {
 };
 
 function PickCard({ pick }: { pick: TodayPick }) {
-  const [views, setViews] = useState(pick.view_count ?? 0);
-
-  const handleView = async () => {
-    const next = await recordRestaurantView(pick.id);
-    if (next > 0) setViews(next);
-  };
-
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      onClick={handleView}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          void handleView();
-        }
+    <RestaurantCard
+      restaurant={{
+        id: pick.id,
+        name: pick.name,
+        district: pick.district,
+        description: pick.description,
+        image_url: pick.image_url,
+        view_count: pick.view_count,
+        rank: pick.rank,
+        category_label: pick.category_label,
+        category_slug: pick.category_slug,
       }}
-      className="h-full cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/[0.06] transition hover:ring-black/15"
-    >
-      <div className="relative aspect-[16/10] bg-[#f5f5f7]">
-        <Image
-          src={pick.image_url}
-          alt={pick.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 640px) 70vw, 28vw"
-        />
-        <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-0.5 text-xs font-semibold text-white">
-          #{pick.rank}
-        </span>
-        <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
-          <Eye className="h-3 w-3" aria-hidden />
-          {views}
-        </span>
-      </div>
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-[#1d1d1f]">{pick.name}</h3>
-        <p className="mt-1 flex items-center gap-1 text-xs text-[#6e6e73]">
-          <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-          {pick.district}
-        </p>
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[#6e6e73]">
-          {pick.description}
-        </p>
-      </div>
-    </article>
+      variant="light"
+    />
   );
 }
 

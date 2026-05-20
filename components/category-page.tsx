@@ -1,6 +1,11 @@
-import type { NavCategory } from "@/lib/navigation";
+import BrowseShellLayout from "@/components/browse-shell-layout";
 import CategoryBrowse from "@/components/category-browse";
+import type { NavCategory } from "@/lib/navigation";
 
 export default function CategoryPage({ category }: { category: NavCategory }) {
-  return <CategoryBrowse category={category} />;
+  return (
+    <BrowseShellLayout>
+      <CategoryBrowse category={category} />
+    </BrowseShellLayout>
+  );
 }

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
 import { AuthProvider } from '@/components/auth-provider'
+import { CategoryMenuProvider } from '@/components/category-menu-context'
+import CategorySidebarDrawer from '@/components/category-sidebar-drawer'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -41,10 +43,13 @@ export default function RootLayout({
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased">
         <AuthProvider>
-          <Header />
-          <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
-            {children}
-          </div>
+          <CategoryMenuProvider>
+            <CategorySidebarDrawer />
+            <Header />
+            <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
+              {children}
+            </div>
+          </CategoryMenuProvider>
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </AuthProvider>
       </body>
