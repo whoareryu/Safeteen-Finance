@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
+import { useNearbyLocation } from "@/components/nearby-location-provider";
 import { Sparkles } from "lucide-react";
 import GeminiChat from "./gemini-chat";
 import GourmetNavSearch from "./gourmet-nav-search";
@@ -8,19 +10,46 @@ import HomeSearchResults from "./home-search-results";
 import HomeTopicFeed from "./home-topic-feed";
 
 export default function GourmetMateHero() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const { user } = useAuth();
+  const { isNearbyMode } = useNearbyLocation();
+  /** 검색창에 보이는 글자 (입력 중에는 결과를 바꾸지 않음) */
+  const [inputValue, setInputValue] = useState("");
+  /** Enter·추천 칩으로 확정된 검색어 (API 호출·결과 표시 기준) */
+  const [committedQuery, setCommittedQuery] = useState("");
 
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
-    return () => window.clearTimeout(t);
-  }, [searchQuery]);
+  const commitSearch = useCallback((raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    setCommittedQuery(trimmed);
+    setInputValue(trimmed);
+  }, []);
 
-  const isSearching = debouncedQuery.length > 0;
+  const handleSubmit = useCallback(() => {
+    commitSearch(inputValue);
+  }, [commitSearch, inputValue]);
+
+  const handleClearInput = useCallback(() => {
+    setInputValue("");
+  }, []);
+
+  const handleSuggestionClick = useCallback(
+    (term: string) => {
+      commitSearch(term);
+    },
+    [commitSearch]
+  );
+
+  const isSearchMode = committedQuery.length > 0;
 
   return (
     <div className="gourmet-hero w-full">
-      <GourmetNavSearch value={searchQuery} onChange={setSearchQuery} />
+      <GourmetNavSearch
+        value={inputValue}
+        onChange={setInputValue}
+        onSubmit={handleSubmit}
+        onClearInput={handleClearInput}
+        onSuggestionClick={handleSuggestionClick}
+      />
 
       <div className="flex flex-col items-center bg-[#fbfbfd] px-4 pb-6 pt-6 text-center sm:px-6 md:pb-8 md:pt-8">
         <p className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-[#86868b] md:text-sm">
@@ -33,7 +62,11 @@ export default function GourmetMateHero() {
         </h1>
 
         <p className="mt-3 text-lg font-medium text-[#1d1d1f] md:text-xl">
-          서울 맛집, AI가 주제별로 찾아드립니다
+          {user && isNearbyMode
+            ? "내 주변 맛집을 가까운 순으로 추천합니다"
+            : user
+              ? "로그인 후 위치를 허용하면 주변 맛집을 우선 추천합니다"
+              : "서울 맛집, AI가 주제별로 찾아드립니다"}
         </p>
 
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-[#6e6e73] md:text-lg">
@@ -42,7 +75,7 @@ export default function GourmetMateHero() {
         </p>
       </div>
 
-      {!isSearching ? (
+      {!isSearchMode ? (
         <div className="border-t border-black/[0.06] bg-[#fbfbfd] px-4 py-8 sm:px-6 md:py-10">
           <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#86868b]">
             AI에게 바로 물어보기
@@ -53,9 +86,9 @@ export default function GourmetMateHero() {
         </div>
       ) : null}
 
-      {isSearching ? <HomeSearchResults query={debouncedQuery} /> : null}
+      {isSearchMode ? <HomeSearchResults query={committedQuery} /> : null}
 
-      <HomeTopicFeed query={isSearching ? debouncedQuery : undefined} />
+      <HomeTopicFeed query={isSearchMode ? committedQuery : undefined} />
     </div>
   );
 }

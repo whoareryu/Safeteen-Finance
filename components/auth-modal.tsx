@@ -248,18 +248,6 @@ export default function AuthModal({
       return;
     }
 
-    window.alert(
-      [
-        "입력하신 내용",
-        "",
-        `아이디: ${id}`,
-        `비밀번호: ${formProps.password}`,
-        `비밀번호 확인: ${formProps.password_confirm}`,
-        `이메일: ${mail}`,
-        `닉네임: ${nick}`,
-      ].join("\n")
-    );
-
     patch({ submitting: true, error: null });
 
     try {

@@ -1,22 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNearbyLocation } from "@/components/nearby-location-provider";
 import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
+import { appendLocationParams } from "@/lib/gourmet-location";
+
+const TOPIC_PAGE_SIZE = 4;
+const PER_TOPIC_LIMIT = 10;
+
+type TopicBrowsePagination = {
+  topic_offset: number;
+  topic_limit: number;
+  total_topics: number;
+  per_topic_limit: number;
+  has_more: boolean;
+};
 
 type HomeBrowseResponse = {
   query: string | null;
   topic_count: number;
   topics: TopicRowData[];
+  nearby_mode?: boolean;
+  pagination: TopicBrowsePagination;
 };
 
 type HomeTopicFeedProps = {
   query?: string;
 };
 
+function buildBrowseUrl(qs: URLSearchParams) {
+  const s = qs.toString();
+  return `/api/gourmet/home-browse${s ? `?${s}` : ""}`;
+}
+
 export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
-  const [data, setData] = useState<HomeBrowseResponse | null>(null);
+  const { coords, isNearbyMode, status } = useNearbyLocation();
+  const [topics, setTopics] = useState<TopicRowData[]>([]);
+  const [pagination, setPagination] = useState<TopicBrowsePagination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** query·coords 변경 시 중복 페이지 요청 무시용 */
+  const requestGen = useRef(0);
+
+  const loadPage = useCallback(
+    async (topicOffset: number, mode: "replace" | "append") => {
+      const params = new URLSearchParams();
+      params.set("topic_offset", String(topicOffset));
+      params.set("topic_limit", String(TOPIC_PAGE_SIZE));
+      params.set("per_topic_limit", String(PER_TOPIC_LIMIT));
+      if (query?.trim()) params.set("q", query.trim());
+      appendLocationParams(params, coords);
+      const gen = ++requestGen.current;
+
+      const res = await fetch(buildBrowseUrl(params), { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(
+          `목록을 불러오지 못했습니다. (HTTP ${res.status})`
+        );
+      }
+      const json = (await res.json()) as HomeBrowseResponse;
+      if (gen !== requestGen.current) return;
+
+      setPagination(json.pagination);
+      if (mode === "replace") {
+        setTopics(json.topics);
+      } else {
+        setTopics((prev) => [...prev, ...json.topics]);
+      }
+    },
+    [query, coords]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -24,19 +78,12 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams();
-        if (query?.trim()) params.set("q", query.trim());
-        const qs = params.toString();
-        const res = await fetch(
-          `/api/gourmet/home-browse${qs ? `?${qs}` : ""}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) throw new Error("목록을 불러오지 못했습니다.");
-        const json = (await res.json()) as HomeBrowseResponse;
-        if (!cancelled) setData(json);
+        await loadPage(0, "replace");
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
+          setTopics([]);
+          setPagination(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -45,7 +92,29 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [query, coords, loadPage]);
+
+  const onLoadMore = async () => {
+    if (!pagination?.has_more || loadingMore || loading) return;
+    const nextOffset = pagination.topic_offset + pagination.topic_limit;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      await loadPage(nextOffset, "append");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const feedTitle = query
+    ? isNearbyMode
+      ? "내 주변 · 검색 관련 주제별 맛집"
+      : "검색 관련 주제별 맛집"
+    : isNearbyMode
+      ? "내 주변 주제별 맛집"
+      : "주제별 추천 맛집";
 
   return (
     <section
@@ -53,8 +122,21 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
       aria-labelledby="home-feed-title"
     >
       <h2 id="home-feed-title" className="sr-only">
-        {query ? "검색 관련 주제별 맛집" : "주제별 추천 맛집"}
+        {feedTitle}
       </h2>
+
+      {isNearbyMode ? (
+        <p className="mb-4 px-4 text-center text-sm text-emerald-400/90 md:px-8">
+          현재 위치 기준 가까운 순으로 추천합니다
+        </p>
+      ) : null}
+
+      {status === "denied" ? (
+        <p className="mb-4 px-4 text-center text-xs text-white/45 md:px-8">
+          위치 권한이 없어 서울 전역 맛집을 보여 드립니다. 브라우저에서 위치를 허용하면
+          주변 맛집을 우선 추천합니다.
+        </p>
+      ) : null}
 
       {query ? (
         <p className="mb-6 px-4 text-center text-sm text-white/55 md:px-8">
@@ -72,8 +154,8 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
         <p className="px-4 text-center text-sm text-red-400 md:px-8">{error}</p>
       ) : null}
 
-      {!loading && !error && data?.topics.length
-        ? data.topics.map((row) => (
+      {!loading && !error && topics.length
+        ? topics.map((row) => (
             <TopicRowSection
               key={row.slug}
               row={row}
@@ -82,8 +164,21 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
           ))
         : null}
 
-      {!loading && !error && data?.topics.length === 0 ? (
+      {!loading && !error && topics.length === 0 ? (
         <p className="text-center text-sm text-white/50">표시할 추천이 없습니다.</p>
+      ) : null}
+
+      {!loading && pagination?.has_more ? (
+        <div className="mt-8 flex justify-center px-4">
+          <button
+            type="button"
+            onClick={() => void onLoadMore()}
+            disabled={loadingMore}
+            className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
+          >
+            {loadingMore ? "불러오는 중…" : "더 보기 (주제 행)"}
+          </button>
+        </div>
       ) : null}
     </section>
   );

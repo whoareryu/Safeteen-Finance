@@ -1,10 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Search, X } from "lucide-react";
+import { useNearbyLocation } from "@/components/nearby-location-provider";
 import type { NavCategory } from "@/lib/navigation";
+import { appendLocationParams } from "@/lib/gourmet-location";
 import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
+
+const TOPIC_PAGE_SIZE = 4;
+const PER_TOPIC_LIMIT = 10;
+
+type TopicBrowsePagination = {
+  topic_offset: number;
+  topic_limit: number;
+  total_topics: number;
+  per_topic_limit: number;
+  has_more: boolean;
+};
 
 type BrowseResponse = {
   category_slug: string;
@@ -12,6 +25,7 @@ type BrowseResponse = {
   query: string | null;
   topic_count: number;
   topics: TopicRowData[];
+  pagination: TopicBrowsePagination;
 };
 
 type CategoryBrowseProps = {
@@ -19,48 +33,85 @@ type CategoryBrowseProps = {
 };
 
 export default function CategoryBrowse({ category }: CategoryBrowseProps) {
+  const { coords } = useNearbyLocation();
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [data, setData] = useState<BrowseResponse | null>(null);
+  const [topics, setTopics] = useState<TopicRowData[]>([]);
+  const [pagination, setPagination] = useState<TopicBrowsePagination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestGen = useRef(0);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(query.trim()), 280);
     return () => window.clearTimeout(t);
   }, [query]);
 
+  const loadPage = useCallback(
+    async (topicOffset: number, mode: "replace" | "append") => {
+      const params = new URLSearchParams();
+      params.set("topic_offset", String(topicOffset));
+      params.set("topic_limit", String(TOPIC_PAGE_SIZE));
+      params.set("per_topic_limit", String(PER_TOPIC_LIMIT));
+      if (debounced) params.set("q", debounced);
+      appendLocationParams(params, coords);
+      const gen = ++requestGen.current;
+      const qs = params.toString();
+      const url = `/api/gourmet/categories/${category.slug}/browse${qs ? `?${qs}` : ""}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`목록을 불러오지 못했습니다. (HTTP ${res.status})`);
+      const body = (await res.json()) as BrowseResponse;
+      if (gen !== requestGen.current) return;
+      setPagination(body.pagination);
+      if (mode === "replace") {
+        setTopics(body.topics);
+      } else {
+        setTopics((prev) => [...prev, ...body.topics]);
+      }
+    },
+    [category.slug, debounced, coords]
+  );
+
   const fetchBrowse = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const params = new URLSearchParams();
-    if (debounced) params.set("q", debounced);
-    const qs = params.toString();
-    const url = `/api/gourmet/categories/${category.slug}/browse${qs ? `?${qs}` : ""}`;
     try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("목록을 불러오지 못했습니다.");
-      const body = (await res.json()) as BrowseResponse;
-      setData(body);
+      await loadPage(0, "replace");
     } catch {
       setError("맛집 주제를 불러오지 못했습니다. 백엔드 연결을 확인해 주세요.");
-      setData(null);
+      setTopics([]);
+      setPagination(null);
     } finally {
       setLoading(false);
     }
-  }, [category.slug, debounced]);
+  }, [loadPage]);
 
   useEffect(() => {
     void fetchBrowse();
   }, [fetchBrowse]);
 
-  const topicCount = data?.topic_count ?? 0;
+  const onLoadMore = async () => {
+    if (!pagination?.has_more || loadingMore || loading) return;
+    const nextOffset = pagination.topic_offset + pagination.topic_limit;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      await loadPage(nextOffset, "append");
+    } catch {
+      setError("맛집 주제를 불러오지 못했습니다. 백엔드 연결을 확인해 주세요.");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const totalTopics = pagination?.total_topics ?? 0;
   const hint = useMemo(() => {
-    if (!data?.topics.length && debounced) {
+    if (!topics.length && debounced) {
       return `"${debounced}"에 맞는 주제가 없습니다. 다른 키워드를 입력해 보세요.`;
     }
     return null;
-  }, [data, debounced]);
+  }, [topics, debounced]);
 
   return (
     <main className="category-browse min-h-[calc(100dvh-var(--site-header-height))] bg-[#0d0d0d]">
@@ -130,8 +181,8 @@ export default function CategoryBrowse({ category }: CategoryBrowseProps) {
           {loading
             ? "주제를 불러오는 중…"
             : debounced
-              ? `검색 결과 ${topicCount}개 주제`
-              : `${topicCount}개 주제 · 가로로 스크롤해 맛집을 둘러보세요`}
+              ? `검색 결과 ${totalTopics}개 주제`
+              : `${totalTopics}개 주제 · 가로로 스크롤해 맛집을 둘러보세요`}
         </p>
       </div>
 
@@ -147,11 +198,24 @@ export default function CategoryBrowse({ category }: CategoryBrowseProps) {
           </p>
         ) : null}
 
-        {!loading && !error && data?.topics.length
-          ? data.topics.map((row) => <TopicRowSection key={row.slug} row={row} />)
+        {!loading && !error && topics.length
+          ? topics.map((row) => <TopicRowSection key={row.slug} row={row} />)
           : null}
 
-        {loading && !data ? (
+        {!loading && !error && pagination?.has_more ? (
+          <div className="mt-8 flex justify-center px-4 md:px-8">
+            <button
+              type="button"
+              onClick={() => void onLoadMore()}
+              disabled={loadingMore}
+              className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
+            >
+              {loadingMore ? "불러오는 중…" : "더 보기 (주제 행)"}
+            </button>
+          </div>
+        ) : null}
+
+        {loading && !topics.length ? (
           <div className="flex h-48 items-center justify-center text-sm text-white/50">
             맛집 큐레이션을 준비하는 중…
           </div>

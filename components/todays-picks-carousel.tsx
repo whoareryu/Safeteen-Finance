@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useNearbyLocation } from "@/components/nearby-location-provider";
 import RestaurantCard from "@/components/restaurant-card";
+import { appendLocationParams } from "@/lib/gourmet-location";
 import {
   Carousel,
   CarouselContent,
@@ -20,12 +22,20 @@ export type TodayPick = {
   description: string;
   image_url: string;
   view_count?: number;
+  distance_km?: number | null;
 };
 
 type TodayPicksResponse = {
   title: string;
   date: string;
   picks: TodayPick[];
+  nearby_mode?: boolean;
+  pagination: {
+    offset: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
 };
 
 function PickCard({ pick }: { pick: TodayPick }) {
@@ -41,6 +51,7 @@ function PickCard({ pick }: { pick: TodayPick }) {
         rank: pick.rank,
         category_label: pick.category_label,
         category_slug: pick.category_slug,
+        distance_km: pick.distance_km,
       }}
       variant="light"
     />
@@ -48,6 +59,7 @@ function PickCard({ pick }: { pick: TodayPick }) {
 }
 
 export default function TodaysPicksCarousel() {
+  const { coords } = useNearbyLocation();
   const [data, setData] = useState<TodayPicksResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,9 +67,16 @@ export default function TodaysPicksCarousel() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
       try {
-        const res = await fetch("/api/gourmet/today-picks", { cache: "no-store" });
-        if (!res.ok) throw new Error("목록을 불러오지 못했습니다.");
+        const params = new URLSearchParams();
+        appendLocationParams(params, coords);
+        const qs = params.toString();
+        const res = await fetch(
+          `/api/gourmet/today-picks${qs ? `?${qs}` : ""}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) throw new Error(`목록을 불러오지 못했습니다. (HTTP ${res.status})`);
         const json = (await res.json()) as TodayPicksResponse;
         if (!cancelled) setData(json);
       } catch (e) {
@@ -71,9 +90,10 @@ export default function TodaysPicksCarousel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [coords]);
 
   const picks = data?.picks ?? [];
+  const sectionTitle = data?.title ?? "오늘의 맛집";
 
   return (
     <section className="todays-picks w-full" aria-labelledby="todays-picks-title">
@@ -82,7 +102,7 @@ export default function TodaysPicksCarousel() {
           id="todays-picks-title"
           className="text-2xl font-semibold tracking-tight text-[#1d1d1f] md:text-3xl"
         >
-          오늘의 맛집
+          {sectionTitle}
         </h2>
         {data?.date ? (
           <p className="shrink-0 text-xs text-[#86868b]">{data.date}</p>

@@ -48,10 +48,9 @@ export default function RestaurantDetailPage({
       }
       setData(detail);
       const vc = await recordRestaurantView(restaurantId);
-      if (!cancelled) {
-        setViews(vc > 0 ? vc : detail.view_count);
-        setLoading(false);
-      }
+      if (cancelled) return;
+      setViews(vc > 0 ? vc : detail.view_count);
+      setLoading(false);
     })();
     return () => {
       cancelled = true;

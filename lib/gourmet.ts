@@ -1,5 +1,8 @@
 /** GourmetMate API */
 
+import type { UserCoords } from "@/lib/gourmet-location";
+import { appendLocationParams } from "@/lib/gourmet-location";
+
 export type MenuItem = {
   name: string;
   price: number;
@@ -63,6 +66,7 @@ export type RestaurantSearchItem = {
   description: string;
   image_url: string;
   view_count: number;
+  distance_km?: number | null;
 };
 
 export type RestaurantSearchResult = {
@@ -70,12 +74,26 @@ export type RestaurantSearchResult = {
   summary: string;
   matched_topics: { slug: string; title: string; emoji: string }[];
   restaurants: RestaurantSearchItem[];
+  nearby_mode?: boolean;
+  pagination?: {
+    offset: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
 };
 
 export async function fetchRestaurantSearch(
-  query: string
+  query: string,
+  coords?: UserCoords | null,
+  pagination?: { offset?: number; limit?: number },
 ): Promise<RestaurantSearchResult> {
   const params = new URLSearchParams({ q: query.trim() });
+  appendLocationParams(params, coords ?? null);
+  const off = pagination?.offset;
+  const lim = pagination?.limit;
+  if (typeof off === "number") params.set("offset", String(off));
+  if (typeof lim === "number") params.set("limit", String(lim));
   const res = await fetch(`/api/gourmet/search?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error("search failed");
   return (await res.json()) as RestaurantSearchResult;

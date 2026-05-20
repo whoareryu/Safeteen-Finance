@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, MapPin } from "lucide-react";
 import { restaurantDetailPath } from "@/lib/gourmet";
+import { formatDistanceKm } from "@/lib/gourmet-location";
 
 export type RestaurantSummary = {
   id: number;
@@ -15,6 +16,8 @@ export type RestaurantSummary = {
   rank?: number;
   category_label?: string;
   category_slug?: string;
+  distance_km?: number | null;
+  detail_href?: string | null;
 };
 
 type RestaurantCardProps = {
@@ -33,7 +36,10 @@ export default function RestaurantCard({
 }: RestaurantCardProps) {
   const isDark = variant === "dark";
   const views = restaurant.view_count ?? 0;
-  const href = restaurantDetailPath(restaurant.id);
+  const distanceLabel = formatDistanceKm(restaurant.distance_km);
+  const href = restaurant.detail_href?.trim()
+    ? restaurant.detail_href
+    : restaurantDetailPath(restaurant.id);
 
   return (
     <Link
@@ -51,6 +57,7 @@ export default function RestaurantCard({
           src={restaurant.image_url}
           alt={restaurant.name}
           fill
+          loading="lazy"
           className="object-cover transition duration-300 group-hover:scale-105"
           sizes="220px"
         />
@@ -81,7 +88,15 @@ export default function RestaurantCard({
           className={`mt-0.5 flex items-center gap-1 text-[11px] ${isDark ? "text-white/60" : "text-[#6e6e73]"}`}
         >
           <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-          {restaurant.district}
+          <span>
+            {restaurant.district}
+            {distanceLabel ? (
+              <span className={isDark ? "text-white/45" : "text-[#86868b]"}>
+                {" "}
+                · {distanceLabel}
+              </span>
+            ) : null}
+          </span>
         </p>
         <p
           className={`mt-1.5 line-clamp-2 text-[11px] leading-snug ${isDark ? "text-white/55" : "text-[#6e6e73]"}`}

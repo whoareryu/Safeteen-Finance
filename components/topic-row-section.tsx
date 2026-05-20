@@ -17,6 +17,8 @@ export type TopicRowData = {
   emoji: string;
   category_slug?: string | null;
   category_label?: string | null;
+  /** false면 행 제목을 주제 페이지로 링크하지 않음 */
+  link_title?: boolean;
   restaurants: {
     rank: number;
     id: number;
@@ -27,6 +29,8 @@ export type TopicRowData = {
     view_count?: number;
     category_slug?: string;
     category_label?: string;
+    distance_km?: number | null;
+    detail_href?: string | null;
   }[];
 };
 
@@ -63,15 +67,24 @@ export default function TopicRowSection({
             id={`topic-${rowKey}`}
             className="flex items-center gap-2 text-lg font-semibold text-white md:text-xl"
           >
-            <Link
-              href={`/topics/${row.slug}`}
-              className="flex items-center gap-2 transition hover:text-white/80"
-            >
-              <span className="text-xl" aria-hidden>
-                {row.emoji}
+            {row.link_title === false ? (
+              <span className="flex items-center gap-2">
+                <span className="text-xl" aria-hidden>
+                  {row.emoji}
+                </span>
+                {row.title}
               </span>
-              {row.title}
-            </Link>
+            ) : (
+              <Link
+                href={`/topics/${row.slug}`}
+                className="flex items-center gap-2 transition hover:text-white/80"
+              >
+                <span className="text-xl" aria-hidden>
+                  {row.emoji}
+                </span>
+                {row.title}
+              </Link>
+            )}
           </h2>
           {showCategory && row.category_label && row.category_slug ? (
             <Link

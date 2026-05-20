@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useNearbyLocation } from "@/components/nearby-location-provider";
 import type { GourmetTopic } from "@/lib/gourmet-topics";
+import { appendLocationParams } from "@/lib/gourmet-location";
 import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
 
 type HomeBrowseResponse = {
@@ -15,6 +17,7 @@ type TopicBrowsePageProps = {
 };
 
 export default function TopicBrowsePage({ topic }: TopicBrowsePageProps) {
+  const { coords } = useNearbyLocation();
   const [row, setRow] = useState<TopicRowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +26,17 @@ export default function TopicBrowsePage({ topic }: TopicBrowsePageProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/gourmet/home-browse", { cache: "no-store" });
-      if (!res.ok) throw new Error("목록을 불러오지 못했습니다.");
+      const params = new URLSearchParams();
+      params.set("topic_offset", "0");
+      params.set("topic_limit", "48");
+      params.set("per_topic_limit", "10");
+      appendLocationParams(params, coords);
+      const qs = params.toString();
+      const res = await fetch(
+        `/api/gourmet/home-browse${qs ? `?${qs}` : ""}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) throw new Error(`목록을 불러오지 못했습니다. (HTTP ${res.status})`);
       const data = (await res.json()) as HomeBrowseResponse;
       const match = data.topics.find((t) => t.slug === topic.slug) ?? null;
       setRow(match);
@@ -34,7 +46,7 @@ export default function TopicBrowsePage({ topic }: TopicBrowsePageProps) {
     } finally {
       setLoading(false);
     }
-  }, [topic.slug]);
+  }, [topic.slug, coords]);
 
   useEffect(() => {
     void fetchTopic();
