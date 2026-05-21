@@ -8,8 +8,8 @@ from collections import defaultdict
 from sqlalchemy.orm import Session
 
 from apps.gourmet.app.data.category_topics import COMMON_TOPICS, filter_topics_by_query
-from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
 from apps.gourmet.app.services.sgma_browse_service import (
+    SgmaBrowseRow,
     bounded_sgma_slice,
     pick_mixed_sgma_by_category,
     pick_sgmas,
@@ -29,9 +29,9 @@ MAX_TOPICS_PER_RESTAURANT = 2
 
 
 def _eligible_for_topic(
-    pool: list[SgmaRestaurant],
+    pool: list[SgmaBrowseRow],
     usage_count: dict[int, int],
-) -> list[SgmaRestaurant]:
+) -> list[SgmaBrowseRow]:
     return [
         r
         for r in pool
@@ -101,6 +101,7 @@ def get_home_browse(
                 user_lat=user_lat,
                 user_lng=user_lng,
                 link_title=True,
+                with_category_on_cards=True,
             )
         )
 

@@ -11,6 +11,7 @@ from apps.gourmet.app.data.category_topics import filter_topics_by_query, topics
 from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
 from apps.gourmet.app.services.sgma_browse_service import (
     CATEGORY_LABEL_BY_SLUG,
+    SgmaBrowseRow,
     bounded_sgma_slice,
     pick_sgmas,
     sgma_category_of,
@@ -23,13 +24,13 @@ logger = logging.getLogger(__name__)
 PICKS_PER_TOPIC_DEFAULT = 10
 
 
-def _pool_for_category_slug(db: Session, category_slug: str) -> list[SgmaRestaurant]:
+def _pool_for_category_slug(db: Session, category_slug: str) -> list[SgmaBrowseRow]:
     """전체 스캔 금지 — 여러 윈도우를 합쳐 해당 장르 풀 구성."""
     total = int(
         db.execute(select(func.count()).select_from(SgmaRestaurant)).scalar_one() or 0
     )
     salt = zlib.adler32(category_slug.encode("utf-8")) & 0xFFFFFFFF
-    merged: dict[int, SgmaRestaurant] = {}
+    merged: dict[int, SgmaBrowseRow] = {}
 
     def take(rot: int, lim: int) -> None:
         for r in bounded_sgma_slice(
@@ -43,7 +44,7 @@ def _pool_for_category_slug(db: Session, category_slug: str) -> list[SgmaRestaur
     take(salt % 999_983, 16_000)
     take((salt ^ 0x9E3779B9) & 0xFFFFFFFF, 16_000)
 
-    def filtered() -> list[SgmaRestaurant]:
+    def filtered() -> list[SgmaBrowseRow]:
         return [r for r in merged.values() if sgma_category_of(r)[0] == category_slug]
 
     out = filtered()

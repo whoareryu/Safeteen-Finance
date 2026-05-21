@@ -1,45 +1,49 @@
-﻿from typing import TYPE_CHECKING
+﻿"""GourmetMate 식당 엔티티 — CSV·AI 메타 포함 (`restaurants`)."""
 
-from sqlalchemy import Boolean, Float, Integer, String, Text
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations
+
+from sqlalchemy import Float, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.database import Base, IntIdPrimaryKeyMixin
 
-if TYPE_CHECKING:
-    from apps.gourmet.app.models.restaurant_view_stat import RestaurantViewStat
-
 
 class Restaurant(IntIdPrimaryKeyMixin, Base):
-    """서울 맛집 마스터 — 영업 요일·유사명 그룹 포함."""
+    """넷플릭스형 브라우즈·식비 필터용 정제 식당."""
 
     __tablename__ = "restaurants"
+    __table_args__ = (
+        Index("ix_restaurants_category_id", "category_slug", "id"),
+        Index("ix_restaurants_category_district_id", "category_slug", "district", "id"),
+        Index("ix_restaurants_category_price_id", "category_slug", "avg_price", "id"),
+        Index("ix_restaurants_district", "district"),
+    )
 
-    name: Mapped[str] = mapped_column(String(128), unique=True, index=True)
-    name_key: Mapped[str] = mapped_column(String(128), index=True)
+    biz_number: Mapped[str] = mapped_column(String(48), unique=True, index=True)
+    name: Mapped[str] = mapped_column(Text, index=True)
+    store_name: Mapped[str] = mapped_column(Text, default="", server_default="")
+    branch_name: Mapped[str] = mapped_column(Text, default="", server_default="")
+
     category_slug: Mapped[str] = mapped_column(String(32), index=True)
-    category_label: Mapped[str] = mapped_column(String(32))
-    district: Mapped[str] = mapped_column(String(64))
-    description: Mapped[str] = mapped_column(Text)
-    image_url: Mapped[str] = mapped_column(String(512))
-    # 월=0 … 일=6 (datetime.date.weekday)
-    closed_weekdays: Mapped[list[int]] = mapped_column(
-        ARRAY(Integer), default=list, server_default="{}"
-    )
-    address: Mapped[str] = mapped_column(String(256), default="", server_default="")
-    opening_hours: Mapped[str] = mapped_column(String(256), default="", server_default="")
-    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    instagram_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    reservation_available: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false"
-    )
-    reservation_note: Mapped[str] = mapped_column(String(256), default="", server_default="")
-    menu_items: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")
+    category_label: Mapped[str] = mapped_column(String(32), default="", server_default="")
+
+    district: Mapped[str] = mapped_column(String(128), default="", server_default="")
+    sigungu_name: Mapped[str] = mapped_column(String(32), default="", server_default="")
+    road_address: Mapped[str] = mapped_column(Text, default="", server_default="")
+    parcel_address: Mapped[str] = mapped_column(Text, default="", server_default="")
+
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    view_stat: Mapped["RestaurantViewStat | None"] = relationship(
-        "RestaurantViewStat",
-        back_populates="restaurant",
-        uselist=False,
-    )
+    avg_price: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    signature_menu: Mapped[str] = mapped_column(String(256), default="", server_default="")
+    ai_tags: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")
+    description: Mapped[str] = mapped_column(Text, default="", server_default="")
+    image_url: Mapped[str] = mapped_column(String(512), default="", server_default="")
+
+    biz_mid_name: Mapped[str] = mapped_column(String(64), default="", server_default="")
+    biz_minor_name: Mapped[str] = mapped_column(String(128), default="", server_default="")
+    ksic_name: Mapped[str] = mapped_column(String(256), default="", server_default="")
+
+    view_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

@@ -17,7 +17,13 @@ class User(IntIdPrimaryKeyMixin, Base):
     nickname: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role", native_enum=False),
+        Enum(
+            UserRole,
+            name="user_role",
+            native_enum=False,
+            # DB에는 "user"/"admin" (enum .value) 저장 — 이름 "USER"가 아님
+            values_callable=lambda choices: [item.value for item in choices],
+        ),
         default=UserRole.USER,
         index=True,
     )

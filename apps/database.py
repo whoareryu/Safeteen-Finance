@@ -118,8 +118,13 @@ else:
 def _register_orm_models() -> None:
     """create_all 전에 ORM 모델이 Base.metadata 에 등록되도록 import."""
     from apps.auth.user_model import User  # noqa: F401
+    from apps.gourmet.app.models.daily_recommendation import DailyRecommendation  # noqa: F401
+    from apps.gourmet.app.models.favorite import Favorite  # noqa: F401
+    from apps.gourmet.app.models.meal_plan import MealPlan  # noqa: F401
+    from apps.gourmet.app.models.restaurant import Restaurant  # noqa: F401
     from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant  # noqa: F401
     from apps.gourmet.app.models.search_query_log import SearchQueryLog  # noqa: F401
+    from apps.titanic.app.models.titanic_passenger import TitanicPassenger  # noqa: F401
 
 
 def ensure_sync_tables() -> None:

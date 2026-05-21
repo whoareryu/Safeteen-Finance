@@ -14,7 +14,7 @@ from apps.gourmet.app.schemas.gourmet_schemas import (
     RestaurantSearchResponse,
     RestaurantViewStatResponse,
     SearchMatchedTopic,
-    TodayPickItem,
+    RestaurantCardSummary,
     TodayPicksResponse,
     TopicBrowsePagination,
     TopicMeta,
@@ -27,7 +27,7 @@ from apps.gourmet.app.services.category_browse_service import (
 from apps.gourmet.app.services.home_browse_service import get_home_browse
 from apps.gourmet.app.services.sgma_browse_service import (
     sgma_restaurant_name_for_views,
-    sgmas_to_pick_items,
+    sgmas_to_card_summaries,
 )
 from apps.gourmet.app.services.restaurant_location_service import parse_user_location
 from apps.gourmet.app.services.sgma_restaurant_service import sgma_restaurant_detail_dict
@@ -55,7 +55,7 @@ def _topic_rows_from_dicts(rows: list[dict]) -> list[TopicRowResponse]:
             subtitle=r["subtitle"],
             emoji=r["emoji"],
             keywords=r["keywords"],
-            restaurants=[TodayPickItem(**item) for item in r["restaurants"]],
+            restaurants=[RestaurantCardSummary(**item) for item in r["restaurants"]],
             category_slug=r.get("category_slug"),
             category_label=r.get("category_label"),
             link_title=r.get("link_title", True),
@@ -216,7 +216,7 @@ def read_restaurant_search(
         query=result["query"],
         summary=result["summary"],
         matched_topics=[SearchMatchedTopic(**t) for t in result["matched_topics"]],
-        restaurants=[TodayPickItem(**item) for item in result["restaurants"]],
+        restaurants=[RestaurantCardSummary(**item) for item in result["restaurants"]],
         nearby_mode=bool(result.get("nearby_mode")),
         pagination=OffsetLimitPagination(**pag),
     )
@@ -260,10 +260,12 @@ def read_today_picks(
             detail="오늘의 맛집 목록을 불러오지 못했습니다.",
         ) from None
 
-    pick_items = sgmas_to_pick_items(
+    pick_items = sgmas_to_card_summaries(
         picked_rows,
         user_lat=user_loc[0] if user_loc else None,
         user_lng=user_loc[1] if user_loc else None,
+        with_rank=True,
+        with_category=True,
     )
     total = len(pick_items)
     slice_end = list_offset + limit
@@ -272,7 +274,7 @@ def read_today_picks(
     return TodayPicksResponse(
         title=title,
         date=pick_date.isoformat(),
-        picks=[TodayPickItem(**item) for item in sliced],
+        picks=[RestaurantCardSummary(**item) for item in sliced],
         nearby_mode=user_loc is not None,
         pagination=OffsetLimitPagination(
             offset=list_offset,

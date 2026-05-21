@@ -1,5 +1,5 @@
-from apps.titanic.app.rose_model import RoseModel
-from apps.titanic.app.walter_reader import WalterReader
+from apps.titanic.app.models.rose_model import RoseModel
+from apps.titanic.app.repositories.walter_reader import WalterReader
 
 
 class JackService:
@@ -21,7 +21,6 @@ class JackService:
     
     def has_decision_tree_model(self):
         return self.rose.has_decision_tree_model()
-
 
     def get_training_model_name(self) -> str:
         return self.rose.get_training_model_name()

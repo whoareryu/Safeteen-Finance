@@ -9,8 +9,8 @@ from collections import defaultdict
 
 from sqlalchemy.orm import Session
 
-from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
 from apps.gourmet.app.services.sgma_browse_service import (
+    SgmaBrowseRow,
     bounded_sgma_slice,
     sgma_category_of,
 )
@@ -48,7 +48,7 @@ def get_today_picks(
     *,
     user_lat: float | None = None,
     user_lng: float | None = None,
-) -> tuple[datetime.date, list[SgmaRestaurant]]:
+) -> tuple[datetime.date, list[SgmaBrowseRow]]:
     """카테고리별 2~3곳을 날짜 시드로 무작위 선택(일 단위 고정). DB ``daily_picks`` 미사용."""
     today = today or datetime.date.today()
     all_rows = bounded_sgma_slice(
@@ -61,12 +61,12 @@ def get_today_picks(
         logger.warning("[gourmet] today-picks — 상가 데이터 없음")
         return today, []
 
-    by_cat: dict[str, list[SgmaRestaurant]] = defaultdict(list)
+    by_cat: dict[str, list[SgmaBrowseRow]] = defaultdict(list)
     for r in all_rows:
         by_cat[sgma_category_of(r)[0]].append(r)
 
     rng = random.Random(today.toordinal())
-    picked: list[SgmaRestaurant] = []
+    picked: list[SgmaBrowseRow] = []
     for slug in CATEGORY_SLUGS:
         pool = by_cat.get(slug, [])
         if not pool:

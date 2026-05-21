@@ -1,4 +1,4 @@
-from apps.titanic.app.jack_service import JackService
+from apps.titanic.app.services.jack_service import JackService
 
 
 class JamesController:
@@ -25,5 +25,3 @@ class JamesController:
 
     def get_training_model_accuracy(self):
         return self.service.get_training_model_accuracy()
-
-    

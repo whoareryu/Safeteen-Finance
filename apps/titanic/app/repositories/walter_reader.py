@@ -1,12 +1,11 @@
 import pandas as pd
 from pathlib import Path
 
-_CSV_PATH = Path(__file__).resolve().parent / "Titanic-Dataset.csv"
+_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "Titanic-Dataset.csv"
 
 class WalterReader:
     def __init__(self):
         pass
-    
 
     def get_data(self):
         df = pd.read_csv(_CSV_PATH)
@@ -31,11 +30,3 @@ class WalterReader:
     def get_full_dataframe(self):
         """모델 학습·평가용 전체 데이터."""
         return pd.read_csv(_CSV_PATH)
-
-    
-    
-
-
-
-
-

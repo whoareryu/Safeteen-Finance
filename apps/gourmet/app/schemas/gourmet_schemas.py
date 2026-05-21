@@ -22,7 +22,22 @@ class OffsetLimitPagination(BaseModel):
     has_more: bool
 
 
+class RestaurantCardSummary(BaseModel):
+    """목록·카드용 — 이름·사진·한 줄 위치. 상세는 ``GET /restaurants/{id}``."""
+
+    id: int
+    name: str
+    image_url: str
+    district: str = ""
+    distance_km: float | None = None
+    rank: int | None = None
+    category_slug: str | None = None
+    category_label: str | None = None
+
+
 class TodayPickItem(BaseModel):
+    """레거시·시드 호환. 목록 API는 ``RestaurantCardSummary`` 사용."""
+
     rank: int
     id: int
     name: str
@@ -94,7 +109,7 @@ class TodayPicksResponse(BaseModel):
     date: str
     picks_per_category_min: int = 2
     picks_per_category_max: int = 3
-    picks: list[TodayPickItem]
+    picks: list[RestaurantCardSummary]
     nearby_mode: bool = False
     pagination: OffsetLimitPagination
 
@@ -113,7 +128,7 @@ class TopicRowResponse(BaseModel):
     subtitle: str
     emoji: str
     keywords: list[str] = []
-    restaurants: list[TodayPickItem]
+    restaurants: list[RestaurantCardSummary]
     category_slug: str | None = None
     category_label: str | None = None
     link_title: bool = Field(
@@ -140,7 +155,7 @@ class RestaurantSearchResponse(BaseModel):
     query: str
     summary: str
     matched_topics: list[SearchMatchedTopic] = []
-    restaurants: list[TodayPickItem]
+    restaurants: list[RestaurantCardSummary]
     nearby_mode: bool = False
     pagination: OffsetLimitPagination
 

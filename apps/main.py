@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import sys
 from pathlib import Path
 
@@ -15,7 +15,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -36,9 +36,17 @@ from apps.matrix.app.keymaker import MissingGeminiKeyError, keymaker
 from apps.adapters.db_health_adapter import SqlAlchemyDbHealthAdapter
 from urllib.parse import urlparse
 
-from apps.database import DATABASE_URL, ensure_sync_tables, get_db, get_sync_db, init_db
+from apps.database import (
+    DATABASE_INIT_ERROR,
+    DATABASE_URL,
+    ensure_sync_tables,
+    get_db,
+    get_sync_db,
+    init_db,
+)
 from apps.doro.app.doro_director import DoroDirector
-from apps.titanic.app.james_controller import JamesController
+from apps.titanic.app.controllers.titanic_router import router as titanic_router
+from apps.titanic.app.schemas.titanic_schemas import ChatMessage, ChatRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,16 +81,7 @@ app = FastAPI(title="Whoareryu Main Page", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(secom_router)
 app.include_router(gourmet_router)
-
-
-class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str = Field(..., min_length=1, max_length=32000)
-
-
-class ChatRequest(BaseModel):
-    messages: list[ChatMessage] = Field(..., min_length=1)
-    model: str | None = None
+app.include_router(titanic_router)
 
 
 def _gemini_error_detail(exc: Exception) -> tuple[int, str]:
@@ -186,6 +185,9 @@ def chat(body: ChatRequest):
     return {"text": text, "model": model_used}
 
 
+# titanic chat 및 upload 라우트는 이제 titanic_router로 이전되었습니다.
+
+
 @app.get("/db-check")
 async def check_db(
     db_health: SqlAlchemyDbHealthAdapter = Depends(get_db_health_adapter),
@@ -194,42 +196,7 @@ async def check_db(
     return await db_health.check_sql_time()
 
 
-@app.get("/titanic/data")
-def read_titanic_data():
-    james = JamesController()
-    df = james.get_data()
-
-    return df.to_dict(orient="records")
-
-@app.get("/titanic/count")
-def read_titanic_count():
-    james = JamesController()
-    count = james.get_count()
-    return {"count": count}
-
-@app.get("/titanic/count_survived")
-def read_titanic_count_survived():
-    james = JamesController() 
-    count_survived = james.get_count_survived()
-    return {"count_survived": count_survived}
-
-@app.get("/titanic/count_dead")
-def read_titanic_count_dead():
-    james = JamesController()
-    count_dead = james.get_count_dead()
-    return {"count_dead": count_dead}
-
-@app.get("/titanic/tree")
-def read_titanic_tree():
-    james = JamesController ()
-    tree = james.has_decision_tree_model()
-    return {"tree": tree}
-
-@app.get("/titanic/model_name")
-def read_titanic_model():
-    james = JamesController()
-    model = james.get_training_model_name()
-    return {"model": model}
+# titanic 조회 라우트들은 이제 titanic_router로 이전되었습니다.
 
 
 @app.get("/doro/data")

@@ -16,13 +16,13 @@ from apps.gourmet.app.data.search_keywords import (
     expand_search_terms,
     topic_slugs_for_query,
 )
-from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
 from apps.gourmet.app.services.sgma_browse_service import (
+    SgmaBrowseRow,
     bounded_sgma_slice,
     fetch_sgma_text_search_candidates,
     pick_mixed_sgma_by_category,
     sgma_category_of,
-    sgmas_to_pick_items,
+    sgmas_to_card_summaries,
     sort_sgmas_by_distance,
 )
 from apps.gourmet.app.services.restaurant_location_service import distance_km_to_entity
@@ -41,7 +41,7 @@ def _all_topics() -> list[TopicDef]:
     return topics
 
 
-def _sgma_haystack(r: SgmaRestaurant) -> str:
+def _sgma_haystack(r: SgmaBrowseRow) -> str:
     parts = [
         r.store_name,
         r.branch_name,
@@ -56,14 +56,14 @@ def _sgma_haystack(r: SgmaRestaurant) -> str:
     return " ".join(p for p in parts if p).lower()
 
 
-def _topic_applies(topic: TopicDef, r: SgmaRestaurant) -> bool:
+def _topic_applies(topic: TopicDef, r: SgmaBrowseRow) -> bool:
     if topic.category_slugs and sgma_category_of(r)[0] not in topic.category_slugs:
         return False
     return True
 
 
 def _score_sgma(
-    r: SgmaRestaurant,
+    r: SgmaBrowseRow,
     terms: list[str],
     *,
     primary: str,
@@ -174,13 +174,13 @@ def search_restaurants(
     for t in matched_topics:
         boosted_slugs.add(t.slug)
 
-    scored: list[tuple[SgmaRestaurant, int]] = []
+    scored: list[tuple[SgmaBrowseRow, int]] = []
     for r in all_rows:
         s = _score_sgma(r, terms, primary=primary, boosted_slugs=boosted_slugs)
         if s > 0:
             scored.append((r, s))
 
-    picked: list[SgmaRestaurant] = []
+    picked: list[SgmaBrowseRow] = []
     seen: set[int] = set()
 
     if scored:
@@ -220,7 +220,12 @@ def search_restaurants(
     if user_lat is not None and user_lng is not None and picked:
         picked = sort_sgmas_by_distance(picked, user_lat, user_lng)
 
-    items = sgmas_to_pick_items(picked, user_lat=user_lat, user_lng=user_lng)
+    items = sgmas_to_card_summaries(
+        picked,
+        user_lat=user_lat,
+        user_lng=user_lng,
+        with_category=True,
+    )
     total_matched = len(items)
     slice_start = offset
     slice_end = offset + limit
