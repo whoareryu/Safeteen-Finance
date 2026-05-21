@@ -3,16 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { PORTFOLIO_LINKS } from "@/lib/navigation";
 
 const TILE_STYLES = {
-  seoulmate: {
-    gradient:
-      "bg-gradient-to-br from-[#1a0a2e] via-[#3d1a6e] to-[#0f4c5c]",
-    pattern:
-      "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(236,72,153,0.35) 0%, transparent 55%), radial-gradient(circle at 85% 15%, rgba(34,211,238,0.25) 0%, transparent 40%)",
-    glow: "shadow-[0_24px_80px_-12px_rgba(168,85,247,0.45)]",
-    icon: "🏙️",
-    description:
-      "서울 여행·맛집·명소를 AI와 함께 탐색하는 서울 메이트 프로젝트입니다.",
-  },
   titanic: {
     gradient:
       "bg-gradient-to-br from-[#0c1929] via-[#1e3a5f] to-[#0a1628]",
@@ -28,7 +18,7 @@ const TILE_STYLES = {
 export default function PortfolioProjectTiles({ large = false }: { large?: boolean }) {
   return (
     <div
-      className={`grid gap-4 ${large ? "lg:grid-cols-2" : "sm:grid-cols-2"} sm:gap-5`}
+      className={`grid gap-4 ${large ? "max-w-xl mx-auto" : "max-w-md mx-auto"} sm:gap-5`}
     >
       {PORTFOLIO_LINKS.map((item) => {
         const style = TILE_STYLES[item.theme];

@@ -148,12 +148,6 @@ export function getCategoryBySlug(slug: string): NavCategory | undefined {
 
 export const PORTFOLIO_LINKS = [
   {
-    href: "/portfolio/seoulmate",
-    label: "SeoulMate",
-    tagline: "서울 탐험 AI 동반",
-    theme: "seoulmate" as const,
-  },
-  {
     href: "/portfolio/titanic",
     label: "타이타닉",
     tagline: "생존 예측 · 데이터 분석",

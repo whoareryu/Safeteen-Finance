@@ -77,15 +77,12 @@ export default function Header() {
                   isPortfolioActive && "bg-black/[0.06] font-medium text-[#1d1d1f]"
                 )}
               >
-                Portfolio
+                수업용
                 <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="min-w-[12rem]">
                 <DropdownMenuItem asChild>
                   <Link href="/portfolio">하이미디어 재직자 과정</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/portfolio/seoulmate">SeoulMate</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/portfolio/titanic">타이타닉</Link>
@@ -102,7 +99,7 @@ export default function Header() {
                 isPortfolioActive && "font-medium text-[#1d1d1f]"
               )}
             >
-              Portfolio
+              수업용
             </Link>
 
             {showWeather ? (

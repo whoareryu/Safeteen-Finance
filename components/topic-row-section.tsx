@@ -20,15 +20,15 @@ export type TopicRowData = {
   /** false면 행 제목을 주제 페이지로 링크하지 않음 */
   link_title?: boolean;
   restaurants: {
-    rank: number;
     id: number;
     name: string;
-    district: string;
-    description: string;
     image_url: string;
+    district?: string;
+    description?: string;
+    rank?: number | null;
     view_count?: number;
-    category_slug?: string;
-    category_label?: string;
+    category_slug?: string | null;
+    category_label?: string | null;
     distance_km?: number | null;
     detail_href?: string | null;
   }[];
@@ -109,7 +109,7 @@ export default function TopicRowSection({
               className="basis-[200px] pl-3 sm:basis-[220px]"
             >
               <RestaurantCard
-                restaurant={{ ...r, rank: r.rank }}
+                restaurant={r}
                 variant="dark"
                 showCategoryLabel={showCategoryOnCards}
               />

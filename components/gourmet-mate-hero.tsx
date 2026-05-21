@@ -73,18 +73,19 @@ export default function GourmetMateHero() {
           &quot;오늘 뭐 먹지?&quot; 고민은 이제 끝, 내 입맛을 가장 잘 아는 인공지능 미식
           파트너 &apos;gourmetmate&apos;를 만나보세요!
         </p>
-      </div>
 
-      {!isSearchMode ? (
-        <div className="border-t border-black/[0.06] bg-[#fbfbfd] px-4 py-8 sm:px-6 md:py-10">
-          <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#86868b]">
-            AI에게 바로 물어보기
-          </p>
-          <div className="home-apple-chat mx-auto w-full max-w-3xl">
-            <GeminiChat variant="apple" />
+        {!isSearchMode ? (
+          <div className="home-apple-chat mt-8 w-full max-w-3xl text-left">
+            <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#86868b]">
+              AI에게 바로 물어보기
+            </p>
+            <GeminiChat
+              variant="apple"
+              inputPlaceholder="맛집·메뉴·분위기를 Gemini에게 물어보기"
+            />
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {isSearchMode ? <HomeSearchResults query={committedQuery} /> : null}
 

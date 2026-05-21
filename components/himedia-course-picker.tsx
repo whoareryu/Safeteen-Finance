@@ -6,14 +6,9 @@ import { X, ChevronRight } from "lucide-react";
 
 const COURSES = [
   {
-    href: "/seoulmate",
-    title: "SeoulMate",
-    description: "서울 메이트 AI 과정으로 이동합니다.",
-  },
-  {
-    href: "/titanic",
+    href: "/portfolio/titanic",
     title: "타이타닉",
-    description: "타이타닉 프로젝트 과정으로 이동합니다.",
+    description: "타이타닉 데이터 분석·Gemini 채팅으로 이동합니다.",
   },
 ] as const;
 

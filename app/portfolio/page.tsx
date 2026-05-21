@@ -5,7 +5,7 @@ export default function PortfolioPage() {
     <main className="min-h-[calc(100dvh-var(--site-header-height))] bg-[#fbfbfd]">
       <section className="border-b border-black/[0.06] bg-[#f5f5f7] px-6 py-16 text-center md:py-24">
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#86868b]">
-          Hi-Media Academy · Portfolio
+          Hi-Media Academy · 수업용
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-[#1d1d1f] md:text-5xl">
           하이미디어 재직자 과정

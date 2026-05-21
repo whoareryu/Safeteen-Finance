@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNearbyLocation } from "@/components/nearby-location-provider";
+import InfiniteScrollSentinel from "@/components/infinite-scroll-sentinel";
 import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { appendLocationParams } from "@/lib/gourmet-location";
 
 const TOPIC_PAGE_SIZE = 4;
@@ -94,7 +96,7 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
     };
   }, [query, coords, loadPage]);
 
-  const onLoadMore = async () => {
+  const onLoadMore = useCallback(async () => {
     if (!pagination?.has_more || loadingMore || loading) return;
     const nextOffset = pagination.topic_offset + pagination.topic_limit;
     setLoadingMore(true);
@@ -106,7 +108,15 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [pagination, loadingMore, loading, loadPage]);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: !loading && !error && topics.length > 0,
+    hasMore: Boolean(pagination?.has_more),
+    loading,
+    loadingMore,
+    onLoadMore,
+  });
 
   const feedTitle = query
     ? isNearbyMode
@@ -168,18 +178,13 @@ export default function HomeTopicFeed({ query }: HomeTopicFeedProps) {
         <p className="text-center text-sm text-white/50">표시할 추천이 없습니다.</p>
       ) : null}
 
-      {!loading && pagination?.has_more ? (
-        <div className="mt-8 flex justify-center px-4">
-          <button
-            type="button"
-            onClick={() => void onLoadMore()}
-            disabled={loadingMore}
-            className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
-          >
-            {loadingMore ? "불러오는 중…" : "더 보기 (주제 행)"}
-          </button>
-        </div>
-      ) : null}
+      <InfiniteScrollSentinel
+        sentinelRef={sentinelRef}
+        hasMore={Boolean(pagination?.has_more)}
+        loading={loading}
+        loadingMore={loadingMore}
+        variant="dark"
+      />
     </section>
   );
 }

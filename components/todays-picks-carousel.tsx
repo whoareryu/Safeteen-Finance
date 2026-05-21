@@ -13,16 +13,14 @@ import {
 } from "@/components/ui/carousel";
 
 export type TodayPick = {
-  rank: number;
   id: number;
   name: string;
-  category_slug: string;
-  category_label: string;
-  district: string;
-  description: string;
   image_url: string;
-  view_count?: number;
+  district?: string;
   distance_km?: number | null;
+  rank?: number | null;
+  category_slug?: string | null;
+  category_label?: string | null;
 };
 
 type TodayPicksResponse = {
@@ -44,13 +42,11 @@ function PickCard({ pick }: { pick: TodayPick }) {
       restaurant={{
         id: pick.id,
         name: pick.name,
-        district: pick.district,
-        description: pick.description,
         image_url: pick.image_url,
-        view_count: pick.view_count,
-        rank: pick.rank,
-        category_label: pick.category_label,
-        category_slug: pick.category_slug,
+        district: pick.district,
+        rank: pick.rank ?? undefined,
+        category_label: pick.category_label ?? undefined,
+        category_slug: pick.category_slug ?? undefined,
         distance_km: pick.distance_km,
       }}
       variant="light"

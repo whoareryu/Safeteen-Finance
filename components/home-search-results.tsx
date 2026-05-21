@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import InfiniteScrollSentinel from "@/components/infinite-scroll-sentinel";
 import RestaurantCard from "@/components/restaurant-card";
 import { useNearbyLocation } from "@/components/nearby-location-provider";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { fetchRestaurantSearch, type RestaurantSearchResult } from "@/lib/gourmet";
 
 type HomeSearchResultsProps = {
@@ -59,7 +61,7 @@ export default function HomeSearchResults({ query }: HomeSearchResultsProps) {
     };
   }, [query, coords]);
 
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     const pg = data?.pagination;
     if (!pg?.has_more || loadingMore || loading || !query.trim()) return;
     const nextOffset = pg.offset + pg.limit;
@@ -77,12 +79,19 @@ export default function HomeSearchResults({ query }: HomeSearchResultsProps) {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [data?.pagination, loadingMore, loading, query, coords]);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: Boolean(query.trim()) && !loading && !error && aggregated.length > 0,
+    hasMore: Boolean(data?.pagination?.has_more),
+    loading,
+    loadingMore,
+    onLoadMore: loadMore,
+  });
 
   if (!query.trim()) return null;
 
   const pageInfo = data?.pagination;
-  const showLoadMore = Boolean(pageInfo?.has_more);
 
   return (
     <section
@@ -130,18 +139,13 @@ export default function HomeSearchResults({ query }: HomeSearchResultsProps) {
                 </li>
               ))}
             </ul>
-            {showLoadMore ? (
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => void loadMore()}
-                  disabled={loadingMore}
-                  className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
-                >
-                  {loadingMore ? "불러오는 중…" : "더 보기"}
-                </button>
-              </div>
-            ) : null}
+            <InfiniteScrollSentinel
+              sentinelRef={sentinelRef}
+              hasMore={Boolean(pageInfo?.has_more)}
+              loading={loading}
+              loadingMore={loadingMore}
+              variant="dark"
+            />
           </>
         ) : null}
 

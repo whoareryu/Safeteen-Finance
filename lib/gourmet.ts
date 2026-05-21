@@ -57,16 +57,14 @@ export function formatPrice(won: number): string {
 }
 
 export type RestaurantSearchItem = {
-  rank: number;
   id: number;
   name: string;
-  category_slug: string;
-  category_label: string;
-  district: string;
-  description: string;
   image_url: string;
-  view_count: number;
+  district?: string;
   distance_km?: number | null;
+  category_slug?: string | null;
+  category_label?: string | null;
+  rank?: number | null;
 };
 
 export type RestaurantSearchResult = {

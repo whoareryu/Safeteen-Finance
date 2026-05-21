@@ -25,9 +25,16 @@ function id() {
 
 type GeminiChatProps = {
   variant?: "dark" | "apple";
+  /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
+  apiPath?: string;
+  inputPlaceholder?: string;
 };
 
-export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
+export default function GeminiChat({
+  variant = "dark",
+  apiPath = "/api/chat",
+  inputPlaceholder = "Gemini에게 물어보기",
+}: GeminiChatProps) {
   const isApple = variant === "apple";
   const neonShield = isApple ? "neon-hit-shield" : "";
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -65,7 +72,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
     ];
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(apiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: history, model }),
@@ -110,7 +117,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages, model]);
+  }, [apiPath, input, loading, messages, model]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -155,7 +162,7 @@ export default function GeminiChat({ variant = "dark" }: GeminiChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Gemini에게 물어보기"
+            placeholder={inputPlaceholder}
             disabled={loading}
             className={cn(
               "w-full max-h-[120px] min-h-[26px] resize-none overflow-y-auto bg-transparent text-left text-[15px] leading-relaxed outline-none disabled:opacity-60",

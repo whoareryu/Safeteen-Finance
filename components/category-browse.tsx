@@ -6,7 +6,9 @@ import { ArrowLeft, Search, X } from "lucide-react";
 import { useNearbyLocation } from "@/components/nearby-location-provider";
 import type { NavCategory } from "@/lib/navigation";
 import { appendLocationParams } from "@/lib/gourmet-location";
+import InfiniteScrollSentinel from "@/components/infinite-scroll-sentinel";
 import TopicRowSection, { type TopicRowData } from "@/components/topic-row-section";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 const TOPIC_PAGE_SIZE = 4;
 const PER_TOPIC_LIMIT = 10;
@@ -91,7 +93,7 @@ export default function CategoryBrowse({ category }: CategoryBrowseProps) {
     void fetchBrowse();
   }, [fetchBrowse]);
 
-  const onLoadMore = async () => {
+  const onLoadMore = useCallback(async () => {
     if (!pagination?.has_more || loadingMore || loading) return;
     const nextOffset = pagination.topic_offset + pagination.topic_limit;
     setLoadingMore(true);
@@ -103,7 +105,15 @@ export default function CategoryBrowse({ category }: CategoryBrowseProps) {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [pagination, loadingMore, loading, loadPage]);
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: !loading && !error && topics.length > 0,
+    hasMore: Boolean(pagination?.has_more),
+    loading,
+    loadingMore,
+    onLoadMore,
+  });
 
   const totalTopics = pagination?.total_topics ?? 0;
   const hint = useMemo(() => {
@@ -202,18 +212,13 @@ export default function CategoryBrowse({ category }: CategoryBrowseProps) {
           ? topics.map((row) => <TopicRowSection key={row.slug} row={row} />)
           : null}
 
-        {!loading && !error && pagination?.has_more ? (
-          <div className="mt-8 flex justify-center px-4 md:px-8">
-            <button
-              type="button"
-              onClick={() => void onLoadMore()}
-              disabled={loadingMore}
-              className="rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
-            >
-              {loadingMore ? "불러오는 중…" : "더 보기 (주제 행)"}
-            </button>
-          </div>
-        ) : null}
+        <InfiniteScrollSentinel
+          sentinelRef={sentinelRef}
+          hasMore={Boolean(pagination?.has_more)}
+          loading={loading}
+          loadingMore={loadingMore}
+          variant="dark"
+        />
 
         {loading && !topics.length ? (
           <div className="flex h-48 items-center justify-center text-sm text-white/50">

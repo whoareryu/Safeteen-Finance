@@ -9,13 +9,13 @@ import { formatDistanceKm } from "@/lib/gourmet-location";
 export type RestaurantSummary = {
   id: number;
   name: string;
-  district: string;
-  description: string;
   image_url: string;
+  district?: string;
+  description?: string;
   view_count?: number;
-  rank?: number;
-  category_label?: string;
-  category_slug?: string;
+  rank?: number | null;
+  category_label?: string | null;
+  category_slug?: string | null;
   distance_km?: number | null;
   detail_href?: string | null;
 };
@@ -35,8 +35,10 @@ export default function RestaurantCard({
   layout = "carousel",
 }: RestaurantCardProps) {
   const isDark = variant === "dark";
-  const views = restaurant.view_count ?? 0;
+  const showViews = restaurant.view_count != null && restaurant.view_count > 0;
   const distanceLabel = formatDistanceKm(restaurant.distance_km);
+  const districtLine = restaurant.district?.trim() ?? "";
+  const descriptionLine = restaurant.description?.trim() ?? "";
   const href = restaurant.detail_href?.trim()
     ? restaurant.detail_href
     : restaurantDetailPath(restaurant.id);
@@ -66,10 +68,12 @@ export default function RestaurantCard({
             #{restaurant.rank}
           </span>
         ) : null}
-        <span className="absolute right-2 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
-          <Eye className="h-3 w-3" aria-hidden />
-          {views}
-        </span>
+        {showViews ? (
+          <span className="absolute right-2 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
+            <Eye className="h-3 w-3" aria-hidden />
+            {restaurant.view_count}
+          </span>
+        ) : null}
       </div>
       <div className={`p-3 ${isDark ? "text-white" : ""}`}>
         <div className="flex items-start justify-between gap-1">
@@ -84,25 +88,29 @@ export default function RestaurantCard({
             </span>
           ) : null}
         </div>
-        <p
-          className={`mt-0.5 flex items-center gap-1 text-[11px] ${isDark ? "text-white/60" : "text-[#6e6e73]"}`}
-        >
-          <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-          <span>
-            {restaurant.district}
-            {distanceLabel ? (
-              <span className={isDark ? "text-white/45" : "text-[#86868b]"}>
-                {" "}
-                · {distanceLabel}
-              </span>
-            ) : null}
-          </span>
-        </p>
-        <p
-          className={`mt-1.5 line-clamp-2 text-[11px] leading-snug ${isDark ? "text-white/55" : "text-[#6e6e73]"}`}
-        >
-          {restaurant.description}
-        </p>
+        {districtLine || distanceLabel ? (
+          <p
+            className={`mt-0.5 flex items-center gap-1 text-[11px] ${isDark ? "text-white/60" : "text-[#6e6e73]"}`}
+          >
+            <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+            <span>
+              {districtLine}
+              {distanceLabel ? (
+                <span className={isDark ? "text-white/45" : "text-[#86868b]"}>
+                  {districtLine ? " · " : ""}
+                  {distanceLabel}
+                </span>
+              ) : null}
+            </span>
+          </p>
+        ) : null}
+        {descriptionLine ? (
+          <p
+            className={`mt-1.5 line-clamp-2 text-[11px] leading-snug ${isDark ? "text-white/55" : "text-[#6e6e73]"}`}
+          >
+            {descriptionLine}
+          </p>
+        ) : null}
       </div>
     </Link>
   );

@@ -23,7 +23,8 @@ const nextConfig = {
       { source: "/restaurant", destination: "/food/hansik", permanent: true },
       { source: "/shopping", destination: "/", permanent: true },
       { source: "/attraction", destination: "/", permanent: true },
-      { source: "/seoulmate", destination: "/portfolio/seoulmate", permanent: true },
+      { source: "/seoulmate", destination: "/portfolio", permanent: true },
+      { source: "/portfolio/seoulmate", destination: "/portfolio", permanent: true },
       { source: "/titanic", destination: "/portfolio/titanic", permanent: true },
     ];
   },
@@ -32,6 +33,14 @@ const nextConfig = {
       {
         source: "/api/chat",
         destination: `${backendUrl}/chat`,
+      },
+      {
+        source: "/api/titanic/chat",
+        destination: `${backendUrl}/titanic/chat`,
+      },
+      {
+        source: "/api/titanic/upload",
+        destination: `${backendUrl}/titanic/upload`,
       },
       {
         source: "/api/signup",
