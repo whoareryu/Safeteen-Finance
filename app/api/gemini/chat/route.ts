@@ -1,6 +1,11 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const ALLOWED_MODELS = new Set(["gemini-2.0-flash", "gemini-1.5-flash"]);
+const ALLOWED_MODELS = new Set([
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+]);
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -62,66 +67,31 @@ export async function POST(request: Request) {
     );
   }
 
-  const model =
+  const modelName =
     typeof modelRaw === "string" && ALLOWED_MODELS.has(modelRaw)
       ? modelRaw
       : "gemini-2.0-flash";
 
-  const recent = trimmed.slice(-20);
-  const contents = toGeminiContents(recent);
+  const contents = toGeminiContents(trimmed.slice(-20));
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  let upstream: Response;
   try {
-    upstream = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents }),
-    });
-  } catch {
-    return NextResponse.json(
-      { error: "Gemini API에 연결할 수 없습니다." },
-      { status: 502 }
-    );
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const result = await model.generateContent({ contents });
+    const text = result.response.text().trim();
+
+    if (!text) {
+      return NextResponse.json(
+        { error: "모델이 텍스트 응답을 반환하지 않았습니다." },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ text, model: modelName });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Gemini 요청이 실패했습니다.";
+    console.error("[gemini/chat]", message);
+    return NextResponse.json({ error: message }, { status: 502 });
   }
-
-  let data: unknown;
-  try {
-    data = await upstream.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Gemini 응답을 해석할 수 없습니다." },
-      { status: 502 }
-    );
-  }
-
-  if (!upstream.ok) {
-    const msg =
-      typeof data === "object" &&
-      data !== null &&
-      "error" in data &&
-      typeof (data as { error?: { message?: string } }).error?.message === "string"
-        ? (data as { error: { message: string } }).error.message
-        : "Gemini 요청이 실패했습니다.";
-    return NextResponse.json({ error: msg }, { status: upstream.status === 429 ? 429 : 502 });
-  }
-
-  const cand = (data as { candidates?: unknown[] }).candidates?.[0] as
-    | { content?: { parts?: { text?: string }[] } }
-    | undefined;
-  const text =
-    cand?.content?.parts
-      ?.map((p) => (typeof p.text === "string" ? p.text : ""))
-      .join("")
-      .trim() ?? "";
-
-  if (!text) {
-    return NextResponse.json(
-      { error: "모델이 텍스트 응답을 반환하지 않았습니다." },
-      { status: 502 }
-    );
-  }
-
-  return NextResponse.json({ text });
 }
