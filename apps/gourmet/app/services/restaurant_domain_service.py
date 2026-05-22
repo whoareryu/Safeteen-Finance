@@ -1,8 +1,9 @@
-"""Restaurant 도메인 비즈니스 로직 (v2 API·적재)."""
+"""Restaurant 도메인 — Repository·Strategy·엔티티 캡슐화."""
 
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -10,11 +11,22 @@ from apps.gourmet.app.data.ingestion.csv_restaurant_importer import CsvRestauran
 from apps.gourmet.app.models.restaurant import Restaurant
 from apps.gourmet.app.repositories.interfaces import IRestaurantRepository
 from apps.gourmet.app.repositories.restaurant_repository import RestaurantRepository
+from apps.gourmet.app.services.strategies.recommendation_strategy import (
+    CategoryBrowseRecommendationStrategy,
+    RecommendationContext,
+)
 
 
 class RestaurantDomainService:
-    def __init__(self, repository: IRestaurantRepository | None = None) -> None:
+    def __init__(
+        self,
+        repository: IRestaurantRepository | None = None,
+        browse_strategy: CategoryBrowseRecommendationStrategy | None = None,
+    ) -> None:
         self._repo = repository or RestaurantRepository()
+        self._browse_strategy = browse_strategy or CategoryBrowseRecommendationStrategy(
+            restaurant_repo=self._repo
+        )
 
     def get_detail(self, db: Session, restaurant_id: int) -> Restaurant | None:
         return self._repo.get_by_id(db, restaurant_id)
@@ -28,17 +40,17 @@ class RestaurantDomainService:
         limit: int,
         district: str | None = None,
     ) -> tuple[list[Restaurant], int]:
-        rows = self._repo.list_by_category(
-            db,
-            category_slug=category_slug,
+        ctx = RecommendationContext(
             offset=offset,
             limit=limit,
+            category_slug=category_slug,
             district=district,
         )
+        result = self._browse_strategy.recommend(db, ctx)
         total = self._repo.count_by_category(
             db, category_slug=category_slug, district=district
         )
-        return rows, total
+        return result.restaurants, total
 
     def import_from_csv(
         self,
@@ -51,15 +63,5 @@ class RestaurantDomainService:
         return importer.import_file(db, csv_path, replace_all=replace_all)
 
     @staticmethod
-    def to_card_dict(row: Restaurant) -> dict:
-        return {
-            "id": row.id,
-            "name": row.name,
-            "image_url": row.image_url,
-            "district": row.district,
-            "category_slug": row.category_slug,
-            "category_label": row.category_label,
-            "avg_price": row.avg_price,
-            "signature_menu": row.signature_menu,
-            "ai_tags": row.ai_tags or [],
-        }
+    def to_card_dict(row: Restaurant, **kwargs: Any) -> dict[str, Any]:
+        return row.to_card_dict(**kwargs)

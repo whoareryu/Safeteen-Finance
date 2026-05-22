@@ -30,7 +30,10 @@ from apps.auth.auth_router import signup as auth_signup
 from apps.auth.user_model import User  # noqa: F401 — Base.metadata 등록
 from apps.secom.app.controllers.user_controller import router as secom_router
 from apps.gourmet.app.controllers import router as gourmet_router
-from apps.gourmet.app.services.sgma_restaurant_service import maybe_import_sgma_on_startup
+from apps.gourmet.app.controllers.weather_router import router as weather_router
+from apps.gourmet.app.services.restaurant_catalog_service import (
+    maybe_import_restaurants_on_startup,
+)
 from apps.database import SyncSessionLocal
 from apps.matrix.app.keymaker import MissingGeminiKeyError, keymaker
 from apps.adapters.db_health_adapter import SqlAlchemyDbHealthAdapter
@@ -63,7 +66,7 @@ async def lifespan(app: FastAPI):
         if SyncSessionLocal is not None:
             db = SyncSessionLocal()
             try:
-                maybe_import_sgma_on_startup(db)
+                maybe_import_restaurants_on_startup(db)
             finally:
                 db.close()
         logger.info(
@@ -79,6 +82,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Whoareryu Main Page", lifespan=lifespan)
 app.include_router(auth_router)
+app.include_router(weather_router)
 app.include_router(secom_router)
 app.include_router(gourmet_router)
 app.include_router(titanic_router)
@@ -231,7 +235,14 @@ def login_member(body: LoginRequest, db: Session = Depends(get_sync_db)):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    # reload 시 자식 프로세스도 WindowsSelectorEventLoopPolicy 유지
+    uvicorn.run(
+        "main:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True,
+        loop="asyncio",
+    )
 
 
 

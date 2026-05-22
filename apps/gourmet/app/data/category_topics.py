@@ -165,6 +165,135 @@ COMMON_TOPICS: tuple[TopicDef, ...] = (
         "🔥",
         ("인기", "핫", "트렌드", "뜨는", "화제"),
     ),
+    TopicDef(
+        "spicy-lovers",
+        "매운맛 좋아한다면",
+        "얼큰·매콤한 메뉴가 있는 곳",
+        "🌶️",
+        ("매운", "얼큰", "고추", "청양", "마라", "핫"),
+    ),
+    TopicDef(
+        "comfort-food",
+        "편안한 한 끼",
+        "부담 없이 자주 찾게 되는 맛",
+        "🍚",
+        ("편안", "집밥", "든든", "한그릇", "정갈"),
+    ),
+    TopicDef(
+        "weekend-special",
+        "주말 외식",
+        "토·일에 여유 있게 즐기기",
+        "📅",
+        ("주말", "토요일", "일요일", "브런치", "외식"),
+    ),
+    TopicDef(
+        "anniversary",
+        "기념일·생일",
+        "특별한 날 분위기",
+        "🎂",
+        ("기념일", "생일", "축하", "케이크", "이벤트"),
+    ),
+    TopicDef(
+        "quick-bite",
+        "빠른 한 끼",
+        "점심시간·이동 중 가볍게",
+        "⚡",
+        ("빠른", "간편", "테이크아웃", "포장", "도시락"),
+    ),
+    TopicDef(
+        "soup-lovers",
+        "국물 요리",
+        "탕·찌개·전골 한 그릇",
+        "🥣",
+        ("국물", "탕", "찌개", "전골", "국밥", "곰탕"),
+    ),
+    TopicDef(
+        "noodle-craving",
+        "면 요리",
+        "국수·라면·냉면·파스타",
+        "🍜",
+        ("면", "국수", "라면", "냉면", "우동", "파스타"),
+    ),
+    TopicDef(
+        "rice-bowl",
+        "밥 한 공기",
+        "덮밥·비빔·정식",
+        "🍚",
+        ("밥", "덮밥", "비빔밥", "정식", "볶음밥"),
+    ),
+    TopicDef(
+        "seafood-fresh",
+        "해산물·회",
+        "싱싱한 해산물 메뉴",
+        "🦐",
+        ("해산물", "회", "생선", "조개", "새우", "게"),
+    ),
+    TopicDef(
+        "fried-crispy",
+        "바삭·튀김",
+        "튀김·전·바삭한 식감",
+        "🍤",
+        ("튀김", "바삭", "전", "치킨", "돈까스", "크림새우"),
+    ),
+    TopicDef(
+        "healthy-light",
+        "가볍게 먹기",
+        "샐러드·저염·담백",
+        "🥗",
+        ("샐러드", "가볍", "담백", "건강", "다이어트"),
+    ),
+    TopicDef(
+        "business-meal",
+        "비즈니스 미팅",
+        "조용히 대화하기 좋은",
+        "💼",
+        ("미팅", "비즈니스", "상견례", "접대"),
+    ),
+    TopicDef(
+        "student-budget",
+        "학생·알뜰",
+        "부담 없는 가격대",
+        "🎓",
+        ("학생", "알뜰", "저렴", "학교", "대학"),
+    ),
+    TopicDef(
+        "late-breakfast",
+        "브런치·늦은 아침",
+        "주말 아침부터 여유롭게",
+        "🥞",
+        ("브런치", "아침", "에그", "팬케이크", "오믈렛"),
+    ),
+    TopicDef(
+        "takeout-friendly",
+        "포장·배달 잘하는",
+        "집에서도 맛있게",
+        "🥡",
+        ("포장", "배달", "테이크아웃", "도시락"),
+    ),
+    TopicDef(
+        "hidden-gem",
+        "숨은 맛집",
+        "유명세 없이 실력 있는 곳",
+        "💎",
+        ("숨은", "소문", "로컬", "동네", "오래"),
+    ),
+    TopicDef(
+        "chefs-pick",
+        "셰프·전문점",
+        "한 메뉴에 진심인 곳",
+        "👨‍🍳",
+        ("전문", "본점", "원조", "명인", "장인"),
+    ),
+)
+
+# 메인 홈 피드 — 식사 장르 주제만 (카페·주점 제외)
+HOME_FEED_CATEGORY_SLUGS: tuple[str, ...] = (
+    "hansik",
+    "ilsik",
+    "jungsik",
+    "yangsik",
+    "asian",
+    "bunsik",
 )
 
 # 장르별 추가 주제
@@ -394,10 +523,58 @@ ALL_CATEGORY_SLUGS: frozenset[str] = frozenset(
 )
 
 
+def all_topic_defs() -> list[TopicDef]:
+    """전체 주제(중복 slug 제거) — API 카탈로그·주제 상세용."""
+    seen: set[str] = set()
+    ordered: list[TopicDef] = []
+    for t in COMMON_TOPICS:
+        if t.slug in seen:
+            continue
+        seen.add(t.slug)
+        ordered.append(t)
+    for slug in ALL_CATEGORY_SLUGS:
+        for t in CATEGORY_EXTRA_TOPICS.get(slug, ()):
+            if t.slug in seen:
+                continue
+            seen.add(t.slug)
+            ordered.append(t)
+    return ordered
+
+
+def find_topic_by_slug(slug: str) -> TopicDef | None:
+    key = (slug or "").strip()
+    if not key:
+        return None
+    for t in all_topic_defs():
+        if t.slug == key:
+            return t
+    return None
+
+
 def topics_for_category(category_slug: str) -> list[TopicDef]:
     """공통 + 해당 장르 전용 주제."""
     extras = CATEGORY_EXTRA_TOPICS.get(category_slug, ())
     return list(COMMON_TOPICS) + list(extras)
+
+
+def home_feed_topics(q: str | None = None) -> list[TopicDef]:
+    """메인 홈 무한 스크롤 — 공통 주제 전체 + 식사 장르 전용 주제."""
+    seen: set[str] = set()
+    ordered: list[TopicDef] = []
+    for t in COMMON_TOPICS:
+        if t.slug in seen:
+            continue
+        seen.add(t.slug)
+        ordered.append(t)
+    for slug in HOME_FEED_CATEGORY_SLUGS:
+        for t in CATEGORY_EXTRA_TOPICS.get(slug, ()):
+            if t.slug in seen:
+                continue
+            seen.add(t.slug)
+            ordered.append(t)
+    if q and q.strip():
+        return filter_topics_by_query(ordered, q)
+    return ordered
 
 
 def filter_topics_by_query(topics: list[TopicDef], q: str) -> list[TopicDef]:

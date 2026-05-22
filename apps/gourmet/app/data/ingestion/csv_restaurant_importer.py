@@ -1,22 +1,29 @@
-"""공공 CSV → ``restaurants`` 테이블 배치 적재."""
+"""공공 CSV → ``restaurants`` 테이블 (Template Method 구현체)."""
 
 from __future__ import annotations
 
 import csv
-import logging
 from pathlib import Path
 
 from sqlalchemy.orm import Session
 
+from apps.gourmet.app.data.ingestion.base_restaurant_importer import BaseRestaurantImporter
 from apps.gourmet.app.data.ingestion.restaurant_row_cleaner import RestaurantCsvRowCleaner
 from apps.gourmet.app.models.restaurant import Restaurant
+from apps.gourmet.app.models.restaurant_menu import RestaurantMenu
+from apps.gourmet.app.models.restaurant_price import RestaurantPrice
+from apps.gourmet.app.models.restaurant_tag import RestaurantTag
+from apps.gourmet.app.repositories.food_category_repository import FoodCategoryRepository
+from apps.gourmet.app.repositories.master_lookup_repository import (
+    BizClassificationRepository,
+    SigunguDistrictRepository,
+    TagRepository,
+)
 from apps.gourmet.app.repositories.restaurant_repository import RestaurantRepository
 
-logger = logging.getLogger(__name__)
 
-
-class CsvRestaurantImporter:
-    """정제 모듈 + Repository bulk insert 조합."""
+class CsvRestaurantImporter(BaseRestaurantImporter):
+    """CSV 소스 Adapter + Template Method ``import_file``."""
 
     def __init__(
         self,
@@ -25,81 +32,105 @@ class CsvRestaurantImporter:
         repository: RestaurantRepository | None = None,
         chunk_size: int = 1000,
     ) -> None:
+        super().__init__(repository or RestaurantRepository(), chunk_size=chunk_size)
         self._cleaner = cleaner or RestaurantCsvRowCleaner()
-        self._repo = repository or RestaurantRepository()
-        self._chunk_size = chunk_size
+        self._category_ids: dict[str, int] = {}
+        self._sigungu_cache: dict[tuple[str, str], int] = {}
+        self._biz_cache: dict[tuple[str, str, str], int] = {}
+        self._tag_cache: dict[str, int] = {}
+        self._db: Session | None = None
 
     def import_file(
-        self,
-        db: Session,
-        csv_path: Path,
-        *,
-        replace_all: bool = True,
+        self, db: Session, source: Path, *, replace_all: bool = True
     ) -> tuple[int, int]:
-        """CSV 전건 적재. ``replace_all`` 이면 기존 ``restaurants`` 비운 뒤 삽입."""
-        if not csv_path.is_file():
-            raise FileNotFoundError(str(csv_path))
+        self._category_ids = FoodCategoryRepository().ensure_seeded(db)
+        self._sigungu_cache.clear()
+        self._biz_cache.clear()
+        self._tag_cache.clear()
+        self._db = db
+        try:
+            return super().import_file(db, source, replace_all=replace_all)
+        finally:
+            self._db = None
 
-        deleted = 0
-        if replace_all:
-            deleted = self._repo.delete_all(db)
+    def _sigungu_id(self, db: Session, sigungu_name: str, district: str) -> int:
+        key = (sigungu_name, district)
+        if key not in self._sigungu_cache:
+            self._sigungu_cache[key] = SigunguDistrictRepository().get_or_create_id(
+                db, sigungu_name=sigungu_name, district_label=district
+            )
+        return self._sigungu_cache[key]
 
+    def _biz_id(
+        self, db: Session, biz_mid: str, biz_minor: str, ksic: str
+    ) -> int:
+        key = (biz_mid, biz_minor, ksic)
+        if key not in self._biz_cache:
+            self._biz_cache[key] = BizClassificationRepository().get_or_create_id(
+                db,
+                biz_mid_name=biz_mid,
+                biz_minor_name=biz_minor,
+                ksic_name=ksic,
+            )
+        return self._biz_cache[key]
+
+    def _tag_links(self, db: Session, labels: list) -> list[RestaurantTag]:
+        links: list[RestaurantTag] = []
+        for label in labels or []:
+            text = str(label).strip()
+            if not text:
+                continue
+            if text not in self._tag_cache:
+                self._tag_cache[text] = TagRepository().get_or_create_id(db, text)
+            links.append(RestaurantTag(tag_id=self._tag_cache[text]))
+        return links
+
+    def _iter_entities(self, source: Path):
         seen_biz: set[str] = set()
-        pending: list[Restaurant] = []
-        inserted = 0
-        skipped = 0
-
-        with csv_path.open(encoding="utf-8-sig", newline="") as f:
-            reader = csv.DictReader(f)
-            for raw in reader:
-                if (raw.get("상가업소번호") or "").strip() in seen_biz:
-                    skipped += 1
+        with source.open(encoding="utf-8-sig", newline="") as f:
+            for raw in csv.DictReader(f):
+                biz = (raw.get("상가업소번호") or "").strip()
+                if not biz or biz in seen_biz:
+                    yield None
                     continue
-
                 cleaned = self._cleaner.clean(raw)
                 if cleaned is None:
-                    skipped += 1
+                    yield None
                     continue
-
                 seen_biz.add(cleaned.biz_number)
-                pending.append(self._to_entity(cleaned))
-                if len(pending) >= self._chunk_size:
-                    inserted += self._repo.bulk_insert(db, pending, commit=True)
-                    pending.clear()
+                cat_id = self._category_ids.get(cleaned.category_slug)
+                if cat_id is None:
+                    yield None
+                    continue
+                yield self._build_entity(self._db, cleaned, cat_id)
 
-        if pending:
-            inserted += self._repo.bulk_insert(db, pending, commit=True)
-
-        logger.info(
-            "[gourmet import] path=%s inserted=%s deleted=%s skipped_dup_or_invalid=%s",
-            csv_path,
-            inserted,
-            deleted,
-            skipped,
+    def _build_entity(self, db: Session, cleaned, cat_id: int) -> Restaurant:
+        entity = Restaurant(
+            biz_number=cleaned.biz_number,
+            name=cleaned.name,
+            store_name=cleaned.store_name,
+            branch_name=cleaned.branch_name,
+            category_id=cat_id,
+            sigungu_id=self._sigungu_id(db, cleaned.sigungu_name, cleaned.district),
+            biz_classification_id=self._biz_id(
+                db,
+                cleaned.biz_mid_name,
+                cleaned.biz_minor_name,
+                cleaned.ksic_name,
+            ),
+            road_address=cleaned.road_address,
+            parcel_address=cleaned.parcel_address,
+            latitude=cleaned.latitude,
+            longitude=cleaned.longitude,
+            description=cleaned.description,
+            image_url=cleaned.image_url,
         )
-        return inserted, deleted
-
-    @staticmethod
-    def _to_entity(row) -> Restaurant:
-        return Restaurant(
-            biz_number=row.biz_number,
-            name=row.name,
-            store_name=row.store_name,
-            branch_name=row.branch_name,
-            category_slug=row.category_slug,
-            category_label=row.category_label,
-            district=row.district,
-            sigungu_name=row.sigungu_name,
-            road_address=row.road_address,
-            parcel_address=row.parcel_address,
-            latitude=row.latitude,
-            longitude=row.longitude,
-            avg_price=row.avg_price,
-            signature_menu=row.signature_menu,
-            ai_tags=row.ai_tags,
-            description=row.description,
-            image_url=row.image_url,
-            biz_mid_name=row.biz_mid_name,
-            biz_minor_name=row.biz_minor_name,
-            ksic_name=row.ksic_name,
-        )
+        if cleaned.avg_price is not None:
+            entity.price = RestaurantPrice(avg_price=cleaned.avg_price)
+        sig = (cleaned.signature_menu or "").strip()
+        if sig:
+            entity.menus = [RestaurantMenu(name=sig, is_signature=True, sort_order=0)]
+        tag_links = self._tag_links(db, cleaned.ai_tags)
+        if tag_links:
+            entity.tag_links = tag_links
+        return entity

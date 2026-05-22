@@ -8,9 +8,10 @@ from sqlalchemy import Date, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.database import Base, IntIdPrimaryKeyMixin
+from apps.gourmet.app.models.gourmet_entity import UserOwnedEntityMixin
 
 
-class MealPlan(IntIdPrimaryKeyMixin, Base):
+class MealPlan(IntIdPrimaryKeyMixin, UserOwnedEntityMixin, Base):
     __tablename__ = "meal_plans"
 
     user_id: Mapped[int] = mapped_column(

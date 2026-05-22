@@ -1,37 +1,36 @@
-﻿"""메인 홈 — 주제당 SgmaRestaurant(``restaurant``)를 한 행에 섞어서 반환."""
+﻿"""메인 홈 — 주제당 ``restaurants`` 를 한 행에 섞어서 반환."""
 
 from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from datetime import date
 
 from sqlalchemy.orm import Session
 
-from apps.gourmet.app.data.category_topics import COMMON_TOPICS, filter_topics_by_query
-from apps.gourmet.app.services.sgma_browse_service import (
-    SgmaBrowseRow,
-    bounded_sgma_slice,
-    pick_mixed_sgma_by_category,
-    pick_sgmas,
-    sgma_topic_row,
-    sort_sgmas_by_distance,
-    trending_sgma_boost,
+from apps.gourmet.app.data.category_topics import home_feed_topics
+from apps.gourmet.app.services.restaurant_browse_service import (
+    RestaurantBrowseRow,
+    bounded_restaurant_slice,
+    browse_topic_row,
+    pick_mixed_by_category,
+    pick_rows,
+    sort_rows_by_distance,
+    trending_boost,
 )
 
-# Neon 타임아웃 방지 — 매 요청 ~14만 행 적재 금지
-HOME_SGMA_POOL = 12_000
+HOME_BROWSE_POOL = 12_000
 
 logger = logging.getLogger(__name__)
 
 HOME_PICKS_PER_TOPIC = 10
-MAX_HOME_TOPICS = 16
 MAX_TOPICS_PER_RESTAURANT = 2
 
 
 def _eligible_for_topic(
-    pool: list[SgmaBrowseRow],
+    pool: list[RestaurantBrowseRow],
     usage_count: dict[int, int],
-) -> list[SgmaBrowseRow]:
+) -> list[RestaurantBrowseRow]:
     return [
         r
         for r in pool
@@ -49,10 +48,7 @@ def get_home_browse(
     topic_limit: int = 4,
     per_topic_limit: int = HOME_PICKS_PER_TOPIC,
 ) -> tuple[list[dict], dict]:
-    topics = list(COMMON_TOPICS[:MAX_HOME_TOPICS])
-    if q:
-        topics = filter_topics_by_query(topics, q)
-
+    topics = home_feed_topics(q)
     total_topics_filtered = len(topics)
     end_ix = topic_offset + topic_limit
     topic_slice = topics[topic_offset:end_ix]
@@ -66,12 +62,20 @@ def get_home_browse(
             "has_more": end_ix < total_topics_filtered,
         }
 
-    all_rows = bounded_sgma_slice(db, limit_rows=HOME_SGMA_POOL, rotation_salt=0)
+    # 스크롤 페이지마다 다른 DB 윈도우 + 다른 pick 시드 → 매장·구성 다양화
+    pool_salt = topic_offset * 79_691 + date.today().toordinal()
+    all_rows = bounded_restaurant_slice(
+        db,
+        limit_rows=HOME_BROWSE_POOL,
+        rotation_salt=pool_salt,
+        day_ord=date.today().toordinal(),
+    )
     if not all_rows:
         return [], meta_dict()
 
     rows: list[dict] = []
     topic_usage_count: dict[int, int] = defaultdict(int)
+    pick_salt = topic_offset
 
     for topic in topic_slice:
         eligible = _eligible_for_topic(all_rows, topic_usage_count)
@@ -79,23 +83,28 @@ def get_home_browse(
             continue
 
         if topic.slug == "trending-now":
-            pool = trending_sgma_boost(eligible)
-            picks = pick_sgmas(pool, topic.slug, limit=per_topic_limit)
+            pool = trending_boost(eligible)
+            picks = pick_rows(
+                pool, topic.slug, limit=per_topic_limit, pick_salt=pick_salt
+            )
         else:
-            picks = pick_mixed_sgma_by_category(
-                eligible, topic.slug, limit=per_topic_limit
+            picks = pick_mixed_by_category(
+                eligible,
+                topic.slug,
+                limit=per_topic_limit,
+                pick_salt=pick_salt,
             )
         if not picks:
             continue
 
         if user_lat is not None and user_lng is not None:
-            picks = sort_sgmas_by_distance(picks, user_lat, user_lng)
+            picks = sort_rows_by_distance(picks, user_lat, user_lng)
 
         for r in picks:
             topic_usage_count[r.id] += 1
 
         rows.append(
-            sgma_topic_row(
+            browse_topic_row(
                 topic,
                 picks,
                 user_lat=user_lat,
@@ -106,9 +115,11 @@ def get_home_browse(
         )
 
     logger.info(
-        "[gourmet] home-browse (sgma) — %s개 주제 행 (식당당 최대 %s주제, nearby=%s)",
+        "[gourmet] home-browse — %s/%s 주제 행 (offset=%s total_topics=%s nearby=%s)",
         len(rows),
-        MAX_TOPICS_PER_RESTAURANT,
+        len(topic_slice),
+        topic_offset,
+        total_topics_filtered,
         user_lat is not None,
     )
     return rows, meta_dict()

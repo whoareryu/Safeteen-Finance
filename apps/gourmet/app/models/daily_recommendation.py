@@ -8,9 +8,10 @@ from sqlalchemy import Date, DateTime, ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.database import Base, IntIdPrimaryKeyMixin
+from apps.gourmet.app.models.gourmet_entity import UserOwnedEntityMixin
 
 
-class DailyRecommendation(IntIdPrimaryKeyMixin, Base):
+class DailyRecommendation(IntIdPrimaryKeyMixin, UserOwnedEntityMixin, Base):
     __tablename__ = "daily_recommendations"
     __table_args__ = (
         UniqueConstraint("user_id", "recommended_on", name="uq_daily_rec_user_date"),

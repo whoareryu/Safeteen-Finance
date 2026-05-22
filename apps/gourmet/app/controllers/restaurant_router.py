@@ -11,39 +11,40 @@ from apps.gourmet.app.schemas.restaurant_schemas import (
     RestaurantCategoryListResponse,
     RestaurantDetailV2,
 )
+from apps.gourmet.app.services.dependencies import get_restaurant_domain_service
 from apps.gourmet.app.services.restaurant_domain_service import RestaurantDomainService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/gourmet/v2", tags=["gourmet-restaurants"])
 
-_service = RestaurantDomainService()
-
 
 @router.get("/restaurants/{restaurant_id}", response_model=RestaurantDetailV2)
 def read_restaurant_detail(
     restaurant_id: int,
     db: Session = Depends(get_sync_db),
+    service: RestaurantDomainService = Depends(get_restaurant_domain_service),
 ) -> RestaurantDetailV2:
-    row = _service.get_detail(db, restaurant_id)
+    row = service.get_detail(db, restaurant_id)
     if row is None:
         raise HTTPException(status_code=404, detail="식당을 찾을 수 없습니다.")
+    detail = row.to_detail_dict()
     return RestaurantDetailV2(
-        id=row.id,
-        name=row.name,
-        category_slug=row.category_slug,
-        category_label=row.category_label,
-        district=row.district,
-        description=row.description,
-        image_url=row.image_url,
-        avg_price=row.avg_price,
-        signature_menu=row.signature_menu,
-        ai_tags=row.ai_tags or [],
-        road_address=row.road_address,
-        parcel_address=row.parcel_address,
-        latitude=row.latitude,
-        longitude=row.longitude,
-        view_count=row.view_count,
+        id=detail["id"],
+        name=detail["name"],
+        category_slug=detail["category_slug"],
+        category_label=detail["category_label"],
+        district=detail["district"],
+        description=detail.get("description", ""),
+        image_url=detail.get("image_url", ""),
+        avg_price=detail.get("avg_price"),
+        signature_menu=detail.get("signature_menu", ""),
+        ai_tags=detail.get("ai_tags", []),
+        road_address=detail.get("road_address", ""),
+        parcel_address=detail.get("parcel_address", ""),
+        latitude=detail.get("latitude"),
+        longitude=detail.get("longitude"),
+        view_count=detail.get("view_count", 0),
     )
 
 
@@ -57,15 +58,16 @@ def list_restaurants_by_category(
     limit: int = Query(20, ge=1, le=100),
     district: str | None = None,
     db: Session = Depends(get_sync_db),
+    service: RestaurantDomainService = Depends(get_restaurant_domain_service),
 ) -> RestaurantCategoryListResponse:
-    rows, total = _service.list_category_page(
+    rows, total = service.list_category_page(
         db,
         category_slug=category_slug,
         offset=offset,
         limit=limit,
         district=district,
     )
-    cards = [RestaurantCardV2(**_service.to_card_dict(r)) for r in rows]
+    cards = [RestaurantCardV2(**service.to_card_dict(r)) for r in rows]
     return RestaurantCategoryListResponse(
         category_slug=category_slug,
         restaurants=cards,

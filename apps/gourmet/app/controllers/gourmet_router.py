@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from apps.database import DATABASE_INIT_ERROR, get_sync_db
 from apps.gourmet.app.data.category_topics import ALL_CATEGORY_SLUGS
+from apps.gourmet.app.schemas.daily_pick_schemas import DailyPickResponse
 from apps.gourmet.app.schemas.gourmet_schemas import (
     CategoryBrowseResponse,
     HomeBrowseResponse,
@@ -25,14 +26,13 @@ from apps.gourmet.app.services.category_browse_service import (
     list_topic_catalog,
 )
 from apps.gourmet.app.services.home_browse_service import get_home_browse
-from apps.gourmet.app.services.sgma_browse_service import (
-    sgma_restaurant_name_for_views,
-    sgmas_to_card_summaries,
-)
+from apps.gourmet.app.services.dependencies import get_restaurant_detail_service
+from apps.gourmet.app.services.restaurant_detail_service import RestaurantDetailService
+from apps.gourmet.app.services.restaurant_browse_service import rows_to_card_summaries
 from apps.gourmet.app.services.restaurant_location_service import parse_user_location
-from apps.gourmet.app.services.sgma_restaurant_service import sgma_restaurant_detail_dict
 from apps.gourmet.app.services.restaurant_search_service import search_restaurants
 from apps.gourmet.app.services.search_query_service import record_search_query
+from apps.gourmet.app.services.daily_pick_service import get_daily_pick
 from apps.gourmet.app.services.today_picks_service import get_today_picks
 
 logger = logging.getLogger(__name__)
@@ -230,6 +230,33 @@ def read_category_topic_catalog(category_slug: str):
     return [TopicMeta(**t) for t in list_topic_catalog(category_slug)]
 
 
+@router.get("/daily-pick", response_model=DailyPickResponse)
+def read_daily_pick(
+    user_id: int | None = Query(None, description="로그인 회원 id"),
+    lat: float | None = None,
+    lng: float | None = None,
+    db: Session = Depends(get_sync_db),
+):
+    """오늘의 추천 맛집 — 하루 1곳 (버짓설정 시 일일 식비 이하)."""
+    if DATABASE_INIT_ERROR:
+        raise HTTPException(status_code=503, detail="데이터베이스에 연결할 수 없습니다.")
+    user_loc = _location_from_query(lat, lng)
+    try:
+        payload = get_daily_pick(
+            db,
+            user_id=user_id,
+            user_lat=user_loc[0] if user_loc else None,
+            user_lng=user_loc[1] if user_loc else None,
+        )
+    except Exception:
+        logger.exception("[gourmet] daily-pick 실패 user_id=%s", user_id)
+        raise HTTPException(
+            status_code=500,
+            detail="오늘의 추천 맛집을 불러오지 못했습니다.",
+        ) from None
+    return DailyPickResponse(**payload)
+
+
 @router.get("/today-picks", response_model=TodayPicksResponse)
 def read_today_picks(
     lat: float | None = None,
@@ -239,7 +266,7 @@ def read_today_picks(
     page: int | None = Query(None, ge=1, le=10_000),
     db: Session = Depends(get_sync_db),
 ):
-    """오늘의 맛집 — 카테고리별 2~3곳(SgmaRestaurant, 날짜 시드)."""
+    """오늘의 맛집 — 카테고리별 2~3곳(restaurants, 날짜 시드)."""
     if DATABASE_INIT_ERROR:
         raise HTTPException(
             status_code=503,
@@ -260,7 +287,7 @@ def read_today_picks(
             detail="오늘의 맛집 목록을 불러오지 못했습니다.",
         ) from None
 
-    pick_items = sgmas_to_card_summaries(
+    pick_items = rows_to_card_summaries(
         picked_rows,
         user_lat=user_loc[0] if user_loc else None,
         user_lng=user_loc[1] if user_loc else None,
@@ -286,39 +313,45 @@ def read_today_picks(
 
 
 @router.get("/official-store/{store_id}", response_model=RestaurantDetailResponse)
-def read_official_store_detail(store_id: int, db: Session = Depends(get_sync_db)):
-    """공공데이터 ``restaurant`` 테이블(SgmaRestaurant) 상세."""
+def read_official_store_detail(
+    store_id: int,
+    db: Session = Depends(get_sync_db),
+    detail_service: RestaurantDetailService = Depends(get_restaurant_detail_service),
+):
+    """공공·정제 테이블 통합 상세 (Adapter 체인)."""
     if DATABASE_INIT_ERROR:
         raise HTTPException(status_code=503, detail="데이터베이스에 연결할 수 없습니다.")
-    from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
-
-    row = db.get(SgmaRestaurant, store_id)
-    if row is None:
+    detail = detail_service.get_detail(db, store_id)
+    if detail is None:
         raise HTTPException(status_code=404, detail="상가 정보를 찾을 수 없습니다.")
-    return RestaurantDetailResponse(**sgma_restaurant_detail_dict(row))
+    return RestaurantDetailResponse(**detail)
 
 
 @router.get("/restaurants/{restaurant_id}", response_model=RestaurantDetailResponse)
-def read_restaurant_detail(restaurant_id: int, db: Session = Depends(get_sync_db)):
-    """``restaurant`` 테이블(SgmaRestaurant) 매장 상세."""
+def read_restaurant_detail(
+    restaurant_id: int,
+    db: Session = Depends(get_sync_db),
+    detail_service: RestaurantDetailService = Depends(get_restaurant_detail_service),
+):
+    """식당 상세 — ``RestaurantDetailService`` (다형 Adapter)."""
     if DATABASE_INIT_ERROR:
         raise HTTPException(status_code=503, detail="데이터베이스에 연결할 수 없습니다.")
-    from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
-
-    row = db.get(SgmaRestaurant, restaurant_id)
-    if row is None:
+    detail = detail_service.get_detail(db, restaurant_id)
+    if detail is None:
         raise HTTPException(status_code=404, detail="식당을 찾을 수 없습니다.")
-    return RestaurantDetailResponse(**sgma_restaurant_detail_dict(row))
+    return RestaurantDetailResponse(**detail)
 
 
 @router.post("/restaurants/{restaurant_id}/view", response_model=RecordViewResponse)
-def post_restaurant_view(restaurant_id: int, db: Session = Depends(get_sync_db)):
+def post_restaurant_view(
+    restaurant_id: int,
+    db: Session = Depends(get_sync_db),
+    detail_service: RestaurantDetailService = Depends(get_restaurant_detail_service),
+):
     """레거시 호환 — 조회 집계는 사용하지 않음(항상 0)."""
     if DATABASE_INIT_ERROR:
         raise HTTPException(status_code=503, detail="데이터베이스에 연결할 수 없습니다.")
-    from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant
-
-    if db.get(SgmaRestaurant, restaurant_id) is None:
+    if not detail_service.exists(db, restaurant_id):
         raise HTTPException(status_code=404, detail="식당을 찾을 수 없습니다.")
     return RecordViewResponse(
         restaurant_id=restaurant_id,
@@ -328,11 +361,15 @@ def post_restaurant_view(restaurant_id: int, db: Session = Depends(get_sync_db))
 
 
 @router.get("/restaurants/{restaurant_id}/views", response_model=RestaurantViewStatResponse)
-def read_restaurant_views(restaurant_id: int, db: Session = Depends(get_sync_db)):
+def read_restaurant_views(
+    restaurant_id: int,
+    db: Session = Depends(get_sync_db),
+    detail_service: RestaurantDetailService = Depends(get_restaurant_detail_service),
+):
     """조회 수는 항상 0 (legacy API)."""
     if DATABASE_INIT_ERROR:
         raise HTTPException(status_code=503, detail="데이터베이스에 연결할 수 없습니다.")
-    name = sgma_restaurant_name_for_views(db, restaurant_id)
+    name = detail_service.display_name(db, restaurant_id)
     if name is None:
         raise HTTPException(status_code=404, detail="식당을 찾을 수 없습니다.")
     return RestaurantViewStatResponse(

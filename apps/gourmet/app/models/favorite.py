@@ -4,13 +4,19 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.database import Base, IntIdPrimaryKeyMixin
+from apps.gourmet.app.models.gourmet_entity import UserOwnedEntityMixin
+
+if TYPE_CHECKING:
+    from apps.gourmet.app.models.restaurant import Restaurant
 
 
-class Favorite(IntIdPrimaryKeyMixin, Base):
+class Favorite(IntIdPrimaryKeyMixin, UserOwnedEntityMixin, Base):
     __tablename__ = "favorites"
     __table_args__ = (
         UniqueConstraint("user_id", "restaurant_id", name="uq_favorites_user_restaurant"),
@@ -27,4 +33,9 @@ class Favorite(IntIdPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
+    )
+
+    restaurant: Mapped[Restaurant] = relationship(
+        "Restaurant",
+        foreign_keys=[restaurant_id],
     )

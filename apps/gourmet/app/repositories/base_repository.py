@@ -1,28 +1,18 @@
-import logging
-from typing import TypeVar
+"""Repository 추상화 — DB 접근 은닉."""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
 
-logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
+TEntity = TypeVar("TEntity")
 
 
-class BaseRepository:
-    """공통 DB 세션 — add 후 flush·commit 으로 즉시 INSERT (secom와 동일 패턴)."""
+class AbstractRepository(ABC, Generic[TEntity]):
+    """구체 Repository 가 상속 — ``Session`` 은 구현체 내부에서만 사용."""
 
-    def __init__(self, db: Session):
-        self._db = db
-
-    def _insert_now(self, entity: T) -> T:
-        """세션에 추가 후 바로 DB에 반영(commit)."""
-        try:
-            self._db.add(entity)
-            self._db.flush()
-            self._db.commit()
-            self._db.refresh(entity)
-            return entity
-        except Exception:
-            self._db.rollback()
-            logger.exception("[gourmet.repository] INSERT 실패 — rollback 수행")
-            raise
+    @abstractmethod
+    def get_by_id(self, db: Session, entity_id: int) -> TEntity | None:
+        raise NotImplementedError

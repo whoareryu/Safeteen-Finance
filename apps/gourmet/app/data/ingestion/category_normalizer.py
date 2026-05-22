@@ -2,7 +2,41 @@
 
 from __future__ import annotations
 
-from apps.gourmet.app.services.sgma_restaurant_service import classify_sgma_category
+# 식사 위주 추천에서 제외 (카페·디저트·주점·바)
+NON_MEAL_CATEGORY_SLUGS: frozenset[str] = frozenset({"cafe-dessert", "bar"})
+
+
+def is_meal_category_slug(slug: str | None) -> bool:
+    """True면 일일 맛집 추천 풀에 포함 가능."""
+    if not slug:
+        return True
+    return slug not in NON_MEAL_CATEGORY_SLUGS
+
+
+def classify_sgma_category(
+    biz_mid_name: str, biz_minor_name: str, ksic_name: str
+) -> tuple[str, str]:
+    """상권 업종 문자열을 앱 ``category_slug``·라벨로 매핑."""
+    text = f"{biz_mid_name} {biz_minor_name} {ksic_name}"
+
+    def has(*keys: str) -> bool:
+        return any(k in text for k in keys)
+
+    if has("카페", "커피", "디저트", "베이커리", "제과", "빵"):
+        return "cafe-dessert", "카페·디저트"
+    if has("주점", "요리 주점", "호프"):
+        return "bar", "바"
+    if has("일식", "스시", "사시미", "라멘", "돈까스", "돈카츠", "우동", "초밥", "오코노미"):
+        return "ilsik", "일식"
+    if has("중식", "중화", "중국", "짜장", "짬뽕", "마라", "딤섬", "양꼬치"):
+        return "jungsik", "중식"
+    if has("양식", "파스타", "피자", "스테이크", "버거", "패스트푸드", "패밀리"):
+        return "yangsik", "양식"
+    if has("태국", "베트남", "태국식", "쌀국수", "포 ", "반미", "인도", "멕시코", "타코"):
+        return "asian", "아시안"
+    if has("분식", "떡볶이", "김밥", "어묵"):
+        return "bunsik", "분식"
+    return "hansik", "한식"
 
 
 class CategoryNormalizer:

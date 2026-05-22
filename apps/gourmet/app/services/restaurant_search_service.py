@@ -1,4 +1,4 @@
-﻿"""검색어 기반 맛집 추천 — 상가 표본(ILike·윈도우) 기반."""
+﻿"""검색어 기반 맛집 추천 — ``restaurants`` ILIKE·윈도우 기반."""
 
 from __future__ import annotations
 
@@ -16,20 +16,19 @@ from apps.gourmet.app.data.search_keywords import (
     expand_search_terms,
     topic_slugs_for_query,
 )
-from apps.gourmet.app.services.sgma_browse_service import (
-    SgmaBrowseRow,
-    bounded_sgma_slice,
-    fetch_sgma_text_search_candidates,
-    pick_mixed_sgma_by_category,
-    sgma_category_of,
-    sgmas_to_card_summaries,
-    sort_sgmas_by_distance,
+from apps.gourmet.app.services.restaurant_browse_service import (
+    RestaurantBrowseRow,
+    bounded_restaurant_slice,
+    browse_category_of,
+    fetch_text_search_candidates,
+    pick_mixed_by_category,
+    rows_to_card_summaries,
+    sort_rows_by_distance,
 )
 from apps.gourmet.app.services.restaurant_location_service import distance_km_to_entity
 
 logger = logging.getLogger(__name__)
 
-# 한 번의 검색 알고리즘 내에서 받아올 후보 최대 행 수(페이지는 이 목록 슬라이스)
 INTERNAL_SEARCH_RESULTS_CAP = 200
 DEFAULT_SEARCH_PAGE_SIZE = 10
 
@@ -41,8 +40,9 @@ def _all_topics() -> list[TopicDef]:
     return topics
 
 
-def _sgma_haystack(r: SgmaBrowseRow) -> str:
+def _haystack(r: RestaurantBrowseRow) -> str:
     parts = [
+        r.name,
         r.store_name,
         r.branch_name,
         r.biz_minor_name,
@@ -52,24 +52,25 @@ def _sgma_haystack(r: SgmaBrowseRow) -> str:
         r.sigungu_name,
         r.road_address,
         r.parcel_address,
+        r.category_label,
     ]
     return " ".join(p for p in parts if p).lower()
 
 
-def _topic_applies(topic: TopicDef, r: SgmaBrowseRow) -> bool:
-    if topic.category_slugs and sgma_category_of(r)[0] not in topic.category_slugs:
+def _topic_applies(topic: TopicDef, r: RestaurantBrowseRow) -> bool:
+    if topic.category_slugs and browse_category_of(r)[0] not in topic.category_slugs:
         return False
     return True
 
 
-def _score_sgma(
-    r: SgmaBrowseRow,
+def _score_row(
+    r: RestaurantBrowseRow,
     terms: list[str],
     *,
     primary: str,
     boosted_slugs: set[str],
 ) -> int:
-    hay = _sgma_haystack(r)
+    hay = _haystack(r)
     score = 0
     for term in terms:
         if term in hay:
@@ -111,7 +112,6 @@ def search_restaurants(
     offset: int = 0,
     limit: int = DEFAULT_SEARCH_PAGE_SIZE,
 ) -> dict:
-    """검색어에 맞는 상가 목록과 매칭 주제."""
     raw = q.strip()
     if not raw:
         return {
@@ -140,12 +140,12 @@ def search_restaurants(
             if p not in patterns:
                 patterns.append(p)
 
-    rows_from_fts = fetch_sgma_text_search_candidates(
+    rows_from_fts = fetch_text_search_candidates(
         db, patterns=patterns, limit=2_200
     )
     by_id = {r.id: r for r in rows_from_fts}
     if len(by_id) < 800:
-        for r in bounded_sgma_slice(
+        for r in bounded_restaurant_slice(
             db,
             limit_rows=14_000,
             rotation_salt=abs(hash(raw)) % (2**31 - 1),
@@ -174,13 +174,13 @@ def search_restaurants(
     for t in matched_topics:
         boosted_slugs.add(t.slug)
 
-    scored: list[tuple[SgmaBrowseRow, int]] = []
+    scored: list[tuple[RestaurantBrowseRow, int]] = []
     for r in all_rows:
-        s = _score_sgma(r, terms, primary=primary, boosted_slugs=boosted_slugs)
+        s = _score_row(r, terms, primary=primary, boosted_slugs=boosted_slugs)
         if s > 0:
             scored.append((r, s))
 
-    picked: list[SgmaBrowseRow] = []
+    picked: list[RestaurantBrowseRow] = []
     seen: set[int] = set()
 
     if scored:
@@ -206,7 +206,7 @@ def search_restaurants(
             pool = [r for r in all_rows if _topic_applies(topic, r) and r.id not in seen]
             if not pool:
                 pool = [r for r in all_rows if r.id not in seen]
-            extra = pick_mixed_sgma_by_category(pool, topic.slug, limit=8)
+            extra = pick_mixed_by_category(pool, topic.slug, limit=8)
             for r in extra:
                 if r.id in seen:
                     continue
@@ -218,34 +218,29 @@ def search_restaurants(
                 break
 
     if user_lat is not None and user_lng is not None and picked:
-        picked = sort_sgmas_by_distance(picked, user_lat, user_lng)
+        picked = sort_rows_by_distance(picked, user_lat, user_lng)
 
-    items = sgmas_to_card_summaries(
+    items = rows_to_card_summaries(
         picked,
         user_lat=user_lat,
         user_lng=user_lng,
         with_category=True,
     )
     total_matched = len(items)
-    slice_start = offset
     slice_end = offset + limit
-    page_items = items[slice_start:slice_end]
+    page_items = items[offset:slice_end]
 
     summary = _build_summary(
         raw, terms, matched_topics, total_matched, nearby=user_lat is not None
     )
-    logger.info("[gourmet] search (sgma) q=%s — %s건", raw, total_matched)
+    logger.info("[gourmet] search q=%s — %s건", raw, total_matched)
 
     return {
         "query": raw,
         "summary": summary,
         "nearby_mode": user_lat is not None and user_lng is not None,
         "matched_topics": [
-            {
-                "slug": t.slug,
-                "title": t.title,
-                "emoji": t.emoji,
-            }
+            {"slug": t.slug, "title": t.title, "emoji": t.emoji}
             for t in matched_topics[:6]
         ],
         "restaurants": page_items,

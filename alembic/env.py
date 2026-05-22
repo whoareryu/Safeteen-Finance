@@ -14,9 +14,16 @@ from apps.auth.user_model import User  # noqa: F401
 from apps.gourmet.app.models.daily_recommendation import DailyRecommendation  # noqa: F401
 from apps.gourmet.app.models.favorite import Favorite  # noqa: F401
 from apps.gourmet.app.models.meal_plan import MealPlan  # noqa: F401
+from apps.gourmet.app.models.biz_classification import BizClassification  # noqa: F401
 from apps.gourmet.app.models.restaurant import Restaurant  # noqa: F401
+from apps.gourmet.app.models.restaurant_contact import RestaurantContact  # noqa: F401
+from apps.gourmet.app.models.restaurant_menu import RestaurantMenu  # noqa: F401
+from apps.gourmet.app.models.restaurant_operating_hour import RestaurantOperatingHour  # noqa: F401
+from apps.gourmet.app.models.restaurant_price import RestaurantPrice  # noqa: F401
+from apps.gourmet.app.models.restaurant_tag import RestaurantTag  # noqa: F401
 from apps.gourmet.app.models.search_query_log import SearchQueryLog  # noqa: F401
-from apps.gourmet.app.models.sgma_restaurant import SgmaRestaurant  # noqa: F401
+from apps.gourmet.app.models.sigungu_district import SigunguDistrict  # noqa: F401
+from apps.gourmet.app.models.tag import Tag  # noqa: F401
 from apps.titanic.app.models.titanic_passenger import TitanicPassenger  # noqa: F401
 from apps.database import Base, get_sync_database_url
 

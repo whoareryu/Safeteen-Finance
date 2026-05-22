@@ -1,19 +1,28 @@
-"""``restaurants`` 테이블 — Bulk Insert·복합 인덱스 기반 조회."""
+"""``restaurants`` 테이블 — Bulk Insert·Builder 기반 조회."""
 
 from __future__ import annotations
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from apps.gourmet.app.models.food_category import FoodCategory
 from apps.gourmet.app.models.restaurant import Restaurant
+from apps.gourmet.app.models.sigungu_district import SigunguDistrict
+from apps.gourmet.app.repositories.restaurant_orm_loads import RESTAURANT_DETAIL_LOADS
+from apps.gourmet.app.repositories.base_repository import AbstractRepository
 from apps.gourmet.app.repositories.interfaces import IRestaurantRepository
+from apps.gourmet.app.repositories.restaurant_query_builder import RestaurantQueryBuilder
 
 
-class RestaurantRepository:
-    """``IRestaurantRepository`` 구현."""
+class RestaurantRepository(AbstractRepository[Restaurant], IRestaurantRepository):
+    """``IRestaurantRepository`` 구현 — DB 접근 은닉."""
 
     def get_by_id(self, db: Session, restaurant_id: int) -> Restaurant | None:
-        return db.get(Restaurant, restaurant_id)
+        return db.scalars(
+            select(Restaurant)
+            .where(Restaurant.id == restaurant_id)
+            .options(*RESTAURANT_DETAIL_LOADS)
+        ).first()
 
     def bulk_insert(
         self, db: Session, rows: list[Restaurant], *, commit: bool = True
@@ -39,16 +48,10 @@ class RestaurantRepository:
         limit: int,
         district: str | None = None,
     ) -> list[Restaurant]:
-        stmt = (
-            select(Restaurant)
-            .where(Restaurant.category_slug == category_slug)
-            .order_by(Restaurant.id)
-            .offset(offset)
-            .limit(limit)
-        )
+        builder = RestaurantQueryBuilder().category(category_slug).order_for_browse()
         if district:
-            stmt = stmt.where(Restaurant.district.ilike(f"%{district}%"))
-        return list(db.scalars(stmt).all())
+            builder.district_contains(district)
+        return builder.paginate(offset, limit).scalars(db)
 
     def list_within_budget(
         self,
@@ -59,17 +62,14 @@ class RestaurantRepository:
         offset: int,
         limit: int,
     ) -> list[Restaurant]:
-        stmt = (
-            select(Restaurant)
-            .where(Restaurant.avg_price.is_not(None))
-            .where(Restaurant.avg_price <= max_avg_price)
-            .order_by(Restaurant.category_slug, Restaurant.avg_price, Restaurant.id)
-            .offset(offset)
-            .limit(limit)
+        builder = (
+            RestaurantQueryBuilder()
+            .max_avg_price(max_avg_price)
+            .order_for_browse()
         )
         if category_slug:
-            stmt = stmt.where(Restaurant.category_slug == category_slug)
-        return list(db.scalars(stmt).all())
+            builder.category(category_slug)
+        return builder.paginate(offset, limit).scalars(db)
 
     def count_by_category(
         self, db: Session, *, category_slug: str, district: str | None = None
@@ -77,8 +77,11 @@ class RestaurantRepository:
         stmt = (
             select(func.count())
             .select_from(Restaurant)
-            .where(Restaurant.category_slug == category_slug)
+            .join(FoodCategory, Restaurant.category_id == FoodCategory.id)
+            .where(FoodCategory.slug == category_slug)
         )
         if district:
-            stmt = stmt.where(Restaurant.district.ilike(f"%{district}%"))
+            stmt = stmt.join(
+                SigunguDistrict, Restaurant.sigungu_id == SigunguDistrict.id
+            ).where(SigunguDistrict.district_label.ilike(f"%{district}%"))
         return int(db.execute(stmt).scalar_one() or 0)

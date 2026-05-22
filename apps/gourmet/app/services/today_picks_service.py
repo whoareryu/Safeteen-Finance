@@ -1,4 +1,4 @@
-﻿"""오늘의 맛집 — 카테고리별 2~3곳 (SgmaRestaurant ``restaurant`` 표준)."""
+﻿"""오늘의 맛집 — 카테고리별 2~3곳 (``restaurants``)."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ from collections import defaultdict
 
 from sqlalchemy.orm import Session
 
-from apps.gourmet.app.services.sgma_browse_service import (
-    SgmaBrowseRow,
-    bounded_sgma_slice,
-    sgma_category_of,
+from apps.gourmet.app.services.restaurant_browse_service import (
+    RestaurantBrowseRow,
+    bounded_restaurant_slice,
+    browse_category_of,
 )
 from apps.gourmet.app.services.restaurant_location_service import distance_km_to_entity
 
@@ -29,7 +29,7 @@ CATEGORY_SLUGS: tuple[str, ...] = (
     "bar",
 )
 
-TODAY_SGMA_POOL = 36_000
+TODAY_BROWSE_POOL = 36_000
 PICKS_PER_CATEGORY_MIN = 2
 PICKS_PER_CATEGORY_MAX = 3
 
@@ -48,25 +48,24 @@ def get_today_picks(
     *,
     user_lat: float | None = None,
     user_lng: float | None = None,
-) -> tuple[datetime.date, list[SgmaBrowseRow]]:
-    """카테고리별 2~3곳을 날짜 시드로 무작위 선택(일 단위 고정). DB ``daily_picks`` 미사용."""
+) -> tuple[datetime.date, list[RestaurantBrowseRow]]:
     today = today or datetime.date.today()
-    all_rows = bounded_sgma_slice(
+    all_rows = bounded_restaurant_slice(
         db,
-        limit_rows=TODAY_SGMA_POOL,
+        limit_rows=TODAY_BROWSE_POOL,
         rotation_salt=0,
         day_ord=today.toordinal(),
     )
     if not all_rows:
-        logger.warning("[gourmet] today-picks — 상가 데이터 없음")
+        logger.warning("[gourmet] today-picks — 매장 데이터 없음")
         return today, []
 
-    by_cat: dict[str, list[SgmaBrowseRow]] = defaultdict(list)
+    by_cat: dict[str, list[RestaurantBrowseRow]] = defaultdict(list)
     for r in all_rows:
-        by_cat[sgma_category_of(r)[0]].append(r)
+        by_cat[browse_category_of(r)[0]].append(r)
 
     rng = random.Random(today.toordinal())
-    picked: list[SgmaBrowseRow] = []
+    picked: list[RestaurantBrowseRow] = []
     for slug in CATEGORY_SLUGS:
         pool = by_cat.get(slug, [])
         if not pool:
@@ -76,8 +75,7 @@ def get_today_picks(
             continue
         shuffled = pool.copy()
         rng.shuffle(shuffled)
-        chosen = shuffled[:n]
-        picked.extend(chosen)
+        picked.extend(shuffled[:n])
 
     if user_lat is not None and user_lng is not None and picked:
         picked = sorted(
@@ -85,10 +83,9 @@ def get_today_picks(
             key=lambda r: distance_km_to_entity(r, user_lat, user_lng),
         )
 
-    logger.info("[gourmet] today-picks (sgma) — %s곳", len(picked))
+    logger.info("[gourmet] today-picks — %s곳", len(picked))
     return today, picked
 
 
 def expected_pick_count() -> int:
-    """최대 카테고리 수 × 3."""
     return len(CATEGORY_SLUGS) * PICKS_PER_CATEGORY_MAX

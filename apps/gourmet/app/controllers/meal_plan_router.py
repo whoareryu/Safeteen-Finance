@@ -6,6 +6,8 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from apps.auth.dependencies import get_current_user
+from apps.auth.user_model import User
 from apps.database import get_sync_db
 from apps.gourmet.app.schemas.meal_plan_schemas import (
     MealPlanResponse,
@@ -13,6 +15,10 @@ from apps.gourmet.app.schemas.meal_plan_schemas import (
     MealPlanUpsertRequest,
 )
 from apps.gourmet.app.schemas.restaurant_schemas import RestaurantCardV2
+from apps.gourmet.app.services.dependencies import (
+    get_meal_plan_service,
+    get_restaurant_domain_service,
+)
 from apps.gourmet.app.services.meal_plan_service import MealPlanService
 from apps.gourmet.app.services.restaurant_domain_service import RestaurantDomainService
 
@@ -20,11 +26,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/gourmet/meal-plans", tags=["gourmet-meal-plans"])
 
-_meal_plan_service = MealPlanService()
-_restaurant_presenter = RestaurantDomainService()
 
-
-def _plan_response(plan) -> MealPlanResponse:
+def _plan_response(plan, meal_plan_service: MealPlanService) -> MealPlanResponse:
     return MealPlanResponse(
         id=plan.id,
         user_id=plan.user_id,
@@ -32,8 +35,28 @@ def _plan_response(plan) -> MealPlanResponse:
         spent_amount=plan.spent_amount,
         period_start=plan.period_start,
         period_end=plan.period_end,
-        remaining_budget=_meal_plan_service.remaining_budget(plan),
+        remaining_budget=meal_plan_service.remaining_budget(plan),
     )
+
+
+@router.get("/me/current", response_model=MealPlanResponse)
+def read_my_meal_plan(
+    on: date | None = Query(None, description="기준일 (기본: 오늘)"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+    meal_plan_service: MealPlanService = Depends(get_meal_plan_service),
+) -> MealPlanResponse:
+    return read_current_meal_plan(user.id, on, db, meal_plan_service)
+
+
+@router.put("/me/current", response_model=MealPlanResponse)
+def upsert_my_meal_plan(
+    body: MealPlanUpsertRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+    meal_plan_service: MealPlanService = Depends(get_meal_plan_service),
+) -> MealPlanResponse:
+    return upsert_meal_plan(user.id, body, db, meal_plan_service)
 
 
 @router.get("/users/{user_id}/current", response_model=MealPlanResponse)
@@ -41,11 +64,12 @@ def read_current_meal_plan(
     user_id: int,
     on: date | None = Query(None, description="기준일 (기본: 오늘)"),
     db: Session = Depends(get_sync_db),
+    meal_plan_service: MealPlanService = Depends(get_meal_plan_service),
 ) -> MealPlanResponse:
-    plan = _meal_plan_service.get_current_plan(db, user_id, on)
+    plan = meal_plan_service.get_current_plan(db, user_id, on)
     if plan is None:
         raise HTTPException(status_code=404, detail="활성 식비 플랜이 없습니다.")
-    return _plan_response(plan)
+    return _plan_response(plan, meal_plan_service)
 
 
 @router.put("/users/{user_id}/current", response_model=MealPlanResponse)
@@ -53,10 +77,11 @@ def upsert_meal_plan(
     user_id: int,
     body: MealPlanUpsertRequest,
     db: Session = Depends(get_sync_db),
+    meal_plan_service: MealPlanService = Depends(get_meal_plan_service),
 ) -> MealPlanResponse:
     if body.period_end < body.period_start:
         raise HTTPException(status_code=400, detail="종료일은 시작일 이후여야 합니다.")
-    plan = _meal_plan_service.upsert_plan(
+    plan = meal_plan_service.upsert_plan(
         db,
         user_id=user_id,
         monthly_budget=body.monthly_budget,
@@ -64,7 +89,7 @@ def upsert_meal_plan(
         period_start=body.period_start,
         period_end=body.period_end,
     )
-    return _plan_response(plan)
+    return _plan_response(plan, meal_plan_service)
 
 
 @router.get(
@@ -77,17 +102,21 @@ def list_restaurants_within_meal_plan(
     offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_sync_db),
+    meal_plan_service: MealPlanService = Depends(get_meal_plan_service),
+    restaurant_service: RestaurantDomainService = Depends(get_restaurant_domain_service),
 ) -> MealPlanRestaurantsResponse:
-    rows, per_meal_cap, plan = _meal_plan_service.restaurants_within_plan(
+    rows, per_meal_cap, plan = meal_plan_service.restaurants_within_plan(
         db,
         user_id,
         category_slug=category_slug,
         offset=offset,
         limit=limit,
     )
-    cards = [RestaurantCardV2(**_restaurant_presenter.to_card_dict(r)) for r in rows]
+    cards = [
+        RestaurantCardV2(**restaurant_service.to_card_dict(r)) for r in rows
+    ]
     return MealPlanRestaurantsResponse(
-        plan=_plan_response(plan) if plan else None,
+        plan=_plan_response(plan, meal_plan_service) if plan else None,
         per_meal_cap=per_meal_cap,
         restaurants=cards,
         offset=offset,

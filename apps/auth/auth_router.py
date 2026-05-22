@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from apps.auth.password import hash_password, verify_password
 from apps.auth.user_model import User
 from apps.auth.user_role import UserRole
+from apps.auth.dependencies import get_current_user
 from apps.database import DATABASE_INIT_ERROR, get_sync_db
 
 logger = logging.getLogger(__name__)
@@ -60,9 +61,21 @@ class LoginRequest(BaseModel):
 
 
 class UserPublic(BaseModel):
+    id: int
     username: str
     nickname: str
     email: str
+    role: str = Field(..., description="admin | user | partner")
+
+
+def _user_public(user: User) -> UserPublic:
+    return UserPublic(
+        id=user.id,
+        username=user.username,
+        nickname=user.nickname,
+        email=user.email,
+        role=user.role.value,
+    )
 
 
 def _db_unavailable() -> None:
@@ -202,7 +215,7 @@ def signup(body: SignupRequest, db: Session = Depends(get_sync_db)):
         user.nickname,
         user.role.value,
     )
-    return UserPublic(username=user.username, nickname=user.nickname, email=user.email)
+    return _user_public(user)
 
 
 @router.post("/login", response_model=UserPublic)
@@ -233,4 +246,51 @@ def login(body: LoginRequest, db: Session = Depends(get_sync_db)):
         user.username,
         user.last_login_at,
     )
-    return UserPublic(username=user.username, nickname=user.nickname, email=user.email)
+    return _user_public(user)
+
+
+@router.get("/me", response_model=UserPublic)
+def read_current_user(user: User = Depends(get_current_user)):
+    """localStorage에 저장된 ``user.id`` → ``X-User-Id`` 헤더로 검증·갱신."""
+    _db_unavailable()
+    return _user_public(user)
+
+
+class AdminUserRow(BaseModel):
+    id: int
+    username: str
+    nickname: str
+    email: str
+    role: str
+    created_at: str | None
+
+
+def _require_admin(db: Session, username: str) -> User:
+    actor = db.execute(
+        select(User).where(func.lower(User.username) == username.strip().lower()).limit(1)
+    ).scalar_one_or_none()
+    if actor is None or actor.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="관리자 권한이 필요합니다.")
+    return actor
+
+
+@router.get("/admin/users", response_model=list[AdminUserRow])
+def list_users_for_admin(
+    as_username: str = Query(..., description="요청자 로그인 아이디"),
+    db: Session = Depends(get_sync_db),
+):
+    """고객관리 — admin 전용 회원 목록."""
+    _db_unavailable()
+    _require_admin(db, as_username)
+    rows = db.execute(select(User).order_by(User.id)).scalars().all()
+    return [
+        AdminUserRow(
+            id=u.id,
+            username=u.username,
+            nickname=u.nickname,
+            email=u.email,
+            role=u.role.value,
+            created_at=u.created_at.isoformat() if u.created_at else None,
+        )
+        for u in rows
+    ]
