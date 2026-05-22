@@ -1,7 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Home } from "lucide-react";
 import { HOME_TOPIC_LINKS } from "@/lib/gourmet-topics";
 import { CATEGORY_LINKS } from "@/lib/navigation";
@@ -16,6 +17,9 @@ import { useCategoryMenu } from "@/components/category-menu-context";
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isMainHome =
+    pathname === "/" && !(searchParams.get("q") ?? "").trim();
 
   return (
     <nav className="flex flex-col gap-0.5 p-2" aria-label="음식 카테고리">
@@ -24,7 +28,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
         onClick={onNavigate}
         className={cn(
           "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition",
-          pathname === "/"
+          isMainHome
             ? "bg-white/15 text-white"
             : "text-white/70 hover:bg-white/10 hover:text-white"
         )}
@@ -103,7 +107,9 @@ export default function CategorySidebarDrawer() {
         <SheetHeader className="border-b border-white/10 px-4 py-4 text-left">
           <SheetTitle className="text-white">GourmetMate 메뉴</SheetTitle>
         </SheetHeader>
-        <NavLinks onNavigate={() => setOpen(false)} />
+        <Suspense fallback={<div className="min-h-[8rem] p-2" aria-hidden />}>
+          <NavLinks onNavigate={() => setOpen(false)} />
+        </Suspense>
       </SheetContent>
     </Sheet>
   );

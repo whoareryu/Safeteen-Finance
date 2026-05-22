@@ -58,6 +58,14 @@ const nextConfig = {
         source: "/api/gourmet/:path*",
         destination: `${backendUrl}/gourmet/:path*`,
       },
+      {
+        source: "/api/weather/icon",
+        destination: `${backendUrl}/weather/icon`,
+      },
+      {
+        source: "/api/weather",
+        destination: `${backendUrl}/weather`,
+      },
     ];
   },
 };

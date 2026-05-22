@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, LogIn, LogOut, Menu } from "lucide-react";
+import { ChevronDown, LogIn, LogOut, Menu, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
 import WeatherWidget from "./weather-widget";
-import { useAuth } from "./auth-provider";
+import { isAdmin, useAuth } from "./auth-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +51,8 @@ export default function Header() {
     pathname.startsWith("/food/") ||
     pathname.startsWith("/topics/") ||
     pathname.startsWith("/restaurants/");
+
+  const isMypageActive = pathname.startsWith("/mypage");
 
   return (
     <>
@@ -113,6 +115,48 @@ export default function Header() {
                 <span className="hidden max-w-[120px] truncate text-xs text-[#6e6e73] md:inline lg:max-w-none lg:text-sm">
                   {user.nickname}님
                 </span>
+                {isAdmin(user) ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className={cn(
+                        "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] md:text-sm",
+                        isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
+                      )}
+                    >
+                      <UserCircle className="h-3.5 w-3.5" aria-hidden />
+                      마이페이지
+                      <ChevronDown className="h-3 w-3 opacity-60" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-[11rem]">
+                      <DropdownMenuItem asChild>
+                        <Link href="/mypage">내 정보</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/mypage/favorites">즐겨찾기</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/mypage/budget">버짓설정</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/mypage/customers">고객관리</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/mypage/stores">매점관리</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link
+                    href="/mypage"
+                    className={cn(
+                      "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] md:text-sm",
+                      isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
+                    )}
+                  >
+                    <UserCircle className="h-3.5 w-3.5" aria-hidden />
+                    마이페이지
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={logout}

@@ -21,6 +21,7 @@ import {
 } from "@/lib/gourmet";
 import { getCategoryBySlug } from "@/lib/navigation";
 import BrowseShellLayout from "@/components/browse-shell-layout";
+import FavoriteStarButton from "@/components/favorite-star-button";
 
 type RestaurantDetailPageProps = {
   restaurantId: number;
@@ -90,6 +91,9 @@ export default function RestaurantDetailPage({
                   priority
                   sizes="(max-width: 768px) 100vw, 768px"
                 />
+                <div className="absolute right-3 top-3 z-10">
+                  <FavoriteStarButton storeId={restaurantId} size="md" />
+                </div>
               </div>
 
               <div className="mb-2 flex flex-wrap items-center gap-2">

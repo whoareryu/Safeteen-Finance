@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { useNearbyLocation } from "@/components/nearby-location-provider";
 import { Sparkles } from "lucide-react";
@@ -8,21 +9,35 @@ import GeminiChat from "./gemini-chat";
 import GourmetNavSearch from "./gourmet-nav-search";
 import HomeSearchResults from "./home-search-results";
 import HomeTopicFeed from "./home-topic-feed";
+import TodayDailyPick from "./today-daily-pick";
+
+function homeSearchHref(query: string) {
+  const trimmed = query.trim();
+  return trimmed ? `/?q=${encodeURIComponent(trimmed)}` : "/";
+}
 
 export default function GourmetMateHero() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { isNearbyMode } = useNearbyLocation();
+  /** URL ?q= — Enter·추천 칩 확정 검색·홈 복귀의 단일 기준 */
+  const committedQuery = (searchParams.get("q") ?? "").trim();
   /** 검색창에 보이는 글자 (입력 중에는 결과를 바꾸지 않음) */
-  const [inputValue, setInputValue] = useState("");
-  /** Enter·추천 칩으로 확정된 검색어 (API 호출·결과 표시 기준) */
-  const [committedQuery, setCommittedQuery] = useState("");
+  const [inputValue, setInputValue] = useState(committedQuery);
 
-  const commitSearch = useCallback((raw: string) => {
-    const trimmed = raw.trim();
-    if (!trimmed) return;
-    setCommittedQuery(trimmed);
-    setInputValue(trimmed);
-  }, []);
+  useEffect(() => {
+    setInputValue(committedQuery);
+  }, [committedQuery]);
+
+  const commitSearch = useCallback(
+    (raw: string) => {
+      const trimmed = raw.trim();
+      if (!trimmed) return;
+      router.replace(homeSearchHref(trimmed), { scroll: true });
+    },
+    [router]
+  );
 
   const handleSubmit = useCallback(() => {
     commitSearch(inputValue);
@@ -81,6 +96,7 @@ export default function GourmetMateHero() {
             </p>
             <GeminiChat
               variant="apple"
+              apiPath="/api/gourmet/chat"
               inputPlaceholder="맛집·메뉴·분위기를 Gemini에게 물어보기"
             />
           </div>
@@ -88,6 +104,8 @@ export default function GourmetMateHero() {
       </div>
 
       {isSearchMode ? <HomeSearchResults query={committedQuery} /> : null}
+
+      {!isSearchMode ? <TodayDailyPick /> : null}
 
       <HomeTopicFeed query={isSearchMode ? committedQuery : undefined} />
     </div>

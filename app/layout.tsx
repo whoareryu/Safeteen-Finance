@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
 import { AuthProvider } from '@/components/auth-provider'
+import { FavoritesProvider } from '@/components/favorites-provider'
 import { NearbyLocationProvider } from '@/components/nearby-location-provider'
 import { CategoryMenuProvider } from '@/components/category-menu-context'
 import CategorySidebarDrawer from '@/components/category-sidebar-drawer'
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased">
         <AuthProvider>
+          <FavoritesProvider>
           <NearbyLocationProvider>
           <CategoryMenuProvider>
             <CategorySidebarDrawer />
@@ -54,6 +56,7 @@ export default function RootLayout({
           </CategoryMenuProvider>
           {process.env.NODE_ENV === 'production' && <Analytics />}
           </NearbyLocationProvider>
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>

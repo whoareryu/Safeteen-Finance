@@ -10,12 +10,16 @@ import {
   type ReactNode,
 } from "react";
 import {
+  isAdmin,
   loadStoredUser,
   login as apiLogin,
   saveStoredUser,
   signup as apiSignup,
   type AuthUser,
+  type UserRole,
 } from "@/lib/auth";
+
+export { isAdmin, type AuthUser, type UserRole };
 
 type AuthContextValue = {
   user: AuthUser | null;

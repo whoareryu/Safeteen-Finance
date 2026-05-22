@@ -1,8 +1,16 @@
+export type UserRole = "admin" | "user" | "partner";
+
 export type AuthUser = {
+  id: number;
   username: string;
   nickname: string;
   email: string;
+  role: UserRole;
 };
+
+export function isAdmin(user: AuthUser | null | undefined): boolean {
+  return user?.role === "admin";
+}
 
 export type AvailabilityResult = {
   available: boolean;
@@ -18,10 +26,26 @@ export function loadStoredUser(): AuthUser | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AuthUser;
     if (!parsed?.username || !parsed?.nickname) return null;
+    if (!parsed.role) parsed.role = "user";
+    if (typeof parsed.id !== "number") return null;
     return parsed;
   } catch {
     return null;
   }
+}
+
+/** 로그인 사용자 API — ``X-User-Id`` (백엔드 ``GET /auth/me`` 등). */
+export function authHeaders(user: AuthUser | null): HeadersInit {
+  if (!user?.id) return {};
+  return { "X-User-Id": String(user.id) };
+}
+
+export async function fetchCurrentUser(userId: number): Promise<AuthUser | null> {
+  const res = await authFetch("/api/auth/me", {
+    headers: { "X-User-Id": String(userId) },
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as AuthUser;
 }
 
 export function saveStoredUser(user: AuthUser | null) {

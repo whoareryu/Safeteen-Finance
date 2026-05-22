@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, MapPin } from "lucide-react";
+import FavoriteStarButton from "@/components/favorite-star-button";
 import { restaurantDetailPath } from "@/lib/gourmet";
 import { formatDistanceKm } from "@/lib/gourmet-location";
 
@@ -43,17 +44,16 @@ export default function RestaurantCard({
     ? restaurant.detail_href
     : restaurantDetailPath(restaurant.id);
 
+  const wrapperClass =
+    isDark
+      ? layout === "grid"
+        ? "group relative block h-full w-full overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10 transition hover:ring-white/25"
+        : "group relative block h-full w-[200px] shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10 transition hover:ring-white/25 sm:w-[220px]"
+      : "relative block h-full overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/[0.06] transition hover:ring-black/15";
+
   return (
-    <Link
-      href={href}
-      className={
-        isDark
-          ? layout === "grid"
-            ? "group block h-full w-full overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10 transition hover:ring-white/25"
-            : "group block h-full w-[200px] shrink-0 overflow-hidden rounded-md bg-[#1a1a1a] ring-1 ring-white/10 transition hover:ring-white/25 sm:w-[220px]"
-          : "block h-full overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/[0.06] transition hover:ring-black/15"
-      }
-    >
+    <div className={wrapperClass}>
+    <Link href={href} className="block h-full">
       <div className="relative aspect-[16/10] bg-[#2a2a2a]">
         <Image
           src={restaurant.image_url}
@@ -69,11 +69,14 @@ export default function RestaurantCard({
           </span>
         ) : null}
         {showViews ? (
-          <span className="absolute right-2 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
+          <span className="absolute right-10 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
             <Eye className="h-3 w-3" aria-hidden />
             {restaurant.view_count}
           </span>
         ) : null}
+        <div className="absolute right-2 top-2 z-10">
+          <FavoriteStarButton storeId={restaurant.id} />
+        </div>
       </div>
       <div className={`p-3 ${isDark ? "text-white" : ""}`}>
         <div className="flex items-start justify-between gap-1">
@@ -113,5 +116,6 @@ export default function RestaurantCard({
         ) : null}
       </div>
     </Link>
+    </div>
   );
 }
