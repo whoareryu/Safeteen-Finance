@@ -1,0 +1,52 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
+
+const ITEMS = [
+  { href: "/portfolio/titanic/data-collection", label: "1. 데이터 수집" },
+  { href: "/portfolio/titanic/data-analysis", label: "2. 데이터 분석" },
+  { href: "/portfolio/titanic/data-modeling", label: "3. 데이터 모델링" },
+] as const;
+
+export default function LessonSidebar() {
+  const pathname = usePathname();
+  const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+  return (
+    <aside className="relative z-20 hidden w-[260px] shrink-0 overflow-hidden border-r border-black/[0.06] bg-[#fbfbfd] md:block">
+      <div className="sticky top-[var(--site-header-height)] max-h-[calc(100dvh-var(--site-header-height))] overflow-y-auto p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6e6e73]">
+          LESSON
+        </p>
+
+        <Accordion type="single" collapsible defaultValue="titanic">
+          <AccordionItem value="titanic" className="border-0">
+            <AccordionTrigger className="rounded-md px-2 py-2 text-sm hover:bg-black/[0.04] hover:no-underline [&>svg]:text-[#86868b]">
+              <span className="font-medium text-[#1d1d1f]">타이타닉</span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-0">
+              <nav className="mt-1 space-y-1">
+                {ITEMS.map((it) => (
+                  <Link
+                    key={it.href}
+                    href={it.href}
+                    className={cn(
+                      "block whitespace-nowrap rounded-md px-2 py-2 text-sm text-[#1d1d1f]/80 hover:bg-black/[0.04]",
+                      active(it.href) && "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                    )}
+                  >
+                    {it.label}
+                  </Link>
+                ))}
+              </nav>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </aside>
+  );
+}
+

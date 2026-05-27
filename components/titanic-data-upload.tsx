@@ -13,7 +13,87 @@ type UploadResult = {
   error?: string;
 };
 
-export default function TitanicDataUpload() {
+type TitanicRow = {
+  PassengerId: number;
+  Survived: number;
+  Pclass: number;
+  Name: string;
+  Sex: string;
+  Age: number | null;
+};
+
+const TITANIC_LOCAL_KEY = "titanic_csv_rows_v1";
+
+function parseCsv(text: string): TitanicRow[] {
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const header = (lines[0] ?? "").split(",").map((s) => s.trim());
+  const idx = (name: string) => header.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+
+  const iPassengerId = idx("PassengerId");
+  const iSurvived = idx("Survived");
+  const iPclass = idx("Pclass");
+  const iName = idx("Name");
+  const iSex = idx("Sex");
+  const iAge = idx("Age");
+
+  if ([iPassengerId, iSurvived, iPclass, iName, iSex].some((i) => i < 0)) {
+    throw new Error("CSV 헤더가 Kaggle Titanic 형식이 아닙니다. (PassengerId, Survived, Pclass, Name, Sex 필요)");
+  }
+
+  const out: TitanicRow[] = [];
+  for (const raw of lines.slice(1)) {
+    const line = raw.trim();
+    if (!line) continue;
+    // 매우 단순 파서: Kaggle Titanic은 Name에 콤마가 포함될 수 있어 최소한의 따옴표 처리
+    // (완벽 CSV 파서는 아니지만, 일반 Kaggle 원본은 이 수준으로 충분)
+    const cells: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]!;
+      if (ch === "\"") {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === "," && !inQuotes) {
+        cells.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    cells.push(cur);
+
+    const PassengerId = Number.parseInt((cells[iPassengerId] ?? "").trim(), 10);
+    const Survived = Number.parseInt((cells[iSurvived] ?? "").trim(), 10);
+    const Pclass = Number.parseInt((cells[iPclass] ?? "").trim(), 10);
+    const Name = String((cells[iName] ?? "").trim());
+    const Sex = String((cells[iSex] ?? "").trim());
+    const AgeRaw = iAge >= 0 ? (cells[iAge] ?? "").trim() : "";
+    const Age = AgeRaw ? Number.parseFloat(AgeRaw) : null;
+
+    if (!Number.isFinite(PassengerId) || !Number.isFinite(Survived) || !Number.isFinite(Pclass)) {
+      continue;
+    }
+
+    out.push({
+      PassengerId,
+      Survived,
+      Pclass,
+      Name,
+      Sex,
+      Age: Age != null && Number.isFinite(Age) ? Age : null,
+    });
+  }
+  return out;
+}
+
+type TitanicDataUploadProps = {
+  /** 페이지 헤더가 있을 때 중복 제목 숨김 */
+  showHeading?: boolean;
+};
+
+export default function TitanicDataUpload({ showHeading = true }: TitanicDataUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -44,43 +124,44 @@ export default function TitanicDataUpload() {
     if (!file || loading) return;
     setLoading(true);
     setResult(null);
-    const form = new FormData();
-    form.append("file", file);
     try {
-      const res = await fetch("/api/titanic/upload", {
-        method: "POST",
-        body: form,
-      });
-      const data = (await res.json()) as UploadResult & { detail?: string };
-      if (!res.ok) {
-        setResult({
-          ok: false,
-          error:
-            data.error ??
-            (typeof data.detail === "string" ? data.detail : "업로드에 실패했습니다."),
-        });
+      const text = await file.text();
+      const rows = parseCsv(text);
+      if (rows.length === 0) {
+        setResult({ ok: false, error: "CSV에서 유효한 행을 찾지 못했습니다." });
         return;
       }
-      setResult(data);
+      localStorage.setItem(TITANIC_LOCAL_KEY, JSON.stringify(rows));
+      setResult({
+        ok: true,
+        message: `${rows.length}건을 브라우저에 저장했습니다. 이제 2. 데이터 분석에서 결과를 확인할 수 있어요.`,
+        inserted: rows.length,
+      });
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
     } catch {
-      setResult({ ok: false, error: "네트워크 오류 — 백엔드 서버를 확인해 주세요." });
+      setResult({ ok: false, error: "CSV 처리 중 오류가 발생했습니다. 파일 형식을 확인해 주세요." });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="titanic-data-upload mx-auto w-full max-w-2xl">
-      <h2 className="text-xl font-semibold text-[#1d1d1f]">1. 데이터 수집</h2>
-      <p className="mt-2 text-sm leading-relaxed text-[#6e6e73]">
-        Kaggle에서 받은 Titanic CSV를 Neon PostgreSQL{" "}
-        <code className="rounded bg-black/[0.06] px-1.5 py-0.5 text-xs">
-          titanic_passengers
-        </code>{" "}
-        테이블에 적재합니다. 새 파일을 올리면 기존 데이터는 교체됩니다.
-      </p>
+    <div className="titanic-data-upload w-full max-w-none">
+      {showHeading ? (
+        <>
+          <h2 className="text-xl font-semibold text-[#1d1d1f]">1. 데이터 수집</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#6e6e73]">
+            Kaggle Titanic CSV를 브라우저(로컬)에 저장합니다. 새 파일을 올리면 기존 데이터는
+            교체됩니다.
+          </p>
+        </>
+      ) : (
+        <p className="text-sm leading-relaxed text-[#6e6e73]">
+          Kaggle Titanic CSV를 브라우저(로컬)에 저장합니다. 새 파일을 올리면 기존 데이터는
+          교체됩니다.
+        </p>
+      )}
 
       <div
         role="button"
@@ -133,10 +214,10 @@ export default function TitanicDataUpload() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Neon에 저장 중…
+                저장 중…
               </>
             ) : (
-              "Neon에 업로드"
+              "저장하기"
             )}
           </button>
         </div>

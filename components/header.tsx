@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, LogIn, LogOut, Menu, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useCategoryMenu } from "@/components/category-menu-context";
+import LessonMobileDrawer from "@/components/lesson-mobile-drawer";
 
 function CategoryMenuButton() {
   const { setOpen } = useCategoryMenu();
@@ -37,6 +38,7 @@ export default function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authView, setAuthView] = useState<"login" | "signup">("login");
   const showWeather = pathname === "/";
+  const isLessonActive = pathname.startsWith("/portfolio/titanic");
 
   const openLogin = () => {
     setAuthView("login");
@@ -54,10 +56,17 @@ export default function Header() {
 
   const isMypageActive = pathname.startsWith("/mypage");
 
+  useEffect(() => {
+    const el = document.documentElement;
+    if (isLessonActive) el.classList.add("has-lesson-subbar");
+    else el.classList.remove("has-lesson-subbar");
+    return () => el.classList.remove("has-lesson-subbar");
+  }, [isLessonActive]);
+
   return (
     <>
       <header className="site-header--apple fixed top-0 left-0 right-0 z-50 w-full">
-        <div className="relative flex h-14 w-full items-center px-4 sm:px-6 lg:px-8 md:h-[var(--site-header-height)]">
+        <div className="relative flex h-14 w-full items-center px-4 sm:px-6 lg:px-8 md:h-[3.25rem]">
           <div className="flex shrink-0 items-center gap-2 md:gap-3">
             {showCategoryMenu ? <CategoryMenuButton /> : null}
             <Link
@@ -79,7 +88,7 @@ export default function Header() {
                 isPortfolioActive && "bg-black/[0.06] font-medium text-[#1d1d1f]"
               )}
             >
-              Lesson
+              LESSON
             </Link>
           </nav>
 
@@ -91,7 +100,7 @@ export default function Header() {
                 isPortfolioActive && "font-medium text-[#1d1d1f]"
               )}
             >
-              Lesson
+              LESSON
             </Link>
 
             {showWeather ? (
@@ -168,6 +177,49 @@ export default function Header() {
             )}
           </div>
         </div>
+
+        {isLessonActive ? (
+          <div className="border-t border-black/[0.06] bg-[#fbfbfd]/80 backdrop-blur">
+            <div className="mx-auto flex h-10 max-w-6xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+              <LessonMobileDrawer />
+
+              <span className="hidden text-xs font-semibold tracking-[0.18em] text-[#6e6e73] md:inline">
+                TITANIC
+              </span>
+              <div className="hidden h-4 w-px bg-black/[0.12] md:block" />
+              <Link
+                href="/portfolio/titanic/data-collection"
+                className={cn(
+                  "hidden rounded-md px-2 py-1 text-xs text-[#1d1d1f]/80 hover:bg-black/[0.04] md:inline-flex",
+                  pathname.startsWith("/portfolio/titanic/data-collection") &&
+                    "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                )}
+              >
+                1. 데이터 수집
+              </Link>
+              <Link
+                href="/portfolio/titanic/data-analysis"
+                className={cn(
+                  "hidden rounded-md px-2 py-1 text-xs text-[#1d1d1f]/80 hover:bg-black/[0.04] md:inline-flex",
+                  pathname.startsWith("/portfolio/titanic/data-analysis") &&
+                    "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                )}
+              >
+                2. 데이터 분석
+              </Link>
+              <Link
+                href="/portfolio/titanic/data-modeling"
+                className={cn(
+                  "hidden rounded-md px-2 py-1 text-xs text-[#1d1d1f]/80 hover:bg-black/[0.04] md:inline-flex",
+                  pathname.startsWith("/portfolio/titanic/data-modeling") &&
+                    "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                )}
+              >
+                3. 데이터 모델링
+              </Link>
+            </div>
+          </div>
+        ) : null}
       </header>
 
       <AuthModal

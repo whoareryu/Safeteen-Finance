@@ -6,6 +6,8 @@
 :root {
   /* fixed 네비게이션 높이 — 본문이 바에 가리지 않도록 */
   --site-header-height: 5.75rem;
+  /* LESSON 서브바 포함 높이 */
+  --site-header-height-lesson: 8.25rem;
   /* 눈 피로 완화 — 순백 대신 따뜻한 종이 톤 */
   --background: oklch(0.965 0.012 95);
   --foreground: oklch(0.24 0.02 260);
@@ -245,7 +247,13 @@ main.home-main--white .home-on-white .neon-hit-shield {
 @media (min-width: 768px) {
   :root {
     --site-header-height: 3.25rem;
+    --site-header-height-lesson: 5.75rem;
   }
+}
+
+/* LESSON 서브바가 있는 페이지에서만 헤더 높이를 늘림 */
+html.has-lesson-subbar {
+  --site-header-height: var(--site-header-height-lesson);
 }
 
 /* Apple 스타일 네비·CTA·홈 */
