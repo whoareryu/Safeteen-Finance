@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from sqlalchemy.orm import Session
 
-from apps.gourmet.app.data.ingestion.csv_restaurant_importer import CsvRestaurantImporter
 from apps.gourmet.app.models.restaurant import Restaurant
 from apps.gourmet.app.repositories.interfaces import IRestaurantRepository
 from apps.gourmet.app.repositories.restaurant_repository import RestaurantRepository
@@ -51,16 +49,6 @@ class RestaurantDomainService:
             db, category_slug=category_slug, district=district
         )
         return result.restaurants, total
-
-    def import_from_csv(
-        self,
-        db: Session,
-        csv_path: Path,
-        *,
-        replace_all: bool = True,
-    ) -> tuple[int, int]:
-        importer = CsvRestaurantImporter(repository=self._repo)  # type: ignore[arg-type]
-        return importer.import_file(db, csv_path, replace_all=replace_all)
 
     @staticmethod
     def to_card_dict(row: Restaurant, **kwargs: Any) -> dict[str, Any]:

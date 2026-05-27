@@ -24,7 +24,6 @@ from apps.gourmet.app.models.restaurant_tag import RestaurantTag  # noqa: F401
 from apps.gourmet.app.models.search_query_log import SearchQueryLog  # noqa: F401
 from apps.gourmet.app.models.sigungu_district import SigunguDistrict  # noqa: F401
 from apps.gourmet.app.models.tag import Tag  # noqa: F401
-from apps.titanic.app.models.titanic_passenger import TitanicPassenger  # noqa: F401
 from apps.database import Base, get_sync_database_url
 
 config = context.config

@@ -134,9 +134,6 @@ def _register_orm_models() -> None:
     from apps.gourmet.app.models.search_query_log import SearchQueryLog  # noqa: F401
     from apps.gourmet.app.models.sigungu_district import SigunguDistrict  # noqa: F401
     from apps.gourmet.app.models.tag import Tag  # noqa: F401
-    from apps.titanic.app.models.titanic_passenger import TitanicPassenger  # noqa: F401
-
-
 def ensure_sync_tables() -> None:
     """동기 엔진으로 users 테이블 생성 (없을 때만)."""
     if sync_engine is None:

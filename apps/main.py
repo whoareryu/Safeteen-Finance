@@ -15,7 +15,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Literal
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -31,10 +31,6 @@ from apps.auth.user_model import User  # noqa: F401 — Base.metadata 등록
 from apps.secom.app.controllers.user_controller import router as secom_router
 from apps.gourmet.app.controllers import router as gourmet_router
 from apps.gourmet.app.controllers.weather_router import router as weather_router
-from apps.gourmet.app.services.restaurant_catalog_service import (
-    maybe_import_restaurants_on_startup,
-)
-from apps.database import SyncSessionLocal
 from apps.matrix.app.keymaker import MissingGeminiKeyError, keymaker
 from apps.adapters.db_health_adapter import SqlAlchemyDbHealthAdapter
 from urllib.parse import urlparse
@@ -48,8 +44,8 @@ from apps.database import (
     init_db,
 )
 from apps.doro.app.doro_director import DoroDirector
-from apps.titanic.app.controllers.titanic_router import router as titanic_router
-from apps.titanic.app.schemas.titanic_schemas import ChatMessage, ChatRequest
+from apps.titanic.adapter.inbound.api.v1 import router as titanic_router
+from apps.titanic.app.use_cases.titanic_schemas import ChatMessage, ChatRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,12 +59,6 @@ async def lifespan(app: FastAPI):
         host = urlparse(DATABASE_URL or "").hostname or "(unknown)"
         await init_db()
         ensure_sync_tables()
-        if SyncSessionLocal is not None:
-            db = SyncSessionLocal()
-            try:
-                maybe_import_restaurants_on_startup(db)
-            finally:
-                db.close()
         logger.info(
             "Neon PostgreSQL 연결 완료 (host=%s). "
             "콘솔 Tables 가 비어 있으면 backend/.env 의 DATABASE_URL 이 "
@@ -189,18 +179,12 @@ def chat(body: ChatRequest):
     return {"text": text, "model": model_used}
 
 
-# titanic chat 및 upload 라우트는 이제 titanic_router로 이전되었습니다.
-
-
 @app.get("/db-check")
 async def check_db(
     db_health: SqlAlchemyDbHealthAdapter = Depends(get_db_health_adapter),
 ):
     """Neon 등 DB 연결 확인. SQL 실패 시에도 HTTP 200 + status=error 본문."""
     return await db_health.check_sql_time()
-
-
-# titanic 조회 라우트들은 이제 titanic_router로 이전되었습니다.
 
 
 @app.get("/doro/data")
@@ -237,7 +221,7 @@ if __name__ == "__main__":
 
     # reload 시 자식 프로세스도 WindowsSelectorEventLoopPolicy 유지
     uvicorn.run(
-        "main:app",
+        app,
         host="127.0.0.1",
         port=8000,
         reload=True,

@@ -112,10 +112,6 @@ def get_restaurant_enrichment(db: Session, restaurant_id: int) -> dict | None:
             "OPENWEATHER_API_KEY",
             used=False,
         ),
-        "sbiz_csv": {
-            "configured": True,
-            "note": "소상공인 CSV (SGMA_RESTAURANT_CSV / RESTAURANTS_CSV)",
-        },
     }
 
     if kakao_used or localdata_used:

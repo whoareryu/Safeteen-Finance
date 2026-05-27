@@ -1,7 +1,4 @@
 import pandas as pd
-from pathlib import Path
-
-_CSV_PATH = Path(__file__).resolve().parent / "한국도로공사_교통사고통계_20241231.csv"
 
 class DoroReader:
     def __init__(self):
@@ -9,6 +6,7 @@ class DoroReader:
 
     
     def get_data(self):
-        df = pd.read_csv(_CSV_PATH,encoding="cp949")
-        return df.iloc[[1]].astype(object).where(df.iloc[[1]].notna(), None)
+        # 프로젝트 내부 파일(CSV)을 읽지 않도록 비활성화.
+        # 필요한 경우 외부 업로드/DB/API로 데이터 소스를 연결해야 함.
+        return pd.DataFrame()
 
