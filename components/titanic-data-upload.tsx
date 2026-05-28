@@ -13,16 +13,25 @@ type UploadResult = {
   error?: string;
 };
 
+type JamesUploadResponse = {
+  ok: boolean;
+  message: string;
+  count: number;
+  columns: string[];
+  rows: unknown[];
+};
+
 type TitanicRow = {
   PassengerId: number;
   Survived: number;
   Pclass: number;
   Name: string;
-  Sex: string;
+  gender: string;
   Age: number | null;
 };
 
 const TITANIC_LOCAL_KEY = "titanic_csv_rows_v1";
+const JAMES_UPLOAD_ENDPOINT = "/api/titanic/james/upload";
 
 function parseCsv(text: string): TitanicRow[] {
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
@@ -33,11 +42,13 @@ function parseCsv(text: string): TitanicRow[] {
   const iSurvived = idx("Survived");
   const iPclass = idx("Pclass");
   const iName = idx("Name");
-  const iSex = idx("Sex");
+  const iGender = idx("Gender");
+  const iLegacySex = idx("Sex");
+  const iGenderOrLegacySex = iGender >= 0 ? iGender : iLegacySex;
   const iAge = idx("Age");
 
-  if ([iPassengerId, iSurvived, iPclass, iName, iSex].some((i) => i < 0)) {
-    throw new Error("CSV 헤더가 Kaggle Titanic 형식이 아닙니다. (PassengerId, Survived, Pclass, Name, Sex 필요)");
+  if ([iPassengerId, iSurvived, iPclass, iName, iGenderOrLegacySex].some((i) => i < 0)) {
+    throw new Error("CSV 헤더가 Titanic 형식이 아닙니다. (PassengerId, Survived, Pclass, Name, Gender 필요)");
   }
 
   const out: TitanicRow[] = [];
@@ -68,7 +79,7 @@ function parseCsv(text: string): TitanicRow[] {
     const Survived = Number.parseInt((cells[iSurvived] ?? "").trim(), 10);
     const Pclass = Number.parseInt((cells[iPclass] ?? "").trim(), 10);
     const Name = String((cells[iName] ?? "").trim());
-    const Sex = String((cells[iSex] ?? "").trim());
+    const gender = String((cells[iGenderOrLegacySex] ?? "").trim());
     const AgeRaw = iAge >= 0 ? (cells[iAge] ?? "").trim() : "";
     const Age = AgeRaw ? Number.parseFloat(AgeRaw) : null;
 
@@ -81,7 +92,7 @@ function parseCsv(text: string): TitanicRow[] {
       Survived,
       Pclass,
       Name,
-      Sex,
+      gender,
       Age: Age != null && Number.isFinite(Age) ? Age : null,
     });
   }
@@ -131,16 +142,44 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
         setResult({ ok: false, error: "CSV에서 유효한 행을 찾지 못했습니다." });
         return;
       }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(JAMES_UPLOAD_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await res.json().catch(() => null)) as
+        | JamesUploadResponse
+        | { detail?: string | { message?: string; errors?: string[] } }
+        | null;
+      if (!res.ok) {
+        const detail =
+          payload && typeof payload === "object" && "detail" in payload
+            ? payload.detail
+            : undefined;
+        if (typeof detail === "string") {
+          throw new Error(detail);
+        }
+        if (detail && typeof detail === "object") {
+          const msg = detail.message ?? "CSV 업로드 검증 실패";
+          const first = detail.errors?.[0];
+          throw new Error(first ? `${msg}: ${first}` : msg);
+        }
+        throw new Error("서버 업로드에 실패했습니다.");
+      }
+
       localStorage.setItem(TITANIC_LOCAL_KEY, JSON.stringify(rows));
       setResult({
         ok: true,
-        message: `${rows.length}건을 브라우저에 저장했습니다. 이제 2. 데이터 분석에서 결과를 확인할 수 있어요.`,
+        message: `${rows.length}건을 업로드/저장했습니다. 이제 2. 데이터 분석에서 결과를 확인할 수 있어요.`,
         inserted: rows.length,
       });
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
-    } catch {
-      setResult({ ok: false, error: "CSV 처리 중 오류가 발생했습니다. 파일 형식을 확인해 주세요." });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "CSV 처리 중 오류가 발생했습니다. 파일 형식을 확인해 주세요.";
+      setResult({ ok: false, error: message });
     } finally {
       setLoading(false);
     }
@@ -188,7 +227,7 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
           CSV를 여기에 끌어다 놓거나 클릭해 선택
         </p>
         <p className="mt-1 text-center text-xs text-[#86868b]">
-          PassengerId, Survived, Pclass, Name, Sex, Age … (Kaggle 형식)
+          PassengerId, Survived, Pclass, Name, Gender, Age … (Kaggle 형식)
         </p>
         <input
           ref={inputRef}

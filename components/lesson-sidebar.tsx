@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/portfolio/titanic/data-collection", label: "1. 데이터 수집" },
   { href: "/portfolio/titanic/data-analysis", label: "2. 데이터 분석" },
   { href: "/portfolio/titanic/data-modeling", label: "3. 데이터 모델링" },
+  { href: "/portfolio/titanic/passenger-list", label: "4. 승객 명단" },
 ] as const;
 
 export default function LessonSidebar() {

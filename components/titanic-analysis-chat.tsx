@@ -7,7 +7,8 @@ type TitanicRow = {
   Survived: number;
   Pclass: number;
   Name: string;
-  Sex: string;
+  gender?: string;
+  Sex?: string;
   Age: number | null;
 };
 
@@ -25,7 +26,7 @@ function summarize(rows: TitanicRow[]) {
   const survivalRate = total ? survived / total : 0;
 
   const bySex = ["male", "female"].map((sex) => {
-    const group = rows.filter((r) => (r.Sex ?? "").toLowerCase() === sex);
+    const group = rows.filter((r) => ((r.gender ?? r.Sex ?? "")).toLowerCase() === sex);
     const t = group.length;
     const s = group.filter((r) => r.Survived === 1).length;
     return { sex, total: t, survived: s, rate: t ? s / t : 0 };
