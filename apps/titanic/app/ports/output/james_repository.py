@@ -20,13 +20,13 @@ class JamesRepository:
     def __init__(self) -> None:
         self.pg_repository = JamesPgRepository()
 
-    def send_uploaded_rows(
+    async def send_uploaded_rows(
         self,
         *,
         columns: list[str],
         rows: list[dict[str, Any]],
     ) -> JamesRepositoryResult:
-        pg_result = self.pg_repository.send_uploaded_rows_to_pg(
+        pg_result = await self.pg_repository.send_uploaded_rows_to_pg(
             columns=columns,
             rows=rows,
         )

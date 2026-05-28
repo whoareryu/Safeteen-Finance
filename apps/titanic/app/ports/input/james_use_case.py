@@ -12,13 +12,13 @@ class JamesUseCase:
 
     """james_router 에서 전달받은 업로드 데이터를 처리한다."""
 
-    def handle_uploaded_rows(
+    async def handle_uploaded_rows(
         self,
         *,
         columns: list[str],
         rows: list[dict[str, Any]],
     ) -> JamesUploadResult:
-        return self._command.move_uploaded_rows(
+        return await self._command.move_uploaded_rows(
             columns=columns,
             rows=rows,
         )

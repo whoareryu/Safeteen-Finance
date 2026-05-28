@@ -1,8 +1,7 @@
-"""Titanic outbound — Neon PostgreSQL sync 세션 (apps.database 위임)."""
+"""Titanic outbound — Neon PostgreSQL async 세션 (core.database 위임)."""
 
-from core.database import Base, SyncSessionLocal, sync_engine
+from core.database import Base, async_session_maker, engine
 
-engine = sync_engine
-SessionLocal = SyncSessionLocal
+SessionLocal = async_session_maker
 
 __all__ = ["Base", "SessionLocal", "engine"]

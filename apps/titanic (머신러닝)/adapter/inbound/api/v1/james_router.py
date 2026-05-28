@@ -73,7 +73,7 @@ async def upload_titanic_csv(file: UploadFile = File(...)) -> dict:
             detail={"message": "CSV 검증 실패", "errors": errors},
         )
 
-    result = james_use_case.handle_uploaded_rows(columns=[*headers], rows=rows)
+    result = await james_use_case.handle_uploaded_rows(columns=[*headers], rows=rows)
     return {
         "ok": result.ok,
         "message": result.message,

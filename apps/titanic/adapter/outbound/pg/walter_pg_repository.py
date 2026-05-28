@@ -6,7 +6,7 @@ from typing import Any
 
 from sqlalchemy import text
 
-from core.database import SyncSessionLocal
+from apps.titanic.adapter.outbound.orm.database import SessionLocal
 
 TITANIC_TABLE = "titanic_passengers"
 logger = logging.getLogger(__name__)
@@ -23,16 +23,15 @@ class WalterPgRepositoryResult:
 class WalterPgRepository:
     """Neon PostgreSQL에서 승객 명단 페이지를 읽는 아웃바운드 어댑터."""
 
-    def get_passenger_page(self, *, page: int, page_size: int) -> WalterPgRepositoryResult:
+    async def get_passenger_page(self, *, page: int, page_size: int) -> WalterPgRepositoryResult:
         safe_page = max(1, page)
         safe_page_size = max(1, min(page_size, 500))
         offset = (safe_page - 1) * safe_page_size
 
-        if SyncSessionLocal is None:
+        if SessionLocal is None:
             raise RuntimeError("DB 세션이 초기화되지 않았습니다.")
 
-        db = SyncSessionLocal()
-        try:
+        async with SessionLocal() as db:
             logger.info(
                 "[Walter 경로] (4/4) Outbound adapter/outbound/pg/walter_pg_repository.py -> "
                 "NeonDB table=%s page=%d page_size=%d offset=%d",
@@ -41,12 +40,12 @@ class WalterPgRepository:
                 safe_page_size,
                 offset,
             )
-            total_raw = db.execute(
+            total_raw = (await db.execute(
                 text(f"SELECT COUNT(*) FROM {TITANIC_TABLE}")
-            ).scalar_one()
+            )).scalar_one()
             total = int(total_raw or 0)
 
-            rows = db.execute(
+            rows = (await db.execute(
                 text(
                     f"""
                     SELECT
@@ -62,7 +61,7 @@ class WalterPgRepository:
                     """
                 ),
                 {"limit": safe_page_size, "offset": offset},
-            ).mappings().all()
+            )).mappings().all()
 
             return WalterPgRepositoryResult(
                 items=[dict(r) for r in rows],
@@ -70,6 +69,4 @@ class WalterPgRepository:
                 page=safe_page,
                 page_size=safe_page_size,
             )
-        finally:
-            db.close()
 

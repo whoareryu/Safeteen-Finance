@@ -24,13 +24,13 @@ class JamesCommand:
 
     """james_use_case 에서 전달받은 업로드 데이터를 처리한다."""
 
-    def move_uploaded_rows(
+    async def move_uploaded_rows(
         self,
         *,
         columns: list[str],
         rows: list[dict[str, Any]],
     ) -> JamesUploadResult:
-        repo_result = self.repository.send_uploaded_rows(columns=columns, rows=rows)
+        repo_result = await self.repository.send_uploaded_rows(columns=columns, rows=rows)
         return JamesUploadResult(
             ok=repo_result.ok,
             message=repo_result.message,

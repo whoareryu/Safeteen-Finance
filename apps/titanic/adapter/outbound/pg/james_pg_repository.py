@@ -59,7 +59,7 @@ def _row_to_model(row: dict[str, Any]) -> TitanicPassengerModel:
 class JamesPgRepository:
     """업로드된 타이타닉 CSV 행을 Neon PostgreSQL `titanic_passengers`에 저장."""
 
-    def send_uploaded_rows_to_pg(
+    async def send_uploaded_rows_to_pg(
         self,
         *,
         columns: list[str],
@@ -83,26 +83,24 @@ class JamesPgRepository:
                 rows=rows,
             )
 
-        db = SessionLocal()
-        try:
-            db.add_all([_row_to_model(row) for row in rows])
-            db.commit()
-            return JamesPgRepositoryResult(
-                ok=True,
-                message=f"Neon DB에 {len(rows)}행 저장 완료",
-                count=len(rows),
-                columns=columns,
-                rows=rows,
-            )
-        except Exception as exc:
-            db.rollback()
-            logger.exception("Neon DB 전송 중 에러")
-            return JamesPgRepositoryResult(
-                ok=False,
-                message=f"Neon DB 전송 실패: {exc}",
-                count=0,
-                columns=columns,
-                rows=rows,
-            )
-        finally:
-            db.close()
+        async with SessionLocal() as db:
+            try:
+                db.add_all([_row_to_model(row) for row in rows])
+                await db.commit()
+                return JamesPgRepositoryResult(
+                    ok=True,
+                    message=f"Neon DB에 {len(rows)}행 저장 완료",
+                    count=len(rows),
+                    columns=columns,
+                    rows=rows,
+                )
+            except Exception as exc:
+                await db.rollback()
+                logger.exception("Neon DB 전송 중 에러")
+                return JamesPgRepositoryResult(
+                    ok=False,
+                    message=f"Neon DB 전송 실패: {exc}",
+                    count=0,
+                    columns=columns,
+                    rows=rows,
+                )

@@ -33,10 +33,10 @@ def read_titanic_data(
 
 
 @router.get("/count")
-def read_titanic_count(
+async def read_titanic_count(
     use_case: WalterQueryUseCase = Depends(get_walter_query_use_case),
 ):
-    result = use_case.get_passenger_page(page=1, page_size=1)
+    result = await use_case.get_passenger_page(page=1, page_size=1)
     return {"count": result["total"]}
 
 
@@ -77,7 +77,7 @@ def read_titanic_accuracy(
 
 
 @router.get("/passengers")
-def read_titanic_passengers(
+async def read_titanic_passengers(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=100, ge=1, le=500),
     use_case: WalterQueryUseCase = Depends(get_walter_query_use_case),
@@ -89,7 +89,7 @@ def read_titanic_passengers(
             page,
             page_size,
         )
-        return use_case.get_passenger_page(page=page, page_size=page_size)
+        return await use_case.get_passenger_page(page=page, page_size=page_size)
     except Exception as exc:
         logger.exception("승객 명단 조회 실패")
         raise HTTPException(status_code=500, detail=str(exc)) from exc

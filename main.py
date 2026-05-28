@@ -20,7 +20,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 try:
@@ -62,10 +61,10 @@ except ModuleNotFoundError:
     def auth_db_unavailable() -> None:
         raise HTTPException(status_code=503, detail="인증 기능이 비활성화되어 있습니다.")
 
-    def auth_login(body: LoginRequest, db: Session) -> None:  # type: ignore[override]
+    def auth_login(body: LoginRequest, db: AsyncSession) -> None:  # type: ignore[override]
         auth_db_unavailable()
 
-    def auth_signup(body: SignupRequest, db: Session) -> None:  # type: ignore[override]
+    def auth_signup(body: SignupRequest, db: AsyncSession) -> None:  # type: ignore[override]
         auth_db_unavailable()
 try:
     from apps.secom.app.controllers.user_controller import router as secom_router
@@ -105,7 +104,6 @@ from urllib.parse import urlparse
 from apps.database import (
     DATABASE_INIT_ERROR,
     DATABASE_URL,
-    ensure_sync_tables,
     get_db,
     get_sync_db,
     init_db,
@@ -135,7 +133,6 @@ async def lifespan(app: FastAPI):
             await init_db()
         except Exception as e:
             logger.warning("비동기 init_db 스킵: %s", e)
-        ensure_sync_tables()
         logger.info(
             "Neon PostgreSQL 연결 완료 (host=%s). "
             "콘솔 Tables 가 비어 있으면 backend/.env 의 DATABASE_URL 이 "
@@ -280,7 +277,7 @@ def read_doro_data():
 
 #회원가입
 @app.post("/signup", response_model=UserPublic, status_code=201, tags=["회원가입"])
-def signup_member(body: SignupRequest, db: Session = Depends(get_sync_db)):
+async def signup_member(body: SignupRequest, db: AsyncSession = Depends(get_sync_db)):
     """회원가입 — localhost:3000 → Neon `users` 단일 테이블."""
     auth_db_unavailable()
     logger.info(
@@ -293,7 +290,7 @@ def signup_member(body: SignupRequest, db: Session = Depends(get_sync_db)):
 
 
 @app.post("/login", response_model=UserPublic, tags=["로그인"])
-def login_member(body: LoginRequest, db: Session = Depends(get_sync_db)):
+async def login_member(body: LoginRequest, db: AsyncSession = Depends(get_sync_db)):
     """로그인 — users 테이블 검증 + last_login_at 갱신."""
     auth_db_unavailable()
     logger.info("[main] 로그인 요청 — username=%s", body.username)
