@@ -1,0 +1,2 @@
+"""Walter PG outbound adapter."""
+
