@@ -1,13 +1,13 @@
-from typing import Literal
+from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
 
 class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str = Field(..., min_length=1, max_length=32000)
+    role: str
+    content: str = Field(..., min_length=1)
 
 
 class ChatRequest(BaseModel):
-    messages: list[ChatMessage] = Field(..., min_length=1)
+    messages: list[ChatMessage]
     model: str | None = None

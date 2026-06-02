@@ -77,11 +77,11 @@ else:
 
 def _register_orm_models() -> None:
     try:
-        from apps.auth.user_model import User  # noqa: F401
+        from apps.friday_13th.auth.user_model import User  # noqa: F401
     except ImportError:
         pass
     try:
-        from apps.secom.app.models.user_model import SecUser  # noqa: F401
+        from apps.friday_13th.domain.entities.user import SecUser  # noqa: F401
     except ImportError:
         pass
     try:
@@ -90,6 +90,10 @@ def _register_orm_models() -> None:
         pass
     try:
         from apps.titanic.adapter.outbound.orm.models import TitanicPassengerModel  # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from apps.titanic.adapter.outbound.orm.titanic_model import TitanicRecord  # noqa: F401
     except ImportError:
         pass
 
