@@ -1,42 +1,38 @@
-﻿import sys
+﻿from __future__ import annotations
+
+import asyncio
+import sys
 from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
-# backend 루트를 path에 추가
 _backend_root = Path(__file__).resolve().parent.parent
-if str(_backend_root) not in sys.path:
-    sys.path.insert(0, str(_backend_root))
+_apps_root = _backend_root / "apps"
+for _path in (_backend_root, _apps_root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-from apps.auth.user_model import User  # noqa: F401
-from apps.gourmet.app.models.daily_recommendation import DailyRecommendation  # noqa: F401
-from apps.gourmet.app.models.favorite import Favorite  # noqa: F401
-from apps.gourmet.app.models.meal_plan import MealPlan  # noqa: F401
-from apps.gourmet.app.models.biz_classification import BizClassification  # noqa: F401
-from apps.gourmet.app.models.restaurant import Restaurant  # noqa: F401
-from apps.gourmet.app.models.restaurant_contact import RestaurantContact  # noqa: F401
-from apps.gourmet.app.models.restaurant_menu import RestaurantMenu  # noqa: F401
-from apps.gourmet.app.models.restaurant_operating_hour import RestaurantOperatingHour  # noqa: F401
-from apps.gourmet.app.models.restaurant_price import RestaurantPrice  # noqa: F401
-from apps.gourmet.app.models.restaurant_tag import RestaurantTag  # noqa: F401
-from apps.gourmet.app.models.search_query_log import SearchQueryLog  # noqa: F401
-from apps.gourmet.app.models.sigungu_district import SigunguDistrict  # noqa: F401
-from apps.gourmet.app.models.tag import Tag  # noqa: F401
-from apps.titanic.adapter.outbound.orm.models import TitanicPassengerModel  # noqa: F401
-from core.database import Base, get_sync_database_url
+from core.matrix.oracle_database import (  # noqa: E402
+    Base,
+    get_async_database_url,
+    import_models,
+)
 
 config = context.config
-
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+import_models()
 
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = get_sync_database_url()
+    url = get_async_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -48,21 +44,31 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    configuration = config.get_section(config.config_ini_section) or {}
-    configuration["sqlalchemy.url"] = get_sync_database_url()
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata)
 
-    connectable = engine_from_config(
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = get_async_database_url()
+
+    connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

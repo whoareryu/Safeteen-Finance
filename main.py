@@ -9,20 +9,24 @@ for _path in (_backend_root, _apps_root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
-from fastapi import Depends, FastAPI
-import google.generativeai as genai
+import logging
+
 from dotenv import load_dotenv
-from fastapi import HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-import logging
-from adapters.db_health_adapter import DbHealthAdapter
-from core.database import engine, get_db, init_db
+import google.generativeai as genai
+
+load_dotenv(_backend_root / ".env")
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+from adapters.db_health_adapter import DbHealthAdapter
+from core.database import dispose_engine, get_db, init_db, init_engine
 
 try:
     from doro.app.doro_director import DoroDirector
@@ -33,8 +37,6 @@ try:
     from titanic.app.james_controller import JamesController
 except ImportError:
     JamesController = None  # type: ignore[misc, assignment]
-
-load_dotenv(_backend_root / ".env")
 
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_MODEL = "gemini-1.5-flash"
@@ -60,19 +62,19 @@ class ChatResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
+        init_engine()
         await init_db()
     except Exception:
-        pass
+        logger.exception("데이터베이스 시작 초기화 실패")
     yield
-    if engine is not None:
-        await engine.dispose()
+    await dispose_engine()
 
 
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000","http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
