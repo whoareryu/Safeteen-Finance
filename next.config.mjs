@@ -47,6 +47,10 @@ const nextConfig = {
         destination: `${backendUrl}/titanic/james/upload`,
       },
       {
+        source: "/api/titanic/walter/myself",
+        destination: `${backendUrl}/titanic/walter/myself`,
+      },
+      {
         source: "/api/signup",
         destination: `${backendUrl}/signup`,
       },

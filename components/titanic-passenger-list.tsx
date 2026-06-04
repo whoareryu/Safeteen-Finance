@@ -38,25 +38,16 @@ export default function TitanicPassengerList() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/titanic/passengers?page=${page}&page_size=${PAGE_SIZE}`, {
+        const res = await fetch("/api/titanic/walter/myself", {
           cache: "no-store",
         });
-        const payload = (await res.json().catch(() => null)) as
-          | {
-              items?: PassengerRow[];
-              total?: number;
-              page?: number;
-              page_size?: number;
-              total_pages?: number;
-              detail?: string;
-            }
-          | null;
+        const payload = (await res.json().catch(() => null)) as { detail?: string } | null;
         if (!res.ok) {
           throw new Error(payload?.detail ?? "승객 명단 조회에 실패했습니다.");
         }
         if (cancelled) return;
-        setRows(Array.isArray(payload?.items) ? payload.items : []);
-        setTotal(typeof payload?.total === "number" ? payload.total : 0);
+        setRows([]);
+        setTotal(0);
       } catch (e) {
         if (cancelled) return;
         setRows([]);
@@ -70,7 +61,7 @@ export default function TitanicPassengerList() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, []);
 
   const totalPages = useMemo(() => {
     if (!total) return 1;
