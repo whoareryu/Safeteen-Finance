@@ -1,8 +1,10 @@
-﻿from fastapi import APIRouter, Query
-
+﻿from fastapi import APIRouter
+from titanic.adapter.inbound.api.schemas.walter_roaster_schema import WalterRoasterSchema
 from titanic.app.ports.input.walter_roaster_use_case import WalterRoasterUseCase
-from titanic.adapter.outbound.pg.walter_roaster_pg_repository import WalterRoasterPgRepository
 from titanic.app.use_cases.walter_roaster_interactor import WalterRoasterInteractor
+import logging
+
+logger = logging.getLogger(__name__)
 
 '''
 영화 <타이타닉>에서 승객 명단을 관리하는 
@@ -13,15 +15,17 @@ from titanic.app.use_cases.walter_roaster_interactor import WalterRoasterInterac
 
 walter_roaster_router = APIRouter(prefix="/walter", tags=["walter"])
 
+@walter_roaster_router.get("/myself")
+async def introduce_myself():
+    schema = WalterRoasterSchema()
 
-def build_walter_roaster_use_case() -> WalterRoasterUseCase:
-    return WalterRoasterInteractor(repository=WalterRoasterPgRepository())
+    logger.info("######################################################")
+    logger.info("🍤[월터 라우터] 월터의 자기소개글을 가져오는 API 호출")
+    logger.info(f"🍗월터의 자기소개글: {schema.memo}")
+    logger.info(f"🥩월터의 이름: {schema.name}")
+    logger.info(f"🍙월터의 ID: {schema.id}")
+    logger.info("######################################################")
+    pass
 
 
-@walter_roaster_router.get("/passengers")
-async def list_passengers(
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=50, ge=1, le=200),
-):
-    use_case: WalterRoasterUseCase = build_walter_roaster_use_case()
-    return await use_case.list_paginated(page, page_size)
+

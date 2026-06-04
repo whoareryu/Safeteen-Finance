@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import logging
 from typing import Any
 
 from titanic.adapter.inbound.api.schemas.james_director_schema import TitanicRecordSchema
@@ -8,16 +9,19 @@ from titanic.app.ports.output.james_director_repository import JamesRepository
 from titanic.app.dtos.james_director_dto import BookingCommand, PersonCommand
 from titanic.adapter.outbound.pg.james_director_pg_repository import JamesDirectorPgRepository
 
+logger = logging.getLogger(__name__)
+
 
 class JamesDirectorInteractor(JamesDirectorUseCase):
     def __init__(self) -> None:
         pass
 
     async def receive_uploaded_records(self, schema: list[TitanicRecordSchema]) -> dict[str, Any]:
-        # schema 에 상위 5줄 출력 하는 로그
-        print("[제임스 유스케이스] 라우터에서 유스케이스로 옮겨진 스키마 상위 5개 레코드:", flush=True)
-        for record in schema[:5]:
-            print(record, flush=True)
+        logger.info(
+            "[James UseCase] schema from router (top 5 of %d rows): %s",
+            len(schema),
+            schema[:5],
+        )
 
         # schema 를 PersonCommand 및 BookingCommand 로 나눠서 옮겨담기
         person_commands: list[PersonCommand] = []

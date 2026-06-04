@@ -1,5 +1,6 @@
-﻿from io import StringIO
-import csv
+﻿import csv
+import logging
+from io import StringIO
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +16,8 @@ from titanic.app.use_cases.james_direcrtor_interactor import JamesDirectorIntera
  완벽주의 성향으로 타이타닉의 모든 세트와 디테일을
  고증한 아키텍처의 총괄 디렉터 역할 수행
 '''
+
+logger = logging.getLogger(__name__)
 
 james_director_router = APIRouter(prefix="/james", tags=["james"])
 
@@ -38,10 +41,11 @@ async def upload_titanic_file(
 
     schema = [TitanicRecordSchema(**_normalize_titanic_row(row)) for row in reader]
 
-    # schema 에 상위 5줄 출력 하는 로그
-    print("[제임스 라우터] 업로드된 CSV 파일에서 스키마로 옮겨진 상위 5개 레코드:", flush=True)
-    for record in schema[:5]:
-        print(record, flush=True)
+    logger.info(
+        "[James Upload] parsed schema sample (top 5 of %d rows): %s",
+        len(schema),
+        schema[:5],
+    )
 
 
     use_case : JamesDirectorUseCase = JamesDirectorInteractor()

@@ -1,16 +1,10 @@
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass
-class WalterPaginationDTO:
-    page: int
-    page_size: int
+class WalterRoasterQuery:
+    pass
 
 
-@dataclass
-class WalterPassengerListDTO:
-    total: int
-    page: int
-    page_size: int
-    items: list[dict[str, Any]] = field(default_factory=list)
+
+
