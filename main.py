@@ -18,9 +18,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-
+import logging
 from adapters.db_health_adapter import DbHealthAdapter
 from core.database import engine, get_db, init_db
+
+logging.basicConfig(level=logging.INFO)
 
 try:
     from doro.app.doro_director import DoroDirector

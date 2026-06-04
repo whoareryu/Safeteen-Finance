@@ -25,7 +25,16 @@ async def introduce_myself():
     logger.info(f"🥩월터의 이름: {schema.name}")
     logger.info(f"🍙월터의 ID: {schema.id}")
     logger.info("######################################################")
+    
+
+    walter : WalterRoasterUseCase = WalterRoasterInteractor()
+    walter.introduce_myself(schema)
+
     pass
+
+
+
+
 
 
 
