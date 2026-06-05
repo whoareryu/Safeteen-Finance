@@ -3,13 +3,14 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from titanic.adapter.inbound.api.schemas.james_director_schema import TitanicRecordSchema
+from titanic.adapter.inbound.api.schemas.james_director_schema import JamesDirectorSchema
+from titanic.app.dtos.james_director_dto import JamesDirectorResponse
 
 
 class JamesDirectorUseCase(ABC):
 
     @abstractmethod
-    async def upload_titanic_file(self, schema: list[TitanicRecordSchema]) -> dict[str, Any]:
-        """CSV 파일업로드 """
+    async def upload_titanic_file(self, schema: list[JamesDirectorSchema]) -> JamesDirectorResponse:
+        """JamesDirectorSchema 리스트를 받아서 타이타닉 데이터베이스에 저장한다."""
         pass
 

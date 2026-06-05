@@ -3,8 +3,8 @@
 import logging
 from typing import Any
 
-from titanic.adapter.inbound.api.schemas.james_director_schema import TitanicRecordSchema
-from titanic.app.dtos.james_director_dto import BookingCommand, PersonCommand
+from titanic.adapter.inbound.api.schemas.james_director_schema import JamesDirectorSchema
+from titanic.app.dtos.james_director_dto import BookingCommand, JamesDirectorResponse, PersonCommand
 from titanic.app.ports.input.james_director_use_case import JamesDirectorUseCase
 from titanic.app.ports.output.james_director_repository import JamesRepository
 
@@ -15,7 +15,7 @@ class JamesDirectorInteractor(JamesDirectorUseCase):
     def __init__(self, repository: JamesRepository) -> None:
         self._repository = repository
         
-    async def upload_titanic_file(self, schema: list[TitanicRecordSchema]) -> dict[str, Any]:
+    async def upload_titanic_file(self, schema: list[JamesDirectorSchema]) -> JamesDirectorResponse:
         logger.info(
             "[James UseCase] schema from router (top 5 of %d rows): %s",
             len(schema),
@@ -51,4 +51,4 @@ class JamesDirectorInteractor(JamesDirectorUseCase):
             person_commands,
             booking_commands,
         )
-        return {"saved": saved}
+        return JamesDirectorResponse(answer=f"INSERT 완료: {saved}건")

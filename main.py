@@ -83,7 +83,7 @@ app.add_middleware(
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 
 try:
-    from apps.gourmet.app.controllers import router as gourmet_router  # type: ignore
+    from gourmet.adapter.inbound.api import gourmet_router  # type: ignore
 except ModuleNotFoundError:
     from gourmet_stub import create_gourmet_stub_router  # noqa: E402
 

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from titanic.adapter.outbound.orm.booking_orm import TitanicBookingORM
 from titanic.adapter.outbound.orm.person_orm import TitanicPersonORM
-from titanic.app.dtos.james_director_dto import BookingCommand, PersonCommand
+from titanic.app.dtos.james_director_dto import BookingCommand, JamesDirectorResponse, PersonCommand
 from titanic.app.ports.output.james_director_repository import JamesRepository
 
 logger = logging.getLogger(__name__)
@@ -67,4 +67,4 @@ class JamesDirectorPgRepository(JamesRepository):
             inserted += len(batch_person)
 
         logger.info("[James Repository] INSERT flush 완료: %d건", inserted)
-        return inserted
+        return JamesDirectorResponse(answer=f"INSERT 완료: {inserted}건")

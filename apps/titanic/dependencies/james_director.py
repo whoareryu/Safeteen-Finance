@@ -21,3 +21,5 @@ def get_james_director_use_case(
 ) -> JamesDirectorUseCase:
     repository: JamesRepository = JamesDirectorPgRepository(session=db)
     return JamesDirectorInteractor(repository=repository)
+
+

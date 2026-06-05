@@ -4,8 +4,7 @@ from io import StringIO
 from fastapi import APIRouter, Depends, File, UploadFile
 
 from titanic.adapter.inbound.api.schemas.james_director_schema import (
-    TitanicRecordSchema,
-    UploadResultSchema,
+    JamesDirectorSchema
 )
 from titanic.app.dtos.james_director_dto import JamesDirectorResponse
 from titanic.app.ports.input.james_director_use_case import JamesDirectorUseCase
@@ -32,12 +31,12 @@ async def upload_titanic_file(
     )
 
 
-def _parse_csv(text: str) -> list[TitanicRecordSchema]:
+def _parse_csv(text: str) -> list[JamesDirectorSchema]:
     reader = csv.DictReader(StringIO(text))
-    return [TitanicRecordSchema(**_normalize_titanic_row(row)) for row in reader]
+    return [JamesDirectorSchema(**_normalize_james_director_row(row)) for row in reader]
 
 
-def _normalize_titanic_row(row: dict) -> dict:
+def _normalize_james_director_row(row: dict) -> dict:
     normalized: dict = {}
     for raw_key, value in row.items():
         if raw_key is None:

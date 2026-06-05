@@ -58,7 +58,7 @@ def import_models() -> None:
     models_to_load = [
         "apps.friday_13th.auth.user_model",
         "apps.friday_13th.domain.entities.user",
-        "apps.gourmet.app.models.restaurant",
+        "gourmet.adapter.outbound.orm.restaurant",
         "titanic.adapter.outbound.orm.person_orm",
         "titanic.adapter.outbound.orm.booking_orm",
     ]
