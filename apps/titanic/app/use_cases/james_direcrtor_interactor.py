@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 class JamesDirectorInteractor(JamesDirectorUseCase):
     def __init__(self, repository: JamesRepository) -> None:
         self._repository = repository
-
-    async def receive_uploaded_records(self, schema: list[TitanicRecordSchema]) -> dict[str, Any]:
+        
+    async def upload_titanic_file(self, schema: list[TitanicRecordSchema]) -> dict[str, Any]:
         logger.info(
             "[James UseCase] schema from router (top 5 of %d rows): %s",
             len(schema),
@@ -47,7 +47,7 @@ class JamesDirectorInteractor(JamesDirectorUseCase):
                 )
             )
 
-        saved = await self._repository.receive_uploaded_records(
+        saved = await self._repository.upload_titanic_file(
             person_commands,
             booking_commands,
         )

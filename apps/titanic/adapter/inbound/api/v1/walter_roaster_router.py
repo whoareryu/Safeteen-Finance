@@ -1,9 +1,10 @@
 ﻿from fastapi import APIRouter
 from titanic.adapter.inbound.api.schemas.walter_roaster_schema import WalterRoasterSchema
 from titanic.app.ports.input.walter_roaster_use_case import WalterRoasterUseCase
-from titanic.app.use_cases.walter_roaster_interactor import WalterRoasterInteractor
 import logging
-
+from titanic.dependencies.walter_roaster import get_walter_roaster_use_case
+from fastapi import Depends
+from titanic.app.dtos.walter_roaster_dto import WalterRoasterResponse
 logger = logging.getLogger(__name__)
 
 '''
@@ -15,22 +16,17 @@ logger = logging.getLogger(__name__)
 
 walter_roaster_router = APIRouter(prefix="/walter", tags=["walter"])
 
-@walter_roaster_router.get("/myself")
-async def introduce_myself():
-    schema = WalterRoasterSchema()
-
-    logger.info("######################################################")
-    logger.info("🍤[월터 라우터] 월터의 자기소개글을 가져오는 API 호출")
-    logger.info(f"🍗월터의 자기소개글: {schema.memo}")
-    logger.info(f"🥩월터의 이름: {schema.name}")
-    logger.info(f"🍙월터의 ID: {schema.id}")
-    logger.info("######################################################")
+@walter_roaster_router.get("/myself", )
+async def introduce_myself(
+    walter : WalterRoasterUseCase = Depends(get_walter_roaster_use_case)
+)->WalterRoasterResponse:
     
-
-    walter : WalterRoasterUseCase = WalterRoasterInteractor()
-    walter.introduce_myself(schema)
-
-    pass
+    return await walter.introduce_myself(
+        WalterRoasterSchema(
+            id=2,
+            name="Walter Nichols",
+            memo="타이타닉의 일등 항해사, 승객 명단 관리 담당")
+        )
 
 
 

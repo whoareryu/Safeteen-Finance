@@ -6,9 +6,10 @@ logger = logging.getLogger(__name__)
 
 class WalterRoasterPgRepository(WalterRoasterRepository):
     
-    def __init__(self):
-        pass
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
 
+    
     def introduce_myself(self, query:WalterRoasterQuery):
         
         logger.info("######################################################")

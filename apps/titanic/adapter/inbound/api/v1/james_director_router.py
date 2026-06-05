@@ -1,18 +1,15 @@
 ﻿import csv
-import logging
 from io import StringIO
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, File, UploadFile
 
-from core.database import get_db
 from titanic.adapter.inbound.api.schemas.james_director_schema import (
     TitanicRecordSchema,
     UploadResultSchema,
 )
-from titanic.adapter.outbound.pg.james_director_pg_repository import JamesDirectorPgRepository
+from titanic.app.dtos.james_director_dto import JamesDirectorResponse
 from titanic.app.ports.input.james_director_use_case import JamesDirectorUseCase
-from titanic.app.use_cases.james_direcrtor_interactor import JamesDirectorInteractor
+from titanic.dependencies.james_director import get_james_director_use_case
 
 '''
  james_director_router.py
@@ -22,47 +19,26 @@ from titanic.app.use_cases.james_direcrtor_interactor import JamesDirectorIntera
  고증한 아키텍처의 총괄 디렉터 역할 수행
 '''
 
-logger = logging.getLogger(__name__)
-
 james_director_router = APIRouter(prefix="/james", tags=["james"])
 
 
-@james_director_router.post("/upload", response_model=UploadResultSchema)
+@james_director_router.post("/upload", response_model=JamesDirectorResponse)
 async def upload_titanic_file(
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
+    james: JamesDirectorUseCase = Depends(get_james_director_use_case),
 ):
-    """타이타닉 승객 데이터 CSV 파일 업로드"""
-    if file.content_type not in {"text/csv", "application/vnd.ms-excel", "text/plain"}:
-        raise HTTPException(status_code=400, detail="CSV 파일을 업로드해주세요.")
+    return await james.upload_titanic_file(
+        _parse_csv((await file.read()).decode("utf-8", errors="replace"))
+    )
 
-    raw = await file.read()
-    text = raw.decode("utf-8", errors="replace")
-    if not text.strip():
-        raise HTTPException(status_code=400, detail="빈 CSV 파일입니다.")
 
+def _parse_csv(text: str) -> list[TitanicRecordSchema]:
     reader = csv.DictReader(StringIO(text))
-    if reader.fieldnames is None:
-        raise HTTPException(status_code=400, detail="CSV 헤더를 읽을 수 없습니다.")
-
-    schema = [TitanicRecordSchema(**_normalize_titanic_row(row)) for row in reader]
-
-    logger.info(
-        "[James Upload] parsed schema sample (top 5 of %d rows): %s",
-        len(schema),
-        schema[:5],
-    )
-
-
-    use_case: JamesDirectorUseCase = JamesDirectorInteractor(
-        JamesDirectorPgRepository(db),
-    )
-    result = await use_case.receive_uploaded_records(schema)
-    return UploadResultSchema(saved=result["saved"])
+    return [TitanicRecordSchema(**_normalize_titanic_row(row)) for row in reader]
 
 
 def _normalize_titanic_row(row: dict) -> dict:
-    normalized = {}
+    normalized: dict = {}
     for raw_key, value in row.items():
         if raw_key is None:
             continue
