@@ -1,0 +1,32 @@
+services:
+  # 1. FastAPI 백엔드 설정
+  backend:
+    build:
+      context: ./whoareryu
+      dockerfile: Dockerfile
+    container_name: whoareryu-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./whoareryu:/whoareryu
+    env_file:
+      - ./whoareryu/.env
+
+  # 2. Next.js 프런트엔드 설정
+  frontend:
+    build:
+      context: ./www
+      dockerfile: Dockerfile
+    container_name: whoareryu-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./www:/app
+      - /app/.next
+      - /app/node_modules
+    env_file:
+      - ./www/.env.local
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
