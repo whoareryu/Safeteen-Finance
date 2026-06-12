@@ -36,19 +36,19 @@ const nextConfig = {
       },
       {
         source: "/api/titanic/chat",
-        destination: `${backendUrl}/titanic/chat`,
+        destination: `${backendUrl}/api/titanic/chat`,
       },
       {
         source: "/api/titanic/upload",
-        destination: `${backendUrl}/titanic/upload`,
+        destination: `${backendUrl}/api/titanic/upload`,
       },
       {
         source: "/api/titanic/james/upload",
-        destination: `${backendUrl}/titanic/james/upload`,
+        destination: `${backendUrl}/api/titanic/james/upload`,
       },
       {
         source: "/api/titanic/walter/myself",
-        destination: `${backendUrl}/titanic/walter/myself`,
+        destination: `${backendUrl}/api/titanic/walter/myself`,
       },
       {
         source: "/api/signup",

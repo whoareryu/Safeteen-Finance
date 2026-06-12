@@ -1,5 +1,3 @@
-import TitanicWorkspace from "@/components/titanic-workspace";
-
 export default function TitanicPage() {
   return (
     <div className="min-h-[calc(100dvh-var(--site-header-height))] bg-[#fbfbfd]">
@@ -18,8 +16,6 @@ export default function TitanicPage() {
           승객 데이터 수집 → 생존 예측 모델. 왼쪽 메뉴에서 단계를 선택하세요.
         </p>
       </section>
-
-      <TitanicWorkspace />
     </div>
   );
 }

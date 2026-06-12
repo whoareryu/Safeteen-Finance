@@ -47,8 +47,8 @@ function parseCsv(text: string): TitanicRow[] {
   const iGenderOrLegacySex = iGender >= 0 ? iGender : iLegacySex;
   const iAge = idx("Age");
 
-  if ([iPassengerId, iSurvived, iPclass, iName, iGenderOrLegacySex].some((i) => i < 0)) {
-    throw new Error("CSV 헤더가 Titanic 형식이 아닙니다. (PassengerId, Survived, Pclass, Name, Gender 필요)");
+  if ([iPassengerId, iPclass, iName, iGenderOrLegacySex].some((i) => i < 0)) {
+    throw new Error("CSV 헤더가 Titanic 형식이 아닙니다. (PassengerId, Pclass, Name, Gender/Sex 필요)");
   }
 
   const out: TitanicRow[] = [];
@@ -76,14 +76,14 @@ function parseCsv(text: string): TitanicRow[] {
     cells.push(cur);
 
     const PassengerId = Number.parseInt((cells[iPassengerId] ?? "").trim(), 10);
-    const Survived = Number.parseInt((cells[iSurvived] ?? "").trim(), 10);
+    const Survived = iSurvived >= 0 ? Number.parseInt((cells[iSurvived] ?? "").trim(), 10) : NaN;
     const Pclass = Number.parseInt((cells[iPclass] ?? "").trim(), 10);
     const Name = String((cells[iName] ?? "").trim());
     const gender = String((cells[iGenderOrLegacySex] ?? "").trim());
     const AgeRaw = iAge >= 0 ? (cells[iAge] ?? "").trim() : "";
     const Age = AgeRaw ? Number.parseFloat(AgeRaw) : null;
 
-    if (!Number.isFinite(PassengerId) || !Number.isFinite(Survived) || !Number.isFinite(Pclass)) {
+    if (!Number.isFinite(PassengerId) || !Number.isFinite(Pclass)) {
       continue;
     }
 
