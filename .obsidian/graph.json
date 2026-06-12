@@ -1,0 +1,44 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": false,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:vault/gourmet개발",
+      "color": {
+        "a": 1,
+        "rgb": 15158332
+      }
+    },
+    {
+      "query": "path:whoareryu",
+      "color": {
+        "a": 1,
+        "rgb": 13375769
+      }
+    },
+    {
+      "query": "path:www",
+      "color": {
+        "a": 1,
+        "rgb": 13311
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": -3,
+  "nodeSizeMultiplier": 2.60104166666667,
+  "lineSizeMultiplier": 2.60104166666667,
+  "collapse-forces": false,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 18.0208333333333,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.3213363860503561,
+  "close": false
+}

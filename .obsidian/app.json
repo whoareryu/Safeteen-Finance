@@ -4,7 +4,9 @@
     "**/*.py",
     "alembic",
     "node_modules",
+    "**/node_modules/**",
     ".next",
+    "**/.next/**",
     "out",
     ".coverage",
     ".venv",
@@ -19,7 +21,8 @@
     "**/*.css",
     "**/*.scss",
     ".DS_Store",
-    ".env*"
+    ".env*",
+    "www/node_modules/"
   ],
   "showUnsupportedFiles": false
 }

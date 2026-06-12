@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "983e23b487ee248b",
+        "id": "d1a121f74ec38c67",
         "type": "tabs",
         "children": [
           {
-            "id": "53d326212163cdf6",
+            "id": "60e5e25d9824faec",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -176,23 +176,43 @@
       "bases:Create new base": false
     }
   },
-  "active": "117568b8b7ba8e07",
+  "active": "60e5e25d9824faec",
   "lastOpenFiles": [
-    "_harness/config.yaml.md",
-    "_harness/config.yaml",
-    "whoareryu/README.md",
-    "README.md",
-    "AGENTS.md",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.137294209851744",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.138356760093024",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.129338916184416",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.132906320879968",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.128654041981280",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.127766701760864",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.135732405559648",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.134315504034144",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.123684020199776",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.126850381472096",
+    "whoareryu/apps/titanic/adapter/inbound/api/v1/__pycache__/crew_smith_captain_router.cpython-313.pyc.139334136979808",
     "CLAUDE.md",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/frontend/logs/refs/remotes/origin/HEAD",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/docs/logs/refs/remotes/origin/HEAD",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/backend/logs/refs/remotes/origin/HEAD",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/frontend/refs/remotes/origin/HEAD",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/frontend/logs/refs/remotes/origin",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/frontend/logs/refs/heads/main",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/backend/refs/remotes/origin/HEAD",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/backend/logs/refs/heads/main",
-    ".git/worktrees/init-antigravity-dev-protocol/modules/backend/logs/refs/remotes/origin",
-    "whoareryu/apps/gourmet/_docs/README.md"
+    "whoareryu/_claude/ENTITY_RULE.md",
+    "whoareryu/_claude/CLAUDE.md",
+    "README.md",
+    "www/node_modules/eventemitter3/README.md",
+    "www/node_modules/cmdk/LICENSE.md",
+    "whoareryu/apps/gourmet/_docs/EXTERNAL_API_KEYS.md",
+    "whoareryu/apps/gourmet/_docs/GOURMET_ERD.md",
+    "whoareryu/apps/gourmet/_docs/gourmetmate_v2_erd.md",
+    "www/node_modules/@date-fns/tz/CHANGELOG.md",
+    "vault/colorgroup.md",
+    "whoareryu/apps/gourmet/_docs/ENTITY_RULE.md",
+    "whoareryu/apps/gourmet/_docs/CLAUDE.md",
+    "whoareryu/apps/gourmet/_claude/gourmetmate_v2_erd.md",
+    "www/_cluade/VERCEL_V0_DEPLOY.md",
+    "whoareryu/apps/gourmet/_claude/EXTERNAL_API_KEYS.md",
+    "whoareryu/apps/gourmet/_claude/GOURMET_ERD.md",
+    "whoareryu/apps/titanic/_docs/TITANIC_ERD.md",
+    "www/_cluade/REACT_RULES.md",
+    "whoareryu/apps/titanic/_docs/titanic_architecture.md",
+    "whoareryu/apps/titanic/_docs/james_code_review.md",
+    "vault/Frontend/REACT_RULES.md",
+    "vault/Frontend/VERCEL_V0_DEPLOY.md",
+    "vault/Backend/TITANIC_ERD.md",
+    "vault/Backend/GOURMET_ERD.md"
   ]
 }
