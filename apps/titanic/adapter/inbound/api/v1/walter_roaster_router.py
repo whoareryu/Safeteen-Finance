@@ -1,5 +1,5 @@
 ﻿from fastapi import APIRouter
-from titanic.adapter.inbound.api.schemas.walter_roaster_schema import WalterRoasterSchema
+from apps.titanic.adapter.inbound.api.schemas.crew_walter_roaster_schema import WalterRoasterSchema
 from titanic.app.ports.input.walter_roaster_use_case import WalterRoasterUseCase
 import logging
 from titanic.dependencies.walter_roaster import get_walter_roaster_use_case

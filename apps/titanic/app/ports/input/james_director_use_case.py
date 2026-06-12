@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from titanic.adapter.inbound.api.schemas.james_director_schema import JamesDirectorSchema
+from apps.titanic.adapter.inbound.api.schemas.crew_james_director_schema import JamesDirectorSchema
 from titanic.app.dtos.james_director_dto import JamesDirectorResponse
 
 

@@ -1,9 +1,9 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.matrix.oracle_database import get_db
+from core.matrix.gird_oracle_database_manager import get_db
 from titanic.adapter.outbound.pg.james_director_pg_repository import JamesDirectorPgRepository
 from titanic.app.ports.input.james_director_use_case import JamesDirectorUseCase
-from titanic.app.ports.output.james_director_repository import JamesRepository
+from titanic.app.ports.output.james_director_repository import JamesDirectorRepository
 from titanic.app.use_cases.james_direcrtor_interactor import JamesDirectorInteractor
 
 """
@@ -19,7 +19,7 @@ DIP 원칙:
 def get_james_director_use_case(
     db: AsyncSession = Depends(get_db),
 ) -> JamesDirectorUseCase:
-    repository: JamesRepository = JamesDirectorPgRepository(session=db)
+    repository: JamesDirectorRepository = JamesDirectorPgRepository(session=db)
     return JamesDirectorInteractor(repository=repository)
 
 

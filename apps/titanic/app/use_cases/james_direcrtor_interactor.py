@@ -3,16 +3,16 @@
 import logging
 from typing import Any
 
-from titanic.adapter.inbound.api.schemas.james_director_schema import JamesDirectorSchema
-from titanic.app.dtos.james_director_dto import BookingCommand, JamesDirectorResponse, PersonCommand
+from apps.titanic.adapter.inbound.api.schemas.crew_james_director_schema import JamesDirectorSchema
+from titanic.app.dtos.james_director_dto import BookingCommand, JamesDirectorResponse, PassengerCommand
 from titanic.app.ports.input.james_director_use_case import JamesDirectorUseCase
-from titanic.app.ports.output.james_director_repository import JamesRepository
+from titanic.app.ports.output.james_director_repository import JamesDirectorRepository
 
 logger = logging.getLogger(__name__)
 
 
 class JamesDirectorInteractor(JamesDirectorUseCase):
-    def __init__(self, repository: JamesRepository) -> None:
+    def __init__(self, repository: JamesDirectorRepository) -> None:
         self._repository = repository
         
     async def upload_titanic_file(self, schema: list[JamesDirectorSchema]) -> JamesDirectorResponse:
@@ -22,12 +22,12 @@ class JamesDirectorInteractor(JamesDirectorUseCase):
             schema[:5],
         )
 
-        person_commands: list[PersonCommand] = []
+        passenger_commands: list[PassengerCommand] = []
         booking_commands: list[BookingCommand] = []
 
         for record in schema:
-            person_commands.append(
-                PersonCommand(
+            passenger_commands.append(
+                PassengerCommand(
                     passenger_id=record.passenger_id or "",
                     name=record.name or "",
                     gender=record.gender or "",
@@ -48,7 +48,7 @@ class JamesDirectorInteractor(JamesDirectorUseCase):
             )
 
         saved = await self._repository.upload_titanic_file(
-            person_commands,
+            passenger_commands,
             booking_commands,
         )
         return JamesDirectorResponse(answer=f"INSERT 완료: {saved}건")

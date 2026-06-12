@@ -2,7 +2,7 @@ from titanic.app.ports.input.walter_roaster_use_case import WalterRoasterUseCase
 from titanic.app.use_cases.walter_roaster_interactor import WalterRoasterInteractor
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
-from core.matrix.oracle_database import get_db
+from core.matrix.gird_oracle_database_manager import get_db
 from titanic.adapter.outbound.pg.walter_roaster_pg_repository import WalterRoasterPgRepository
 from titanic.app.ports.output.walter_roaster_repository import WalterRoasterRepository
 

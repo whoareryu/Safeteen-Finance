@@ -1,7 +1,7 @@
 from titanic.app.ports.input.walter_roaster_use_case import WalterRoasterUseCase
 from titanic.app.dtos.walter_roaster_dto import WalterRoasterQuery
 from titanic.app.ports.output.walter_roaster_repository import WalterRoasterRepository
-from titanic.adapter.inbound.api.schemas.walter_roaster_schema import WalterRoasterSchema
+from apps.titanic.adapter.inbound.api.schemas.crew_walter_roaster_schema import WalterRoasterSchema
 import logging
 from titanic.adapter.outbound.pg.walter_roaster_pg_repository import WalterRoasterPgRepository
 

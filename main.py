@@ -89,14 +89,9 @@ except ModuleNotFoundError:
 
     gourmet_router = create_gourmet_stub_router()
 
-app.include_router(titanic_router)
+app.include_router(titanic_router, prefix="/api")
 
 app.include_router(gourmet_router)
-
-
-
-
-
 
 @app.get("/")
 def read_root() -> dict[str, str]:

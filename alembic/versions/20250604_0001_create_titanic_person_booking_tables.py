@@ -1,4 +1,4 @@
-"""create titanic_persons and titanic_bookings
+"""create titanic_persons and bookings
 
 Revision ID: 20250604_0001
 Revises:
@@ -38,7 +38,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "titanic_bookings",
+        "bookings",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("person_id", sa.Integer(), nullable=False),
         sa.Column("pclass", sa.String(length=8), nullable=False),
@@ -54,15 +54,15 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        op.f("ix_titanic_bookings_person_id"),
-        "titanic_bookings",
+        op.f("ix_bookings_person_id"),
+        "bookings",
         ["person_id"],
         unique=False,
     )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_titanic_bookings_person_id"), table_name="titanic_bookings")
-    op.drop_table("titanic_bookings")
+    op.drop_index(op.f("ix_bookings_person_id"), table_name="bookings")
+    op.drop_table("bookings")
     op.drop_index(op.f("ix_titanic_persons_passenger_id"), table_name="titanic_persons")
     op.drop_table("titanic_persons")

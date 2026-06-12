@@ -16,7 +16,7 @@ for _path in (_backend_root, _apps_root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
-from core.matrix.oracle_database import (  # noqa: E402
+from core.matrix.gird_oracle_database_manager import (  # noqa: E402
     Base,
     get_async_database_url,
     import_models,

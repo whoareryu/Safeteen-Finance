@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from apps.database import get_sync_db
 from gourmet.adapter.inbound.api.schemas.catalog_schemas import GourmetChatRequest, GourmetChatResponse
 from gourmet.app.use_cases.gourmet_chat_interactor import build_gourmet_context
-from core.matrix.keymaker_api import MissingGeminiKeyError, keymaker
+from core.matrix.vault_keymaker_secret_manager import MissingGeminiKeyError, keymaker
 
 logger = logging.getLogger(__name__)
 
