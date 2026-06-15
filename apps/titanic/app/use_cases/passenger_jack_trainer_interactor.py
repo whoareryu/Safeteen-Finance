@@ -15,10 +15,6 @@ class JackTrainerInteractor(JackTrainerUseCase):
         self.repository = repository
         self.kiwi = Kiwi()
         
-    async def analyze_message_intent(self, user_message:str) -> dict:
-        # 사용자의 질문(message)을 형태소 분석하여 키워드와 의도를 파악한다.
-        return {}
-        
     async def analyze_message_intent(self, user_message: str) -> dict:
         tokens = self.kiwi.tokenize(user_message)
 
