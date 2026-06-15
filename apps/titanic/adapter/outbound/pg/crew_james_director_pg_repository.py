@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 _INSERT_BATCH_SIZE = 500
 
 
-class JamesDirectorPgRepository(JamesDirectorRepository):
+class JamesDirectorPGRepository(JamesDirectorRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 

@@ -16,11 +16,15 @@ DIP 원칙:
   - 세션은 core 의 get_db 에서 주입받는다 (AsyncSession).
 """
 
-
-def get_andrews_architect_use_case(
+def get_andrews_architect_repository(
     db: AsyncSession = Depends(get_db)
+) -> AndrewsArchitectRepository:
+        return AndrewsArchitectPGRepository(session=db)
+  
+  
+def get_andrews_architect_use_case(
+    repository : AndrewsArchitectRepository = Depends(get_andrews_architect_repository)
 ) -> AndrewsArchitectUseCase:
-    repository: AndrewsArchitectRepository = AndrewsArchitectPGRepository(session=db)
     return AndrewsArchitectInteractor(repository=repository)
 
 

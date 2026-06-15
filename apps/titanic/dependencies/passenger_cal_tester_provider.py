@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_cal_tester_use_case(
+def get_cal_tester_repository(
     db: AsyncSession = Depends(get_db)
+) -> CalTesterRepository:
+    return CalTesterPGRepository(session=db)
+
+
+def get_cal_tester_use_case(
+    repository: CalTesterRepository = Depends(get_cal_tester_repository)
 ) -> CalTesterUseCase:
-    repository: CalTesterRepository = CalTesterPGRepository(session=db)
     return CalTesterInteractor(repository=repository)
 
 

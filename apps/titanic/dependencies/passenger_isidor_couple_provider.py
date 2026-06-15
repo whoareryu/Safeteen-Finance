@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_isidor_couple_use_case(
+def get_isidor_couple_repository(
     db: AsyncSession = Depends(get_db)
+) -> IsidorCoupleRepository:
+    return IsidorCouplePGRepository(session=db)
+
+
+def get_isidor_couple_use_case(
+    repository: IsidorCoupleRepository = Depends(get_isidor_couple_repository)
 ) -> IsidorCoupleUseCase:
-    repository: IsidorCoupleRepository = IsidorCouplePGRepository(session=db)
     return IsidorCoupleInteractor(repository=repository)
 
 

@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_lowe_boat_use_case(
+def get_lowe_boat_repository(
     db: AsyncSession = Depends(get_db)
+) -> LoweBoatRepository:
+    return LoweBoatPGRepository(session=db)
+
+
+def get_lowe_boat_use_case(
+    repository: LoweBoatRepository = Depends(get_lowe_boat_repository)
 ) -> LoweBoatUseCase:
-    repository: LoweBoatRepository = LoweBoatPGRepository(session=db)
     return LoweBoatInteractor(repository=repository)
 
 

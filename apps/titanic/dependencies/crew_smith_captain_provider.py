@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_smith_captain_use_case(
+def get_smith_captain_repository(
     db: AsyncSession = Depends(get_db)
+) -> SmithCaptainRepository:
+    return SmithCaptainPGRepository(session=db)
+
+
+def get_smith_captain_use_case(
+    repository: SmithCaptainRepository = Depends(get_smith_captain_repository)
 ) -> SmithCaptainUseCase:
-    repository: SmithCaptainRepository = SmithCaptainPGRepository(session=db)
     return SmithCaptainInteractor(repository=repository)
 
 

@@ -72,7 +72,7 @@ CSV 업로드 → 배치 INSERT 파이프라인.
 | `app/ports/input/passenger_jack_trainer_use_case.py` | `JackTrainerUseCase` |
 | `app/ports/output/passenger_jack_trainer_repository.py` | `JackTrainerRepository` |
 | `app/use_cases/passenger_jack_trainer_interactor.py` | `JackTrainerInteractor` |
-| `dependencies/passenger_jack_trainer_provider.py` | `get_jack_trainer()` |
+| `dependencies/passenger_jack_trainer_provider.py` | `get_jack_trainer_use_case()` |
 
 ### Walter Roaster — 진행 중
 

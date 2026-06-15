@@ -16,11 +16,15 @@ DIP 원칙:
   - 세션은 core 의 get_db 에서 주입받는다 (AsyncSession).
 """
 
+def get_hartley_violin_repository(
+    db: AsyncSession = Depends(get_db)
+) -> HartleyViolinRepository:
+    return HartleyViolinPGRepository(session=db)
+  
 
 def get_hartley_violin_use_case(
-    db: AsyncSession = Depends(get_db)
+    repository: HartleyViolinRepository = Depends(get_hartley_violin_repository)
 ) -> HartleyViolinUseCase:
-    repository: HartleyViolinRepository = HartleyViolinPGRepository(session=db)
     return HartleyViolinInteractor(repository=repository)
 
 

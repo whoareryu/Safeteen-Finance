@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_jack_trainer(
+def get_jack_trainer_repository(
     db: AsyncSession = Depends(get_db)
+) -> JackTrainerRepository:
+    return JackTrainerPGRepository(session=db)
+
+
+def get_jack_trainer_use_case(
+    repository: JackTrainerRepository = Depends(get_jack_trainer_repository)
 ) -> JackTrainerUseCase:
-    repository: JackTrainerRepository = JackTrainerPGRepository(session=db)
     return JackTrainerInteractor(repository=repository)
 
 

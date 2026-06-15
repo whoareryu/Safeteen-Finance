@@ -17,9 +17,14 @@ DIP 원칙:
 """
 
 
-def get_ruth_survivor_use_case(
+def get_ruth_survivor_repository(
     db: AsyncSession = Depends(get_db)
+) -> RuthSurvivorRepository:
+    return RuthSurvivorPGRepository(session=db)
+
+
+def get_ruth_survivor_use_case(
+    repository: RuthSurvivorRepository = Depends(get_ruth_survivor_repository)
 ) -> RuthSurvivorUseCase:
-    repository: RuthSurvivorRepository = RuthSurvivorPGRepository(session=db)
     return RuthSurvivorInteractor(repository=repository)
 

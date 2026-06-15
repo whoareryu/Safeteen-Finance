@@ -17,10 +17,15 @@ DIP 원칙:
 """
 
 
-def get_rose_model(
+def get_rose_model_repository(
     db: AsyncSession = Depends(get_db)
+) -> RoseModelRepository:
+    return RoseModelPGRepository(session=db)
+
+
+def get_rose_model(
+    repository: RoseModelRepository = Depends(get_rose_model_repository)
 ) -> RoseModelUseCase:
-    repository: RoseModelRepository = RoseModelPGRepository(session=db)
     return RoseModelInteractor(repository=repository)
 
 
