@@ -23,10 +23,9 @@ def get_rose_model_repository(
     return RoseModelPGRepository(session=db)
 
 
-def get_rose_model(
+def get_rose_model_use_case(
     repository: RoseModelRepository = Depends(get_rose_model_repository)
 ) -> RoseModelUseCase:
     return RoseModelInteractor(repository=repository)
-
 
 

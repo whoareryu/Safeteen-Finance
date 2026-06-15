@@ -1,0 +1,58 @@
+from fastapi import APIRouter
+
+from restaurant.adapter.inbound.api.v1.admin_router import router as admin_router
+from restaurant.adapter.inbound.api.v1.catalog_router import router as catalog_router
+from restaurant.adapter.inbound.api.v1.gourmet_chat_router import router as gourmet_chat_router
+from restaurant.adapter.inbound.api.v1.gourmet_router import router as gourmet_legacy_router
+from restaurant.adapter.inbound.api.v1.restaurant_router import router as restaurant_v2_router
+from restaurant.adapter.inbound.api.v1.weather_router import router as weather_router
+
+from restaurant.adapter.inbound.api.v1.category_browse_router import category_browse_router
+from restaurant.adapter.inbound.api.v1.category_catalog_router import category_catalog_router
+from restaurant.adapter.inbound.api.v1.daily_pick_router import daily_pick_router
+from restaurant.adapter.inbound.api.v1.home_browse_router import home_browse_router
+from restaurant.adapter.inbound.api.v1.nearby_restaurants_router import nearby_restaurants_router
+from restaurant.adapter.inbound.api.v1.restaurant_browse_router import restaurant_browse_router
+from restaurant.adapter.inbound.api.v1.restaurant_detail_router import restaurant_detail_router
+from restaurant.adapter.inbound.api.v1.restaurant_domain_router import restaurant_domain_router
+from restaurant.adapter.inbound.api.v1.restaurant_enrichment_router import restaurant_enrichment_router
+from restaurant.adapter.inbound.api.v1.restaurant_location_router import restaurant_location_router
+from restaurant.adapter.inbound.api.v1.restaurant_menu_router import restaurant_menu_router
+from restaurant.adapter.inbound.api.v1.restaurant_profile_router import restaurant_profile_router
+from restaurant.adapter.inbound.api.v1.restaurant_search_router import restaurant_search_router
+from restaurant.adapter.inbound.api.v1.search_query_router import search_query_router
+from restaurant.adapter.inbound.api.v1.search_suggest_router import search_suggest_router
+from restaurant.adapter.inbound.api.v1.today_picks_router import today_picks_router
+from restaurant.adapter.inbound.api.v1.topic_restaurants_router import topic_restaurants_router
+from restaurant.adapter.inbound.api.v1.view_stat_router import view_stat_router
+
+restaurant_router = APIRouter()
+restaurant_router.include_router(catalog_router)
+restaurant_router.include_router(gourmet_chat_router)
+restaurant_router.include_router(gourmet_legacy_router)
+restaurant_router.include_router(restaurant_v2_router)
+restaurant_router.include_router(admin_router)
+restaurant_router.include_router(weather_router)
+
+restaurant_router.include_router(category_browse_router)
+restaurant_router.include_router(category_catalog_router)
+restaurant_router.include_router(daily_pick_router)
+restaurant_router.include_router(home_browse_router)
+restaurant_router.include_router(nearby_restaurants_router)
+restaurant_router.include_router(restaurant_browse_router)
+restaurant_router.include_router(restaurant_detail_router)
+restaurant_router.include_router(restaurant_domain_router)
+restaurant_router.include_router(restaurant_enrichment_router)
+restaurant_router.include_router(restaurant_location_router)
+restaurant_router.include_router(restaurant_menu_router)
+restaurant_router.include_router(restaurant_profile_router)
+restaurant_router.include_router(restaurant_search_router)
+restaurant_router.include_router(search_query_router)
+restaurant_router.include_router(search_suggest_router)
+restaurant_router.include_router(today_picks_router)
+restaurant_router.include_router(topic_restaurants_router)
+restaurant_router.include_router(view_stat_router)
+
+router = restaurant_router
+
+__all__ = ["restaurant_router", "router"]

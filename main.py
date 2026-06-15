@@ -25,7 +25,7 @@ load_dotenv(_backend_root / ".env")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from adapters.db_health_adapter import DbHealthAdapter
+from core.db_health_adapter import DbHealthAdapter
 from core.database import dispose_engine, get_db, init_db, init_engine
 
 try:
@@ -82,16 +82,12 @@ app.add_middleware(
 
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 
-try:
-    from gourmet.adapter.inbound.api import gourmet_router  # type: ignore
-except ModuleNotFoundError:
-    from gourmet_stub import create_gourmet_stub_router  # noqa: E402
-
-    gourmet_router = create_gourmet_stub_router()
+from restaurant.adapter.inbound.api import restaurant_router
+from user.adapter.inbound.api import user_router
 
 app.include_router(titanic_router, prefix="/api")
-
-app.include_router(gourmet_router)
+app.include_router(restaurant_router)
+app.include_router(user_router)
 
 @app.get("/")
 def read_root() -> dict[str, str]:

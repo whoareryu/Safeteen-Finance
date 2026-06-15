@@ -7,7 +7,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 '''
 루스 드윗 부카터 (Ruth DeWitt Bukater)
 딸 로즈의 코르셋 끈을 강하게 조이며 상류층의 체면을 강요하던

@@ -29,4 +29,3 @@ def get_smith_captain_use_case(
     return SmithCaptainInteractor(repository=repository)
 
 
-

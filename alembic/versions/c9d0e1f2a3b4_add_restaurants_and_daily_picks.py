@@ -44,7 +44,7 @@ def upgrade() -> None:
         sa.Column("pick_date", sa.Date(), nullable=False),
         sa.Column("restaurant_id", sa.Integer(), nullable=False),
         sa.Column("rank", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("pick_date", "rank", name="uq_daily_pick_date_rank"),
         sa.UniqueConstraint("pick_date", "restaurant_id", name="uq_daily_pick_date_restaurant"),

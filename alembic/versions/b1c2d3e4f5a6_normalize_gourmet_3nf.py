@@ -83,7 +83,7 @@ def upgrade() -> None:
             sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
             sa.Column("restaurant_id", sa.Integer(), nullable=False),
             sa.Column("tag_id", sa.Integer(), nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
             sa.ForeignKeyConstraint(["tag_id"], ["tags.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint(
@@ -101,7 +101,7 @@ def upgrade() -> None:
             sa.Column("phone", sa.String(32), nullable=True),
             sa.Column("place_url", sa.String(512), nullable=True),
             sa.Column("source_note", sa.Text(), server_default="", nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint("restaurant_id"),
         )
@@ -122,7 +122,7 @@ def upgrade() -> None:
             sa.Column("close_time", sa.String(8), nullable=True),
             sa.Column("is_closed", sa.Boolean(), server_default="false", nullable=False),
             sa.Column("note", sa.String(256), server_default="", nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint(
                 "restaurant_id", "weekday", name="uq_restaurant_operating_hours_day"

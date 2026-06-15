@@ -67,7 +67,7 @@ def upgrade() -> None:
             sa.Column("restaurant_id", sa.Integer(), nullable=False),
             sa.Column("avg_price", sa.Integer(), nullable=True),
             sa.ForeignKeyConstraint(
-                ["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"
+                ["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"
             ),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint("restaurant_id", name="uq_restaurant_prices_restaurant_id"),
@@ -89,7 +89,7 @@ def upgrade() -> None:
             sa.Column("sort_order", sa.Integer(), server_default="0", nullable=False),
             sa.Column("unit_price", sa.Integer(), nullable=True),
             sa.ForeignKeyConstraint(
-                ["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"
+                ["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"
             ),
             sa.PrimaryKeyConstraint("id"),
         )

@@ -28,4 +28,3 @@ def get_andrews_architect_use_case(
     return AndrewsArchitectInteractor(repository=repository)
 
 
-

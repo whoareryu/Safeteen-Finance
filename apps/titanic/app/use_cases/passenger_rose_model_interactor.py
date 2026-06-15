@@ -47,7 +47,6 @@ class RoseModel:
         return float(accuracy_score(y_test, pred))
 
 
-
 class RoseModelInteractor(RoseModelUseCase):
     
     def __init__(self, repository: RoseModelRepository):

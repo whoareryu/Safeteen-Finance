@@ -29,5 +29,3 @@ def get_cal_tester_use_case(
     return CalTesterInteractor(repository=repository)
 
 
-
-

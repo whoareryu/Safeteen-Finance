@@ -29,4 +29,3 @@ def get_isidor_couple_use_case(
     return IsidorCoupleInteractor(repository=repository)
 
 
-

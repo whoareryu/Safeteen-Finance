@@ -9,8 +9,6 @@ from titanic.dependencies.crew_james_director_provider import get_james_director
 from titanic.adapter.inbound.api.schemas.crew_james_director_schema import FileUploadSchema, JamesDirectorSchema
 
 
-
-
 '''
  james_director_router.py
  전설적인 흥행작 <타이타닉>을 연출하여
@@ -27,7 +25,6 @@ async def introduce_myself(
     james: JamesDirectorUseCase = Depends(get_james_director_use_case)
 )-> JamesDirectorResponse:
     return await james.introduce_myself(JamesDirectorSchema())
-
 
 
 @james_director_router.post("/upload", response_model=JamesDirectorResponse, summary="타이타닉 승객 명단 CSV 파일 업로드")
