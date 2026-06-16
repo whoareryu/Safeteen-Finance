@@ -105,10 +105,10 @@ Violating any of the rules above (SOLID, architecture layers) is a blocker — s
 |------|------|
 | 백엔드 (FastAPI + 헥사고날) | [whoareryu/CLAUDE.md](whoareryu/CLAUDE.md) |
 | 프론트엔드 (Next.js + React) | [www/CLAUDE.md](www/CLAUDE.md) |
-| Titanic 앱 | [whoareryu/apps/titanic/_docs/CLAUDE.md](whoareryu/apps/titanic/_docs/CLAUDE.md) |
+
 
 ---
 
 ## 그래프 링크
 
-[[whoareryu/_claude/CLAUDE\|Backend]] · [[www/_cluade/CLAUDE\|Frontend]]
+[[whoareryu/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]]

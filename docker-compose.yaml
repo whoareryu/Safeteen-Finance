@@ -11,6 +11,8 @@ services:
       - ./whoareryu:/whoareryu
     env_file:
       - ./whoareryu/.env
+    networks:
+      - app-network
 
   # 2. Next.js 프런트엔드 설정
   frontend:
@@ -30,3 +32,9 @@ services:
       - BACKEND_URL=http://backend:8000
     depends_on:
       - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
