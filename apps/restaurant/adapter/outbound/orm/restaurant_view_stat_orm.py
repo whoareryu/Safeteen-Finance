@@ -12,7 +12,7 @@ class RestaurantViewStat(IntIdPrimaryKeyMixin, Base):
     __tablename__ = "restaurant_view_stats"
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         unique=True,
         index=True,
     )

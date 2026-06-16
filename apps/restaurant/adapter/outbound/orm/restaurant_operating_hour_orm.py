@@ -1,4 +1,4 @@
-"""요일별 영업 시간 (1NF — 요일당 1행)."""
+﻿"""?붿씪蹂??곸뾽 ?쒓컙 (1NF ???붿씪??1??."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class RestaurantOperatingHour(IntIdPrimaryKeyMixin, Base):
-    """weekday: 0=월 … 6=일 (Python weekday)."""
+    """weekday: 0=????6=??(Python weekday)."""
 
     __tablename__ = "restaurant_operating_hours"
     __table_args__ = (
@@ -26,7 +26,7 @@ class RestaurantOperatingHour(IntIdPrimaryKeyMixin, Base):
     )
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     weekday: Mapped[int] = mapped_column(Integer)

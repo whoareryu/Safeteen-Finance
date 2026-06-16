@@ -1,4 +1,4 @@
-"""즐겨찾기 — User ↔ Restaurant N:M 연결."""
+﻿"""利먭꺼李얘린 ??User ??Restaurant N:M ?곌껐."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class Favorite(IntIdPrimaryKeyMixin, UserOwnedEntityMixin, Base):
         index=True,
     )
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(

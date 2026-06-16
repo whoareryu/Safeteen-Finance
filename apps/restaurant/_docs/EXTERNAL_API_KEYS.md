@@ -75,4 +75,4 @@ OPENWEATHER_CITY=Seoul
 
 ## 관련 문서
 
-[[whoareryu/_claude/CLAUDE\|Backend CLAUDE]] · [[GOURMET_ERD]] · [[gourmetmate_v2_erd]]
+[[whoareryu/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]]

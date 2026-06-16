@@ -160,4 +160,4 @@ erDiagram
 
 ## 관련 문서
 
-[[whoareryu/_claude/CLAUDE\|Backend CLAUDE]] · [[GOURMET_ERD]] · [[ENTITY_RULE]] · [[EXTERNAL_API_KEYS]]
+[[whoareryu/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]]

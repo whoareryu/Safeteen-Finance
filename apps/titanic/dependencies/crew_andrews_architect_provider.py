@@ -20,8 +20,8 @@ def get_andrews_architect_repository(
     db: AsyncSession = Depends(get_db)
 ) -> AndrewsArchitectRepository:
         return AndrewsArchitectPGRepository(session=db)
-  
-  
+
+
 def get_andrews_architect_use_case(
     repository : AndrewsArchitectRepository = Depends(get_andrews_architect_repository)
 ) -> AndrewsArchitectUseCase:

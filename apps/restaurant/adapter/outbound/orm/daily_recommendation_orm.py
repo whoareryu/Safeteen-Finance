@@ -1,4 +1,4 @@
-"""로그인 사용자 일별 추천 1곳 로그."""
+﻿"""濡쒓렇???ъ슜???쇰퀎 異붿쿇 1怨?濡쒓렇."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class DailyRecommendation(IntIdPrimaryKeyMixin, UserOwnedEntityMixin, Base):
         index=True,
     )
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     meal_plan_id: Mapped[int | None] = mapped_column(

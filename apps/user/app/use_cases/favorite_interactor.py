@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from apps.friday_13th.auth.user_model import User
+from apps.auth.user_model import User
 from user.app.dtos.favorite_dto import FavoriteCheckQuery, FavoriteResponse, FavoriteToggleCommand
 from user.app.ports.input.favorite_use_case import FavoriteUseCase
 from user.app.ports.output.favorite_repository import FavoriteRepository

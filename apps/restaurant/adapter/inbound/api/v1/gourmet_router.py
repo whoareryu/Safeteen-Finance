@@ -23,7 +23,7 @@ from restaurant.app.use_cases.category_browse_interactor import (
     list_topic_catalog,
 )
 from restaurant.app.use_cases.home_browse_interactor import get_home_browse
-from restaurant.dependencies.restaurant_detail_provider import get_restaurant_detail_service
+from restaurant.dependencies.restaurant_detail_provider import get_restaurant_detail_use_case
 from restaurant.app.use_cases.restaurant_detail_interactor import RestaurantDetailInteractor
 from restaurant.app.use_cases.restaurant_browse_interactor import rows_to_card_summaries
 from restaurant.app.use_cases.restaurant_location_interactor import parse_user_location
@@ -235,7 +235,7 @@ def read_today_picks(
 def read_official_store_detail(
     store_id: int,
     db: Session = Depends(get_sync_db),
-    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_service),
+    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_use_case),
 ):
     """공공·정제 테이블 통합 상세 (Adapter 체인)."""
     detail = detail_service.get_detail(db, store_id)
@@ -246,7 +246,7 @@ def read_official_store_detail(
 def read_restaurant_detail(
     restaurant_id: int,
     db: Session = Depends(get_sync_db),
-    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_service),
+    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_use_case),
 ):
     """식당 상세 — ``RestaurantDetailService`` (다형 Adapter)."""
     detail = detail_service.get_detail(db, restaurant_id)
@@ -257,7 +257,7 @@ def read_restaurant_detail(
 def post_restaurant_view(
     restaurant_id: int,
     db: Session = Depends(get_sync_db),
-    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_service),
+    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_use_case),
 ):
     """레거시 호환 — 조회 집계는 사용하지 않음(항상 0)."""
     detail_service.exists(db, restaurant_id)
@@ -272,7 +272,7 @@ def post_restaurant_view(
 def read_restaurant_views(
     restaurant_id: int,
     db: Session = Depends(get_sync_db),
-    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_service),
+    detail_service: RestaurantDetailInteractor = Depends(get_restaurant_detail_use_case),
 ):
     """조회 수는 항상 0 (legacy API)."""
     name = detail_service.display_name(db, restaurant_id)

@@ -9,11 +9,6 @@ from sqlalchemy.orm import Session
 
 from restaurant.data.category_topics import filter_topics_by_query, topics_for_category
 from restaurant.app.use_cases.restaurant_browse_interactor import (
-from restaurant.app.ports.input.category_browse_use_case import CategoryBrowseUseCase
-from restaurant.adapter.inbound.api.schemas.category_browse_schema import CategoryBrowseSchema
-from restaurant.app.dtos.category_browse_dto import CategoryBrowseQuery, CategoryBrowseResponse
-from restaurant.app.ports.output.category_browse_repository import CategoryBrowseRepository
-
     CATEGORY_LABEL_BY_SLUG,
     RestaurantBrowseRow,
     bounded_restaurant_slice,
@@ -21,6 +16,10 @@ from restaurant.app.ports.output.category_browse_repository import CategoryBrows
     pick_rows,
     trending_boost,
 )
+from restaurant.app.ports.input.category_browse_use_case import CategoryBrowseUseCase
+from restaurant.adapter.inbound.api.schemas.category_browse_schema import CategoryBrowseSchema
+from restaurant.app.dtos.category_browse_dto import CategoryBrowseQuery, CategoryBrowseResponse
+from restaurant.app.ports.output.category_browse_repository import CategoryBrowseRepository
 
 logger = logging.getLogger(__name__)
 

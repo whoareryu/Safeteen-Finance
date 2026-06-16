@@ -17,7 +17,7 @@ class DailyPick(IntIdPrimaryKeyMixin, Base):
 
     pick_date: Mapped[datetime.date] = mapped_column(Date, index=True)
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"), index=True
+        ForeignKey("restaurants.id", ondelete="CASCADE"), index=True
     )
     rank: Mapped[int] = mapped_column(Integer)
 

@@ -1,4 +1,4 @@
-"""매장 메뉴 — Restaurant 1:N (2NF)."""
+﻿"""留ㅼ옣 硫붾돱 ??Restaurant 1:N (2NF)."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class RestaurantMenu(IntIdPrimaryKeyMixin, Base):
     __tablename__ = "restaurant_menus"
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     name: Mapped[str] = mapped_column(String(256), default="", server_default="")

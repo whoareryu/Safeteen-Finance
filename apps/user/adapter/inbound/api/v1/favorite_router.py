@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from apps.database import get_sync_db
-from apps.friday_13th.auth.dependencies import get_current_user
-from apps.friday_13th.auth.user_model import User
+from apps.auth.dependencies import get_current_user
+from apps.auth.user_model import User
 from user.adapter.inbound.api.schemas.favorite_schema import (
     FavoriteCardItem,
     FavoriteCheckResponse,

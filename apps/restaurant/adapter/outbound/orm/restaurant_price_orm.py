@@ -1,4 +1,4 @@
-"""매장별 1인 추정 식대 — Restaurant 1:1 (2NF)."""
+﻿"""留ㅼ옣蹂?1??異붿젙 ?앸? ??Restaurant 1:1 (2NF)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ class RestaurantPrice(IntIdPrimaryKeyMixin, Base):
     )
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     avg_price: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)

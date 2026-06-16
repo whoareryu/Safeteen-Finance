@@ -75,4 +75,4 @@ erDiagram
 
 ## 관련 문서
 
-[[whoareryu/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]] · [[whoareryu/_claude/CLAUDE\|Backend CLAUDE]] · [[whoareryu/apps/titanic/_docs/titanic_architecture\|titanic_architecture]] · [[ENTITY_RULE]]
+[[whoareryu/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]]

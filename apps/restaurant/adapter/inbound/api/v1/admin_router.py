@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from apps.friday_13th.auth.auth_router import _require_admin
+from apps.auth.auth_router import _require_admin
 from apps.database import get_sync_db
 from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
 

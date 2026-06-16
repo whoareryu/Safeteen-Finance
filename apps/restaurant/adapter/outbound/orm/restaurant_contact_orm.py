@@ -1,4 +1,4 @@
-"""매장 연락·외부 URL (보강 API 적재, 1NF)."""
+﻿"""留ㅼ옣 ?곕씫쨌?몃? URL (蹂닿컯 API ?곸옱, 1NF)."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class RestaurantContact(IntIdPrimaryKeyMixin, Base):
     __tablename__ = "restaurant_contacts"
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         unique=True,
         index=True,
     )

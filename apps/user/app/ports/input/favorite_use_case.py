@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from sqlalchemy.orm import Session
 
-from apps.friday_13th.auth.user_model import User
+from apps.auth.user_model import User
 from user.app.dtos.favorite_dto import FavoriteCheckQuery, FavoriteToggleCommand
 
 

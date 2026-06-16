@@ -1,6 +1,6 @@
 # CLAUDE.md — Titanic 앱
 
-Titanic 앱 전용 규약. 상위 규칙은 [../../CLAUDE.md](../../CLAUDE.md)(백엔드) → [../../../../CLAUDE.md](../../../../CLAUDE.md)(루트) 순으로 읽는다.
+Titanic 앱 전용 규약. 상위 규칙은 [[whoareryu/CLAUDE\|백엔드 CLAUDE.md]]를 먼저 읽는다.
 
 ---
 
@@ -128,4 +128,15 @@ python -c "from titanic.adapter.inbound.api import titanic_router; print('ok')"
 
 ## 관련 문서
 
-[[whoareryu/_claude/CLAUDE\|Backend CLAUDE]] · [[whoareryu/apps/titanic/_docs/james_code_review\|james_code_review]] · [[whoareryu/apps/titanic/_docs/titanic_architecture\|titanic_architecture]] · [[TITANIC_ERD]]
+[[whoareryu/CLAUDE\|Backend CLAUDE]]
+
+
+
+## 타이타닉 도메인 문서 연결
+
+* 타이타닉 도메인 문서 연결
+* 타이타닉 피처 정리 : [[titanic-features]]
+* 타이타닉 머신러닝 : [[titanic-machine-learning]]
+* 타이타닉 ERD : [[titanic-erd]]
+* 타이타닉 NF : [[titanic-nf]]
+* 타이타닉 알고리즘 : [[titanic-algorithm]]

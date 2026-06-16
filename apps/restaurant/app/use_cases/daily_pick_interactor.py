@@ -21,16 +21,15 @@ from restaurant.adapter.outbound.pg.restaurant_orm_loads import RESTAURANT_CARD_
 from user.adapter.outbound.pg.meal_plan_pg_repository import MealPlanPgRepository
 from restaurant.app.use_cases.restaurant_location_interactor import distance_km_to_entity
 from restaurant.app.use_cases.restaurant_browse_interactor import (
-from restaurant.app.ports.input.daily_pick_use_case import DailyPickUseCase
-from restaurant.adapter.inbound.api.schemas.daily_pick_schema import DailyPickSchema
-from restaurant.app.dtos.daily_pick_dto import DailyPickQuery, DailyPickResponse
-from restaurant.app.ports.output.daily_pick_repository import DailyPickRepository
-
     RestaurantBrowseRow,
     bounded_restaurant_slice,
     browse_category_of,
     rows_to_card_summaries,
 )
+from restaurant.app.ports.input.daily_pick_use_case import DailyPickUseCase
+from restaurant.adapter.inbound.api.schemas.daily_pick_schema import DailyPickSchema
+from restaurant.app.dtos.daily_pick_dto import DailyPickQuery, DailyPickResponse
+from restaurant.app.ports.output.daily_pick_repository import DailyPickRepository
 
 
 def daily_allowance_from_plan(plan: MealPlan) -> int:

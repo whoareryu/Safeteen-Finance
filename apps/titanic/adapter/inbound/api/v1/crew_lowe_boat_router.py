@@ -10,16 +10,6 @@ logger = logging.getLogger(__name__)
 
 lowe_boat_router = APIRouter(prefix="/lowe", tags=["lowe"])
 
-@lowe_boat_router.get("/lifeboat")
-async def introduce_myself(
-    lowe: LoweBoatUseCase = Depends(get_lowe_boat_use_case)
-)-> LoweBoatResponse:
-    return await lowe.get_lowe_lifeboat(
-        LoweBoatSchema(
-            id=4,
-            name="Lowe Boat")
-    )
-
 @lowe_boat_router.get("/myself")
 async def introduce_myself(
     lowe: LoweBoatUseCase = Depends(get_lowe_boat_use_case),

@@ -203,7 +203,7 @@ erDiagram
 
 ## 관련 문서
 
-[[whoareryu/_claude/CLAUDE\|Backend CLAUDE]] · [[ENTITY_RULE]] · [[EXTERNAL_API_KEYS]] · [[gourmetmate_v2_erd]]
+[[whoareryu/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]]
 
 **복합 UK (관계선에 표기 안 함)** — §3 참고: `uq_favorites_user_restaurant`, `uq_daily_rec_user_date`, `uq_restaurant_tags_pair`, `uq_sigungu_districts_name_label`, `uq_biz_classifications_triple`, `restaurant_prices.restaurant_id`, `restaurant_contacts.restaurant_id`, `uq_restaurant_operating_hours_day`.
 

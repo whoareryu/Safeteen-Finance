@@ -1,4 +1,4 @@
-"""매장–태그 N:M (1NF)."""
+﻿"""留ㅼ옣?볧깭洹?N:M (1NF)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ class RestaurantTag(IntIdPrimaryKeyMixin, Base):
     )
 
     restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurant.id", ondelete="CASCADE"),
+        ForeignKey("restaurants.id", ondelete="CASCADE"),
         index=True,
     )
     tag_id: Mapped[int] = mapped_column(

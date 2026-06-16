@@ -16,15 +16,17 @@ from titanic.dependencies.passenger_rose_model_provider import get_rose_model_us
 
 logger = logging.getLogger(__name__)
 
+
 class SmithCaptainInteractor(SmithCaptainUseCase):
 
     def __init__(self, repository: SmithCaptainRepository):
         self.repository = repository
-
-    async def chat(self, schema: ChatSchema,
-                    jack: JackTrainerUseCase = Depends(get_jack_trainer_use_case),
-                    rose: RoseModelUseCase = Depends(get_rose_model_use_case)
-                    ) -> SmithChatResponse:
+        self.jack: JackTrainerUseCase = Depends(get_jack_trainer_use_case),
+        self.rose: RoseModelUseCase = Depends(get_rose_model_use_case)
+        
+        
+        
+    async def chat(self, schema: ChatSchema) -> SmithChatResponse:
         logger.info("[Smith Chat] message: %s", schema.message)
         
         return "1309명 입니다."

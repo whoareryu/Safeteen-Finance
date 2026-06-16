@@ -10,11 +10,6 @@ from sqlalchemy.orm import Session
 
 from restaurant.data.category_topics import home_feed_topics
 from restaurant.app.use_cases.restaurant_browse_interactor import (
-from restaurant.app.ports.input.home_browse_use_case import HomeBrowseUseCase
-from restaurant.adapter.inbound.api.schemas.home_browse_schema import HomeBrowseSchema
-from restaurant.app.dtos.home_browse_dto import HomeBrowseQuery, HomeBrowseResponse
-from restaurant.app.ports.output.home_browse_repository import HomeBrowseRepository
-
     RestaurantBrowseRow,
     bounded_restaurant_slice,
     browse_topic_row,
@@ -23,6 +18,10 @@ from restaurant.app.ports.output.home_browse_repository import HomeBrowseReposit
     sort_rows_by_distance,
     trending_boost,
 )
+from restaurant.app.ports.input.home_browse_use_case import HomeBrowseUseCase
+from restaurant.adapter.inbound.api.schemas.home_browse_schema import HomeBrowseSchema
+from restaurant.app.dtos.home_browse_dto import HomeBrowseQuery, HomeBrowseResponse
+from restaurant.app.ports.output.home_browse_repository import HomeBrowseRepository
 
 HOME_BROWSE_POOL = 12_000
 
