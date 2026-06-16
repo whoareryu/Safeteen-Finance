@@ -2,19 +2,71 @@ from __future__ import annotations
 
 from typing import Any
 
+import pandas as pd
 from kiwipiepy import Kiwi
+
 from titanic.adapter.inbound.api.schemas.passenger_jack_trainer_schema import JackTrainerSchema
 from titanic.app.dtos.passenger_jack_trainer_dto import JackTrainerQuery, JackTrainerResponse
 from titanic.app.ports.input.passenger_jack_trainer_use_case import JackTrainerUseCase
 from titanic.app.ports.output.passenger_jack_trainer_repository import JackTrainerRepository
+from titanic.app.use_cases.passenger_rose_model_interactor import (
+    CatBoostStrategy,
+    DecisionTreeStrategy,
+    EnsemblePCAStrategy,
+    KNNStrategy,
+    LightGBMStrategy,
+    LogisticRegressionStrategy,
+    NaiveBayesStrategy,
+    RandomForestStrategy,
+    SVMStrategy,
+    XGBoostStrategy,
+)
+
+_STRATEGIES = [
+    XGBoostStrategy,
+    RandomForestStrategy,
+    LightGBMStrategy,
+    CatBoostStrategy,
+    LogisticRegressionStrategy,
+    DecisionTreeStrategy,
+    SVMStrategy,
+    KNNStrategy,
+    NaiveBayesStrategy,
+    EnsemblePCAStrategy,
+]
+
+_FEATURES = ["age", "sib_sp", "parch", "gender"]
 
 
 class JackTrainerInteractor(JackTrainerUseCase):
-    
+
     def __init__(self, repository: JackTrainerRepository):
         self.repository = repository
         self.kiwi = Kiwi()
-        
+
+    async def train_model(self, train_set) -> dict[str, Any]:
+        records = await self.repository.get_training_data()
+        if not records:
+            return {"error": "훈련 데이터가 없습니다."}
+
+        df = pd.DataFrame([
+            {"survived": r.survived, "age": r.age, "sib_sp": r.sib_sp, "parch": r.parch, "gender": r.gender}
+            for r in records
+        ])
+        X_train = df[_FEATURES]
+        y_train = df["survived"]
+
+        results: dict[str, Any] = {}
+        for StrategyClass in _STRATEGIES:
+            strategy = StrategyClass()
+            try:
+                strategy.fit(X_train, y_train)
+                results[strategy.name] = {"status": "trained"}
+            except Exception as exc:
+                results[strategy.name] = {"status": "error", "message": str(exc)}
+
+        return results
+
     async def analyze_message_intent(self, user_message: str) -> dict:
         tokens = self.kiwi.tokenize(user_message)
 
@@ -39,13 +91,7 @@ class JackTrainerInteractor(JackTrainerUseCase):
         return {"keywords": keywords, "intent": intent}
 
     async def introduce_myself(self, schema: JackTrainerSchema) -> JackTrainerResponse:
-        '''잭 트레이너의 자기소개 인터렉트'''
-        query = JackTrainerQuery(
-            id = schema.id,
-            name = schema.name
-        )
         return await self.repository.introduce_myself(JackTrainerQuery(
-            id = schema.id,
-            name = schema.name
+            id=schema.id,
+            name=schema.name,
         ))
-        

@@ -70,9 +70,3 @@ erDiagram
 | CABINS | room_number | 방 번호 |
 | EMBARKED_PORTS | code | C, Q, S |
 | EMBARKED_PORTS | port_name | Cherbourg, Queenstown, Southampton |
-
----
-
-## 관련 문서
-
-[[whoareryu/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]]

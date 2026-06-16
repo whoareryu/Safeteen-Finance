@@ -13,3 +13,9 @@ class JackTrainerUseCase(ABC):
     @abstractmethod
     async def introduce_myself(self,schema: list[JackTrainerSchema]) -> JackTrainerResponse:
         pass
+
+
+    @abstractmethod
+    async def train_model(self, train_set) -> dict[str, Any]:
+        '''로즈가 제안한 모델들을 훈련시키는 메소드'''
+

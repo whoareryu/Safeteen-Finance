@@ -8,5 +8,14 @@ class WalterRoasterUseCase(ABC):
     @abstractmethod
     async def introduce_myself(self,schema: list[WalterRoasterSchema]) -> WalterRoasterResponse:
         pass
-        
 
+    @abstractmethod
+    async def get_train_set(self) -> WalterRoasterResponse:
+        '''월터가 DB에서 train set 만 가져오는 메소드'''
+        pass
+    
+    
+    @abstractmethod
+    async def get_test_set(self) -> WalterRoasterResponse:
+        '''월터가 DB에서 test set 만 가져오는 메소드'''
+        pass
