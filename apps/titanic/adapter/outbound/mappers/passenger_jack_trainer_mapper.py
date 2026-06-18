@@ -2,14 +2,11 @@ from __future__ import annotations
 
 from titanic.adapter.outbound.orm.passenger_jack_trainer_orm import JackTrainerORM
 from titanic.domain.entities.passenger_jack_trainer_entity import PassengerEntity
-from titanic.domain.value_objects.passenger_jack_trainer_vo import (
-    Age,
-    FamilyRelation,
-    Gender,
-    PassengerId,
-    PassengerName,
-    SurvivalStatus,
-)
+from titanic.domain.value_objects.gender_vo import Gender
+from titanic.domain.value_objects.age_vo import Age
+from titanic.domain.value_objects.sibsp_vo import SibSp
+from titanic.domain.value_objects.parch_vo import Parch
+from titanic.domain.value_objects.survived_vo import Survived
 
 
 class JackTrainerMapper:
@@ -19,12 +16,13 @@ class JackTrainerMapper:
     def to_entity(orm: JackTrainerORM) -> PassengerEntity:
         return PassengerEntity(
             id=orm.id,
-            passenger_id=PassengerId(orm.passenger_id) if orm.passenger_id else None,
-            name=PassengerName(orm.name) if orm.name else None,
+            passenger_id=orm.passenger_id or None,
+            name=orm.name or None,
             gender=Gender.from_raw(orm.gender),
             age=Age.from_raw(orm.age),
-            family_relation=FamilyRelation.from_raw(orm.sib_sp, orm.parch),
-            survival_status=SurvivalStatus.from_raw(orm.survived),
+            sib_sp=SibSp.from_raw(orm.sib_sp),
+            parch=Parch.from_raw(orm.parch),
+            survived=Survived.from_raw(orm.survived),
         )
 
     @staticmethod
@@ -32,15 +30,15 @@ class JackTrainerMapper:
         # NOTE: JackTrainerORM has no 'id' kwarg — TypeError is the documented bug (Red test).
         return JackTrainerORM(
             id=entity.id,
-            passenger_id=str(entity.passenger_id) if entity.passenger_id else "",
-            name=str(entity.name) if entity.name else "",
+            passenger_id=entity.passenger_id or "",
+            name=entity.name or "",
             gender=entity.gender.value.value,
             age=str(entity.age.value) if not entity.age.is_unknown else "",
-            sib_sp=str(entity.family_relation.sib_sp),
-            parch=str(entity.family_relation.parch),
+            sib_sp=str(entity.sib_sp.value),
+            parch=str(entity.parch.value),
             survived=(
-                "1" if entity.survival_status.survived is True
-                else "0" if entity.survival_status.survived is False
+                "1" if entity.survived.value is True
+                else "0" if entity.survived.value is False
                 else ""
             ),
         )

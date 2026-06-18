@@ -6,42 +6,18 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+from titanic.adapter.outbound.strategies.passenger_survival_strategies import ALL_STRATEGIES
 from titanic.adapter.inbound.api.schemas.passenger_cal_tester_schema import CalTesterSchema
 from titanic.app.dtos.passenger_cal_tester_dto import CalTesterQuery, CalTesterResponse
 from titanic.app.ports.input.passenger_cal_tester_use_case import CalTesterUseCase
-from titanic.app.ports.output.passenger_cal_tester_repository import CalTesterRepository
-from titanic.app.use_cases.passenger_rose_model_interactor import (
-    CatBoostStrategy,
-    DecisionTreeStrategy,
-    EnsemblePCAStrategy,
-    KNNStrategy,
-    LightGBMStrategy,
-    LogisticRegressionStrategy,
-    NaiveBayesStrategy,
-    RandomForestStrategy,
-    SVMStrategy,
-    XGBoostStrategy,
-)
-
-_STRATEGIES = [
-    XGBoostStrategy,
-    RandomForestStrategy,
-    LightGBMStrategy,
-    CatBoostStrategy,
-    LogisticRegressionStrategy,
-    DecisionTreeStrategy,
-    SVMStrategy,
-    KNNStrategy,
-    NaiveBayesStrategy,
-    EnsemblePCAStrategy,
-]
+from titanic.app.ports.output.passenger_cal_tester_port import CalTesterPort
 
 _FEATURES = ["age", "sib_sp", "parch", "gender"]
 
 
 class CalTesterInteractor(CalTesterUseCase):
 
-    def __init__(self, repository: CalTesterRepository):
+    def __init__(self, repository: CalTesterPort):
         self.repository = repository
 
     async def test_model(self, test_set) -> dict[str, Any]:
@@ -58,7 +34,7 @@ class CalTesterInteractor(CalTesterUseCase):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         scores: dict[str, float] = {}
-        for StrategyClass in _STRATEGIES:
+        for StrategyClass in ALL_STRATEGIES:
             strategy = StrategyClass()
             try:
                 strategy.fit(X_train, y_train)
@@ -83,8 +59,6 @@ class CalTesterInteractor(CalTesterUseCase):
             ],
         }
 
-    async def introduce_myself(self, schema: CalTesterSchema) -> CalTesterResponse:
-        return await self.repository.introduce_myself(CalTesterQuery(
-            id=schema.id,
-            name=schema.name,
-        ))
+    async def introduce_myself(self, schema) -> CalTesterResponse:
+        schema = CalTesterSchema(id=2, name="칼 캘던 하클리 (Caledon Hockley)")
+        return CalTesterResponse(id=schema.id, name=schema.name)

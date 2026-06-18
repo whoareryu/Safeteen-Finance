@@ -3,14 +3,14 @@
 from pydantic import BaseModel, Field
 
 class JamesDirectorSchema(BaseModel):
-    id: int = Field(1, description="Musician ID")
+    id: int = Field(0, description="Musician ID")
     name: str = Field("제임스 카메론", description="Titanic Director")
     
     model_config = {
         "json_schema_extra": {
             "example": {
-                "id": 1,
-                "name": "James Cameron",
+                "id": 4,
+                "name": "James Carmeron",
             }
         }
     }
@@ -32,8 +32,7 @@ class FileUploadSchema(BaseModel):
     embarked: Optional[str] = Field(None, description="탑승 항구 (C=Cherbourg, Q=Queenstown, S=Southampton)")
 
     model_config = {
-        "extra": "ignore",
-        "json_schema_extra": {
+        "json_schema_extra" : {
             "example": {
                 "passenger_id": "1",
                 "survived": "0",
@@ -48,8 +47,8 @@ class FileUploadSchema(BaseModel):
                 "cabin": "",
                 "embarked": "S",
             }
-        },
-    }
+        }
+     }
 
 
 class UploadResultSchema(BaseModel):

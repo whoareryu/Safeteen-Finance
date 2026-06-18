@@ -2,15 +2,11 @@ import pytest
 from types import SimpleNamespace
 
 from titanic.adapter.outbound.mappers.passenger_jack_trainer_mapper import JackTrainerMapper
-from titanic.domain.value_objects.passenger_jack_trainer_vo import (
-    Age,
-    FamilyRelation,
-    Gender,
-    GenderType,
-    PassengerId,
-    PassengerName,
-    SurvivalStatus,
-)
+from titanic.domain.value_objects.gender_vo import Gender, GenderType
+from titanic.domain.value_objects.age_vo import Age
+from titanic.domain.value_objects.sibsp_vo import SibSp
+from titanic.domain.value_objects.parch_vo import Parch
+from titanic.domain.value_objects.survived_vo import Survived
 from titanic.domain.entities.passenger_jack_trainer_entity import PassengerEntity
 
 
@@ -41,12 +37,13 @@ def _make_entity(
 ) -> PassengerEntity:
     return PassengerEntity(
         id=id,
-        passenger_id=PassengerId(passenger_id),
-        name=PassengerName(name),
+        passenger_id=passenger_id,
+        name=name,
         gender=Gender.from_raw(gender_raw),
         age=Age(age_value),
-        family_relation=FamilyRelation(sib_sp=sib_sp, parch=parch),
-        survival_status=SurvivalStatus(survived=survived),
+        sib_sp=SibSp(sib_sp),
+        parch=Parch(parch),
+        survived=Survived(value=survived),
     )
 
 
@@ -57,11 +54,11 @@ class TestToEntity:
 
     def test_maps_passenger_id(self):
         entity = JackTrainerMapper.to_entity(_make_orm(passenger_id="P099"))
-        assert str(entity.passenger_id) == "P099"
+        assert entity.passenger_id == "P099"
 
     def test_maps_name(self):
         entity = JackTrainerMapper.to_entity(_make_orm(name="Smith, Mr. John"))
-        assert entity.name.full_name == "Smith, Mr. John"
+        assert entity.name == "Smith, Mr. John"
 
     def test_maps_gender_male(self):
         entity = JackTrainerMapper.to_entity(_make_orm(gender="male"))
@@ -75,22 +72,25 @@ class TestToEntity:
         entity = JackTrainerMapper.to_entity(_make_orm(age="25.0"))
         assert entity.age.value == 25.0
 
-    def test_maps_family_relation(self):
-        entity = JackTrainerMapper.to_entity(_make_orm(sib_sp="2", parch="3"))
-        assert entity.family_relation.sib_sp == 2
-        assert entity.family_relation.parch == 3
+    def test_maps_sib_sp(self):
+        entity = JackTrainerMapper.to_entity(_make_orm(sib_sp="2"))
+        assert entity.sib_sp.value == 2
+
+    def test_maps_parch(self):
+        entity = JackTrainerMapper.to_entity(_make_orm(parch="3"))
+        assert entity.parch.value == 3
 
     def test_survived_1_maps_to_true(self):
         entity = JackTrainerMapper.to_entity(_make_orm(survived="1"))
-        assert entity.survival_status.survived is True
+        assert entity.survived.value is True
 
     def test_survived_0_maps_to_false(self):
         entity = JackTrainerMapper.to_entity(_make_orm(survived="0"))
-        assert entity.survival_status.survived is False
+        assert entity.survived.value is False
 
     def test_survived_none_maps_to_unknown(self):
         entity = JackTrainerMapper.to_entity(_make_orm(survived=None))
-        assert entity.survival_status.is_unknown is True
+        assert entity.survived.is_unknown is True
 
     def test_none_passenger_id_maps_to_none(self):
         entity = JackTrainerMapper.to_entity(_make_orm(passenger_id=None))

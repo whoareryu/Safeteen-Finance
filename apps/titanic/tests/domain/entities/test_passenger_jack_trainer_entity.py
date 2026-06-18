@@ -2,14 +2,11 @@ import pytest
 from types import SimpleNamespace
 
 from titanic.domain.entities.passenger_jack_trainer_entity import PassengerEntity
-from titanic.domain.value_objects.passenger_jack_trainer_vo import (
-    Age,
-    FamilyRelation,
-    Gender,
-    PassengerId,
-    PassengerName,
-    SurvivalStatus,
-)
+from titanic.domain.value_objects.gender_vo import Gender
+from titanic.domain.value_objects.age_vo import Age
+from titanic.domain.value_objects.sibsp_vo import SibSp
+from titanic.domain.value_objects.parch_vo import Parch
+from titanic.domain.value_objects.survived_vo import Survived
 
 
 def _make_entity(
@@ -22,12 +19,13 @@ def _make_entity(
 ) -> PassengerEntity:
     return PassengerEntity(
         id=id,
-        passenger_id=PassengerId("P001"),
-        name=PassengerName("Dawson, Mr. Jack"),
+        passenger_id="P001",
+        name="Dawson, Mr. Jack",
         gender=Gender.from_raw(gender_raw),
         age=Age(age_value),
-        family_relation=FamilyRelation(sib_sp=sib_sp, parch=parch),
-        survival_status=SurvivalStatus(survived=survived),
+        sib_sp=SibSp(sib_sp),
+        parch=Parch(parch),
+        survived=Survived(value=survived),
     )
 
 
@@ -61,15 +59,15 @@ class TestHasFamily:
 
 
 class TestRecordSurvival:
-    def test_record_true_updates_survival_status(self):
+    def test_record_true_updates_survived(self):
         entity = _make_entity(survived=None)
         entity.record_survival(True)
-        assert entity.survival_status.survived is True
+        assert entity.survived.value is True
 
-    def test_record_false_updates_survival_status(self):
+    def test_record_false_updates_survived(self):
         entity = _make_entity(survived=True)
         entity.record_survival(False)
-        assert entity.survival_status.survived is False
+        assert entity.survived.value is False
 
 
 class TestEquality:
@@ -102,12 +100,12 @@ class TestFromOrm:
         entity = PassengerEntity.from_orm(orm)
 
         assert entity.id == 5
-        assert str(entity.passenger_id) == "P005"
-        assert entity.gender.is_female() is True
+        assert entity.passenger_id == "P005"
+        assert entity.gender.is_female is True
         assert entity.age.value == 42.0
-        assert entity.family_relation.sib_sp == 1
-        assert entity.family_relation.parch == 2
-        assert entity.survival_status.survived is True
+        assert entity.sib_sp.value == 1
+        assert entity.parch.value == 2
+        assert entity.survived.value is True
 
     def test_none_optional_fields_map_to_none(self):
         orm = SimpleNamespace(
@@ -124,4 +122,4 @@ class TestFromOrm:
 
         assert entity.passenger_id is None
         assert entity.name is None
-        assert entity.survival_status.is_unknown is True
+        assert entity.survived.is_unknown is True

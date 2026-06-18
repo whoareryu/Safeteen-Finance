@@ -1,5 +1,4 @@
 from typing import Any, Optional
-
 from pydantic import BaseModel, Field
 
 class JackTrainerSchema(BaseModel):
@@ -28,6 +27,5 @@ class SurvivalPredictionResponse(BaseModel):
     survival_probability: str
     death_probability: str
     passenger_info: dict[str, Any]
-message: Optional[str] = None
-analysis: Optional[str] = None
-    
+    message: Optional[str] = None
+    analysis: Optional[str] = None

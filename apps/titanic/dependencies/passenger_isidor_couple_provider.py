@@ -3,15 +3,15 @@ from titanic.app.use_cases.passenger_isidor_couple_interactor import IsidorCoupl
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from core.matrix.gird_oracle_database_manager import get_db
-from titanic.adapter.outbound.pg.passenger_isidor_couple_pg_repository import IsidorCouplePGRepository
-from titanic.app.ports.output.passenger_isidor_couple_repository import IsidorCoupleRepository
+from titanic.adapter.outbound.repositories.passenger_isidor_couple_repository import IsidorCoupleRepository
+from titanic.app.ports.output.passenger_isidor_couple_port import IsidorCouplePort
 
 
 """
 IsidorCouple 의존성 조립소 (DIP 팩토리).
 
 DIP 원칙:
-  - 라우터는 구현체(IsidorCouplePGRepository)를 직접 알지 못한다.
+  - 라우터는 구현체(IsidorCoupleRepository)를 직접 알지 못한다.
   - 리턴 타입은 구현체가 아닌 포트(IsidorCoupleUseCase)로 선언한다.
   - 세션은 core 의 get_db 에서 주입받는다 (AsyncSession).
 """
@@ -19,12 +19,12 @@ DIP 원칙:
 
 def get_isidor_couple_repository(
     db: AsyncSession = Depends(get_db)
-) -> IsidorCoupleRepository:
-    return IsidorCouplePGRepository(session=db)
+) -> IsidorCouplePort:
+    return IsidorCoupleRepository(session=db)
 
 
 def get_isidor_couple_use_case(
-    repository: IsidorCoupleRepository = Depends(get_isidor_couple_repository)
+    repository: IsidorCouplePort = Depends(get_isidor_couple_repository)
 ) -> IsidorCoupleUseCase:
     return IsidorCoupleInteractor(repository=repository)
 

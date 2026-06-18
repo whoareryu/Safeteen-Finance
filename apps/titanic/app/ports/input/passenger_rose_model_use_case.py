@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from titanic.adapter.inbound.api.schemas.passenger_rose_model_schema import RoseModelSchema
-from titanic.app.dtos.passenger_rose_model_dto import RoseModelResponse
+from titanic.app.dtos.passenger_rose_model_dto import RoseModelQuery, RoseModelResponse
 
 
 class SurvivalAlgorithmStrategy(ABC):
@@ -26,4 +25,4 @@ class RoseModelUseCase(ABC):
     """Inbound 입력 포트 — adapter/inbound/api/v1/rose_model_router.py 와 대응."""
 
     @abstractmethod
-    async def introduce_myself(self, schema: list[RoseModelSchema]) -> RoseModelResponse: ...
+    async def introduce_myself(self, schema: RoseModelQuery) -> RoseModelResponse: ...

@@ -1,19 +1,16 @@
-﻿from typing import Annotated
-
-from fastapi import APIRouter, Depends, Body
+﻿import logging
+from typing import Annotated
+from fastapi import APIRouter, Body, Depends
+from titanic.adapter.inbound.api.schemas.crew_smith_captain_schema import ChatSchema, SmithCaptainSchema
+from titanic.app.dtos.crew_smith_captain_dto import (
+    SmithCaptainResponse,
+    SmithChatCommand,
+    SmithChatResponse,
+)
 from titanic.app.ports.input.crew_smith_captain_use_case import SmithCaptainUseCase
-from titanic.app.dtos.crew_smith_captain_dto import SmithCaptainResponse, SmithChatResponse
-import logging
-from titanic.app.ports.input.passenger_jack_trainer_use_case import JackTrainerUseCase
-from titanic.app.ports.input.passenger_rose_model_use_case import RoseModelUseCase
 from titanic.dependencies.crew_smith_captain_provider import get_smith_captain_use_case
-from titanic.adapter.inbound.api.schemas.crew_smith_captain_schema import SmithCaptainSchema, ChatSchema
-from titanic.dependencies.passenger_jack_trainer_provider import get_jack_trainer_use_case
-from titanic.dependencies.passenger_rose_model_provider import get_rose_model_use_case
-
 
 logger = logging.getLogger(__name__)
-
 
 '''
 스미스 선장 (Captain Edward John Smith)
@@ -31,17 +28,18 @@ async def chat(
     schema: Annotated[ChatSchema, Body()],
     smith: SmithCaptainUseCase = Depends(get_smith_captain_use_case)
 ) -> SmithChatResponse:
-    logger.info("[Smith /chat] 질문: %s", schema.message)
-    return await smith.chat(schema)
+    for msg in schema.messages:
+        logger.info("[smith/chat] messages | role=%s | text=%s", msg.role, msg.text)
+    last_user_text = next(
+        (m.text for m in reversed(schema.messages) if m.role == "user"), ""
+    )
+    return await smith.chat(SmithChatCommand(message=last_user_text))
 
-    
+
 @smith_captain_router.get("/myself")
 async def introduce_myself(
     smith: SmithCaptainUseCase = Depends(get_smith_captain_use_case)
-)-> SmithCaptainResponse:
+) -> SmithCaptainResponse:
     return await smith.introduce_myself(
-        SmithCaptainSchema(
-            id=5,
-            name="Captain Edward John Smith")
-        )
-    
+        SmithCaptainSchema(id=7, name="스미스 선장 (Captain Edward John Smith)")
+    )

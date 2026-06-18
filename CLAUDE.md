@@ -223,6 +223,25 @@ ex) 나이, 돈, 몸무게 (10배 많다·무겁다 표현 가능)
 
 ---
 
+## async def vs def 결정 규칙
+
+메소드에 `async`를 붙일지 말지는 **I/O 여부**로만 판단한다.
+
+| 성격 | 예시 | 형태 |
+|------|------|------|
+| I/O-bound (DB, 네트워크, LLM) | `introduce_myself` | `async def` |
+| CPU-bound (형태소 분석, 계산) | `analyze_intent` (Kiwi) | `def` |
+
+**`async def`로 바꿔도 CPU 작업은 비블로킹이 되지 않는다.** 코루틴이 될 뿐이며, Kiwi처럼 오래 걸리는 CPU 연산은 이벤트 루프를 그대로 막는다. `async` 표시가 붙어 있어서 비블로킹인 것처럼 보이지만 실제로는 블로킹 — 더 나쁜 상황이다.
+
+CPU 작업이 실제로 이벤트 루프를 블로킹할 만큼 무거워진 경우, `async def`로 바꾸는 게 아니라 호출 측에서 스레드풀로 넘긴다:
+
+```python
+result = await asyncio.to_thread(use_case.analyze_intent, question)
+```
+
+---
+
 ## 관련 문서
 
 [[vault/whoareryu/entity-rules\|엔티티 규칙]] · [[vault/whoareryu/auth-rules\|인증 규칙]] · [[vault/whoareryu/db-rules\|DB 규칙]] · [[vault/whoareryu/scaffold-rules\|스캐폴드 규칙]] · [[whoareryu/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]]

@@ -1,51 +1,10 @@
 import pytest
 
-from titanic.domain.value_objects.passenger_jack_trainer_vo import (
-    Age,
-    FamilyRelation,
-    Gender,
-    GenderType,
-    PassengerId,
-    PassengerName,
-    SurvivalStatus,
-)
-
-
-class TestPassengerId:
-    def test_valid_id_creates_successfully(self):
-        pid = PassengerId("P001")
-        assert pid.value == "P001"
-
-    def test_empty_string_raises(self):
-        with pytest.raises(ValueError, match="빈 값"):
-            PassengerId("")
-
-    def test_whitespace_only_raises(self):
-        with pytest.raises(ValueError, match="빈 값"):
-            PassengerId("   ")
-
-    def test_str_returns_value(self):
-        assert str(PassengerId("42")) == "42"
-
-
-class TestPassengerName:
-    def test_valid_name_creates_successfully(self):
-        name = PassengerName("Dawson, Mr. Jack")
-        assert name.full_name == "Dawson, Mr. Jack"
-
-    def test_empty_string_raises(self):
-        with pytest.raises(ValueError):
-            PassengerName("")
-
-    def test_exactly_200_chars_is_allowed(self):
-        PassengerName("A" * 200)
-
-    def test_201_chars_raises(self):
-        with pytest.raises(ValueError, match="200자"):
-            PassengerName("A" * 201)
-
-    def test_normalized_strips_surrounding_whitespace(self):
-        assert PassengerName("  Jack  ").normalized == "Jack"
+from titanic.domain.value_objects.gender_vo import Gender, GenderType
+from titanic.domain.value_objects.age_vo import Age
+from titanic.domain.value_objects.sibsp_vo import SibSp
+from titanic.domain.value_objects.parch_vo import Parch
+from titanic.domain.value_objects.survived_vo import Survived
 
 
 class TestGender:
@@ -65,13 +24,13 @@ class TestGender:
         assert Gender.from_raw("other").value == GenderType.UNKNOWN
 
     def test_is_female_true_for_female(self):
-        assert Gender.from_raw("female").is_female() is True
+        assert Gender.from_raw("female").is_female is True
 
     def test_is_female_false_for_male(self):
-        assert Gender.from_raw("male").is_female() is False
+        assert Gender.from_raw("male").is_female is False
 
     def test_is_female_false_for_unknown(self):
-        assert Gender.from_raw(None).is_female() is False
+        assert Gender.from_raw(None).is_female is False
 
 
 class TestAge:
@@ -112,54 +71,64 @@ class TestAge:
         assert Age(value=None).is_minor is False
 
 
-class TestFamilyRelation:
-    def test_total_family_size_sums_sib_sp_and_parch(self):
-        assert FamilyRelation(sib_sp=2, parch=3).total_family_size == 5
+class TestSibSp:
+    def test_valid_value(self):
+        assert SibSp(value=2).value == 2
 
-    def test_is_alone_when_both_zero(self):
-        assert FamilyRelation(sib_sp=0, parch=0).is_alone is True
+    def test_zero_is_valid(self):
+        SibSp(value=0)
 
-    def test_not_alone_with_siblings(self):
-        assert FamilyRelation(sib_sp=1, parch=0).is_alone is False
+    def test_negative_raises(self):
+        with pytest.raises(ValueError, match="SibSp"):
+            SibSp(value=-1)
 
-    def test_not_alone_with_children(self):
-        assert FamilyRelation(sib_sp=0, parch=1).is_alone is False
-
-    def test_from_raw_parses_string_values(self):
-        relation = FamilyRelation.from_raw("1", "2")
-        assert relation.sib_sp == 1
-        assert relation.parch == 2
+    def test_from_raw_parses_string(self):
+        assert SibSp.from_raw("3").value == 3
 
     def test_from_raw_none_defaults_to_zero(self):
-        relation = FamilyRelation.from_raw(None, None)
-        assert relation.sib_sp == 0
-        assert relation.parch == 0
+        assert SibSp.from_raw(None).value == 0
 
-    def test_negative_sib_sp_raises(self):
-        with pytest.raises(ValueError, match="sib_sp"):
-            FamilyRelation(sib_sp=-1, parch=0)
-
-    def test_negative_parch_raises(self):
-        with pytest.raises(ValueError, match="parch"):
-            FamilyRelation(sib_sp=0, parch=-1)
+    def test_from_raw_empty_string_defaults_to_zero(self):
+        assert SibSp.from_raw("").value == 0
 
 
-class TestSurvivalStatus:
+class TestParch:
+    def test_valid_value(self):
+        assert Parch(value=1).value == 1
+
+    def test_zero_is_valid(self):
+        Parch(value=0)
+
+    def test_negative_raises(self):
+        with pytest.raises(ValueError, match="Parch"):
+            Parch(value=-1)
+
+    def test_from_raw_parses_string(self):
+        assert Parch.from_raw("2").value == 2
+
+    def test_from_raw_none_defaults_to_zero(self):
+        assert Parch.from_raw(None).value == 0
+
+    def test_from_raw_empty_string_defaults_to_zero(self):
+        assert Parch.from_raw("").value == 0
+
+
+class TestSurvived:
     def test_from_raw_1_means_survived(self):
-        assert SurvivalStatus.from_raw("1").survived is True
+        assert Survived.from_raw("1").value is True
 
     def test_from_raw_0_means_did_not_survive(self):
-        assert SurvivalStatus.from_raw("0").survived is False
+        assert Survived.from_raw("0").value is False
 
     def test_from_raw_none_is_unknown(self):
-        assert SurvivalStatus.from_raw(None).is_unknown is True
+        assert Survived.from_raw(None).is_unknown is True
 
     def test_from_raw_empty_string_is_unknown(self):
-        assert SurvivalStatus.from_raw("").is_unknown is True
+        assert Survived.from_raw("").is_unknown is True
 
     def test_from_raw_invalid_value_raises(self):
         with pytest.raises(ValueError, match="파싱 실패"):
-            SurvivalStatus.from_raw("2")
+            Survived.from_raw("2")
 
     def test_is_unknown_false_when_survival_is_known(self):
-        assert SurvivalStatus.from_raw("1").is_unknown is False
+        assert Survived.from_raw("1").is_unknown is False

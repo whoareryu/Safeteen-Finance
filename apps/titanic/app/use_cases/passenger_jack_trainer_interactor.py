@@ -1,97 +1,60 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
+import numpy as np
 import pandas as pd
-from kiwipiepy import Kiwi
 
+from titanic.adapter.outbound.strategies.passenger_survival_strategies import ALL_STRATEGIES
 from titanic.adapter.inbound.api.schemas.passenger_jack_trainer_schema import JackTrainerSchema
 from titanic.app.dtos.passenger_jack_trainer_dto import JackTrainerQuery, JackTrainerResponse
 from titanic.app.ports.input.passenger_jack_trainer_use_case import JackTrainerUseCase
-from titanic.app.ports.output.passenger_jack_trainer_repository import JackTrainerRepository
-from titanic.app.use_cases.passenger_rose_model_interactor import (
-    CatBoostStrategy,
-    DecisionTreeStrategy,
-    EnsemblePCAStrategy,
-    KNNStrategy,
-    LightGBMStrategy,
-    LogisticRegressionStrategy,
-    NaiveBayesStrategy,
-    RandomForestStrategy,
-    SVMStrategy,
-    XGBoostStrategy,
-)
+from titanic.app.ports.output.passenger_jack_trainer_port import JackTrainerPort
 
-_STRATEGIES = [
-    XGBoostStrategy,
-    RandomForestStrategy,
-    LightGBMStrategy,
-    CatBoostStrategy,
-    LogisticRegressionStrategy,
-    DecisionTreeStrategy,
-    SVMStrategy,
-    KNNStrategy,
-    NaiveBayesStrategy,
-    EnsemblePCAStrategy,
-]
-
-_FEATURES = ["age", "sib_sp", "parch", "gender"]
+logger = logging.getLogger(__name__)
 
 
 class JackTrainerInteractor(JackTrainerUseCase):
 
-    def __init__(self, repository: JackTrainerRepository):
+    def __init__(self, repository: JackTrainerPort):
         self.repository = repository
-        self.kiwi = Kiwi()
+        self._trained_strategies: dict = {}
 
-    async def train_model(self, train_set) -> dict[str, Any]:
-        records = await self.repository.get_training_data()
-        if not records:
-            return {"error": "훈련 데이터가 없습니다."}
+    async def train_model(self, train_set: pd.DataFrame) -> dict[str, Any]:
+        '''로즈가 제안한 모델들을 훈련시키는 메소드'''
+        logger.info("[JackTrainerInteractor] 학습 파이프라인 시작")
 
-        df = pd.DataFrame([
-            {"survived": r.survived, "age": r.age, "sib_sp": r.sib_sp, "parch": r.parch, "gender": r.gender}
-            for r in records
-        ])
-        X_train = df[_FEATURES]
-        y_train = df["survived"]
+        _FEATURES = ["age", "sib_sp", "parch", "gender"]
 
-        results: dict[str, Any] = {}
-        for StrategyClass in _STRATEGIES:
+        if train_set.empty:
+            return {"train_samples": 0, "trained_models": [], "trained_strategies": {}}
+
+        train = train_set.dropna(subset=["survived"]).copy()
+        train["gender"] = train["gender"].map({"male": 0, "female": 1}).fillna(0).astype(int)
+        y_label: list[int] = train["survived"].astype(int).tolist()
+        X_train: list[list[float]] = train[_FEATURES].fillna(0).values.tolist()
+
+        self._trained_strategies = {}
+        trained_names = []
+        for StrategyClass in ALL_STRATEGIES:
             strategy = StrategyClass()
             try:
-                strategy.fit(X_train, y_train)
-                results[strategy.name] = {"status": "trained"}
-            except Exception as exc:
-                results[strategy.name] = {"status": "error", "message": str(exc)}
+                strategy.fit(X_train, y_label)
+                self._trained_strategies[strategy.name] = strategy
+                trained_names.append(strategy.name)
+                logger.info(f"[JackTrainerInteractor] {strategy.name} 학습 완료")
+            except Exception as e:
+                logger.warning(f"[JackTrainerInteractor] {strategy.name} 학습 실패 | error={e}")
 
-        return results
+        return {
+            "train_samples": len(X_train),
+            "trained_models": trained_names,
+            "trained_strategies": self._trained_strategies,
+        }
 
-    async def analyze_message_intent(self, user_message: str) -> dict:
-        tokens = self.kiwi.tokenize(user_message)
+    
 
-        keywords = [t.form for t in tokens if t.tag in ("NNG", "NNP", "SL", "SN")]
-
-        forms = {t.form for t in tokens}
-        if forms & {"몇", "수", "명수", "총", "얼마", "인원"}:
-            intent = "count"
-        elif forms & {"생존", "살아남", "살았", "구조"}:
-            intent = "survival"
-        elif forms & {"사망", "죽었", "죽다", "사망자"}:
-            intent = "death"
-        elif forms & {"평균", "나이", "연령"}:
-            intent = "statistics"
-        elif forms & {"성별", "여성", "남성", "여자", "남자"}:
-            intent = "gender"
-        elif forms & {"등석", "클래스", "pclass"}:
-            intent = "class"
-        else:
-            intent = "unknown"
-
-        return {"keywords": keywords, "intent": intent}
-
-    async def introduce_myself(self, schema: JackTrainerSchema) -> JackTrainerResponse:
-        return await self.repository.introduce_myself(JackTrainerQuery(
-            id=schema.id,
-            name=schema.name,
-        ))
+    async def introduce_myself(self, schema) -> JackTrainerResponse:
+        schema = JackTrainerSchema(id=13, name="잭 도슨 (Jack Dawson)")
+        return JackTrainerResponse(id=schema.id, name=schema.name)

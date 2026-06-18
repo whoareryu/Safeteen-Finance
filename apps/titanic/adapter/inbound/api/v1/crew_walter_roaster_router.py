@@ -21,8 +21,19 @@ async def introduce_myself(
 )->WalterRoasterResponse:
 
     return await walter.introduce_myself(
-        WalterRoasterSchema(
-            id=6,
-            name="Walter Nichols")
-        )
-    
+        WalterRoasterSchema(id=2, name="Walter Nichols")
+    )
+
+
+@walter_roaster_router.get("/train")
+def get_train_set(
+    walter: WalterRoasterUseCase = Depends(get_walter_roaster_use_case)
+) -> list[dict]:
+    return walter.get_train_set().to_dict(orient="records")
+
+
+@walter_roaster_router.get("/test")
+def get_test_set(
+    walter: WalterRoasterUseCase = Depends(get_walter_roaster_use_case)
+) -> list[dict]:
+    return walter.get_test_set().to_dict(orient="records")
