@@ -31,10 +31,14 @@ export default function SmithChatPage() {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
 
     try {
+      const history = messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role, text: m.content }));
+      const payload = { messages: [...history, { role: "user" as const, text }] };
       const res = await fetch("/api/titanic/smith/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify(payload),
       });
       const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
       setMessages((prev) => [
