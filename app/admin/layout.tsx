@@ -24,8 +24,8 @@ export default function AdminLayout({
       />
 
       <div className="min-h-screen bg-[#f5f5f7] md:pl-56">
-        {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-black/10 bg-white px-4 md:hidden">
+        {/* Mobile header — site header 높이만큼 내려서 겹치지 않게 */}
+        <header className="sticky top-[var(--site-header-height)] z-30 flex h-14 items-center gap-3 border-b border-black/10 bg-white px-4 md:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-1.5 text-[#1d1d1f]/60 hover:bg-black/5"

@@ -215,7 +215,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Summary row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { label: "등록 맛집 수", value: "2,840개", change: "+12%", up: true },
           { label: "활성 사용자", value: "1,240명", change: "+18%", up: true },
