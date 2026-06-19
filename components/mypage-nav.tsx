@@ -12,6 +12,7 @@ const BASE_LINKS = [
 ];
 
 const ADMIN_LINKS = [
+  { href: "/admin", label: "대시보드" },
   { href: "/mypage/customers", label: "고객관리" },
   { href: "/mypage/stores", label: "매점관리" },
 ];

@@ -74,6 +74,10 @@ const nextConfig = {
         source: "/api/weather",
         destination: `${backendUrl}/weather`,
       },
+      {
+        source: "/api/silicon-valley/:path*",
+        destination: `${backendUrl}/api/silicon-valley/:path*`,
+      },
     ];
   },
 };

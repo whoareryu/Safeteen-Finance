@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { useNearbyLocation } from "@/components/nearby-location-provider";
-import { Sparkles } from "lucide-react";
+import { Sparkles, LayoutDashboard } from "lucide-react";
 import GeminiChat from "./gemini-chat";
 import GourmetNavSearch from "./gourmet-nav-search";
 import HomeSearchResults from "./home-search-results";
@@ -88,6 +89,14 @@ export default function GourmetMateHero() {
           &quot;오늘 뭐 먹지?&quot; 고민은 이제 끝, 내 입맛을 가장 잘 아는 인공지능 미식
           파트너 &apos;gourmetmate&apos;를 만나보세요!
         </p>
+
+        <Link
+          href="/admin"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#1d1d1f]/15 bg-white px-4 py-2 text-sm font-medium text-[#1d1d1f] shadow-sm transition hover:bg-[#f5f5f7]"
+        >
+          <LayoutDashboard size={15} />
+          관리자
+        </Link>
 
         {!isSearchMode ? (
           <div className="home-apple-chat mt-8 w-full max-w-3xl text-left">
