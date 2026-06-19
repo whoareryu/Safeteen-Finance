@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, UserCircle } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
@@ -100,9 +101,11 @@ export default function Header() {
               </div>
             ) : null}
 
+            <ThemeToggle />
+
             <Link
               href="/admin"
-              className="apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] md:text-sm"
+              className="apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] dark:border-white/10 dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/15 md:text-sm"
             >
               <LayoutDashboard className="h-3.5 w-3.5" aria-hidden />
               관리자

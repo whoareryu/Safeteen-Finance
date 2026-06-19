@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
+import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/components/auth-provider'
 import { FavoritesProvider } from '@/components/favorites-provider'
 import { NearbyLocationProvider } from '@/components/nearby-location-provider'
@@ -42,22 +43,24 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en" className="bg-background" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <AuthProvider>
-          <FavoritesProvider>
-          <NearbyLocationProvider>
-          <CategoryMenuProvider>
-            <CategorySidebarDrawer />
-            <Header />
-            <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
-              {children}
-            </div>
-          </CategoryMenuProvider>
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-          </NearbyLocationProvider>
-          </FavoritesProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <FavoritesProvider>
+            <NearbyLocationProvider>
+            <CategoryMenuProvider>
+              <CategorySidebarDrawer />
+              <Header />
+              <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
+                {children}
+              </div>
+            </CategoryMenuProvider>
+            {process.env.NODE_ENV === 'production' && <Analytics />}
+            </NearbyLocationProvider>
+            </FavoritesProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

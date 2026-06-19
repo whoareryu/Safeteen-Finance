@@ -173,3 +173,8 @@ BACKEND_URL=http://127.0.0.1:8000   # 로컬
 ## 관련 문서
 
 [[vault/www/react-rules\|React 규칙]] · [[vault/www/vercel-deploy-rules\|Vercel 배포]]
+
+
+## 다크 모드
+
+구현 지시어 → [darkmode-spec.md](./_docs/darkmode-spec.md)

@@ -79,7 +79,7 @@ function StatCard({
   icon: React.ElementType;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
+    <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-[#111]">
       <div
         className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white"
         style={{ backgroundColor: color }}
@@ -87,9 +87,9 @@ function StatCard({
         <Icon size={20} />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-xs text-[#6e6e73]">{label}</p>
-        <p className="text-xl font-bold text-[#1d1d1f]">{value}</p>
-        <p className="text-xs text-[#6e6e73]">{sub}</p>
+        <p className="truncate text-xs text-[#6e6e73] dark:text-white/50">{label}</p>
+        <p className="text-xl font-bold text-[#1d1d1f] dark:text-white">{value}</p>
+        <p className="text-xs text-[#6e6e73] dark:text-white/50">{sub}</p>
       </div>
     </div>
   );
@@ -103,8 +103,8 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm md:p-5">
-      <h3 className="mb-4 text-sm font-semibold text-[#1d1d1f]">{title}</h3>
+    <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-[#111] md:p-5">
+      <h3 className="mb-4 text-sm font-semibold text-[#1d1d1f] dark:text-white">{title}</h3>
       {children}
     </div>
   );
@@ -115,7 +115,7 @@ function SectionCard({
 export default function AdminDashboard() {
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-bold text-[#1d1d1f] md:text-xl">대시보드</h1>
+      <h1 className="text-lg font-bold text-[#1d1d1f] dark:text-white md:text-xl">대시보드</h1>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-3 flex gap-4 text-xs text-[#6e6e73]">
+          <div className="mt-3 flex gap-4 text-xs text-[#6e6e73] dark:text-white/50">
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-4 rounded bg-blue-500" /> 방문자 수</span>
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-4 rounded bg-violet-500" /> AI 채팅</span>
           </div>
@@ -194,16 +194,16 @@ export default function AdminDashboard() {
                 return (
                   <div key={g.label}>
                     <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="text-[#1d1d1f]">{g.label}</span>
+                      <span className="text-[#1d1d1f] dark:text-white">{g.label}</span>
                       <span className="font-medium" style={{ color: g.color }}>{pct}%</span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0f0f0]">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0f0f0] dark:bg-white/10">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{ width: `${pct}%`, backgroundColor: g.color }}
                       />
                     </div>
-                    <p className="mt-0.5 text-right text-[10px] text-[#6e6e73]">
+                    <p className="mt-0.5 text-right text-[10px] text-[#6e6e73] dark:text-white/40">
                       {g.current.toLocaleString()} / {g.target.toLocaleString()}
                     </p>
                   </div>
@@ -221,9 +221,9 @@ export default function AdminDashboard() {
           { label: "활성 사용자", value: "1,240명", change: "+18%", up: true },
           { label: "AI 채팅 만족도", value: "94.2%", change: "+2.1%", up: true },
         ].map(({ label, value, change, up }) => (
-          <div key={label} className="rounded-2xl bg-white p-4 shadow-sm">
-            <p className="text-xs text-[#6e6e73]">{label}</p>
-            <p className="mt-1 text-base font-bold text-[#1d1d1f] md:text-lg">{value}</p>
+          <div key={label} className="rounded-2xl bg-white p-4 shadow-sm dark:bg-[#111]">
+            <p className="text-xs text-[#6e6e73] dark:text-white/50">{label}</p>
+            <p className="mt-1 text-base font-bold text-[#1d1d1f] dark:text-white md:text-lg">{value}</p>
             <span
               className={`mt-1 inline-flex items-center gap-0.5 text-xs font-medium ${
                 up ? "text-emerald-600" : "text-red-500"
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[360px] text-sm">
                 <thead>
-                  <tr className="border-b border-black/10 text-xs text-[#6e6e73]">
+                  <tr className="border-b border-black/10 text-xs text-[#6e6e73] dark:border-white/10 dark:text-white/50">
                     <th className="pb-2 text-left font-medium">닉네임</th>
                     <th className="pb-2 text-left font-medium">첫 즐겨찾기</th>
                     <th className="pb-2 text-center font-medium">가입일</th>
@@ -294,10 +294,10 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {RECENT_USERS.map((u) => (
-                    <tr key={u.nickname} className="border-b border-black/5 last:border-0">
-                      <td className="py-2.5 font-medium text-[#1d1d1f]">{u.nickname}</td>
-                      <td className="py-2.5 text-xs text-[#6e6e73]">{u.restaurant}</td>
-                      <td className="py-2.5 text-center text-xs text-[#6e6e73]">{u.joined}</td>
+                    <tr key={u.nickname} className="border-b border-black/5 last:border-0 dark:border-white/5">
+                      <td className="py-2.5 font-medium text-[#1d1d1f] dark:text-white">{u.nickname}</td>
+                      <td className="py-2.5 text-xs text-[#6e6e73] dark:text-white/50">{u.restaurant}</td>
+                      <td className="py-2.5 text-center text-xs text-[#6e6e73] dark:text-white/50">{u.joined}</td>
                       <td className="py-2.5 text-center">
                         <span
                           className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
