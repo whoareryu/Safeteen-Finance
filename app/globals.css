@@ -269,6 +269,19 @@ header.site-header--apple {
   background: rgba(10, 10, 10, 0.88);
 }
 
+/* ── Dark mode: 페이지 섹션 전역 오버라이드 ──────────────────────── */
+.dark .home-on-white,
+.dark section.home-apple-hero {
+  background-color: oklch(0.09 0 0);
+  color: oklch(0.94 0 0);
+}
+
+/* 검색바 박스 */
+.dark .gourmet-nav-search {
+  background-color: rgba(10, 10, 10, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
 .apple-nav-cta {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.9);

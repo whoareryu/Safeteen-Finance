@@ -9,7 +9,7 @@ export default function HeroSection() {
         <GourmetMateHero />
       </Suspense>
 
-      <div className="mx-auto w-full max-w-5xl bg-[#fbfbfd] px-4 pb-12 sm:px-6">
+      <div className="mx-auto w-full max-w-5xl bg-[#fbfbfd] px-4 pb-12 dark:bg-[#0a0a0a] sm:px-6">
         <SocialFooter />
       </div>
     </section>

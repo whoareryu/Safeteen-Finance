@@ -62,7 +62,7 @@ export default function TodayDailyPick() {
 
   return (
     <section
-      className="today-daily-pick w-full border-t border-black/[0.06] bg-[#f0f0f2] px-4 py-8 md:px-8 md:py-10"
+      className="today-daily-pick w-full border-t border-black/[0.06] bg-[#f0f0f2] px-4 py-8 dark:border-white/[0.06] dark:bg-[#111] md:px-8 md:py-10"
       aria-labelledby="today-daily-pick-title"
     >
       <div className="mx-auto max-w-3xl">
@@ -74,20 +74,20 @@ export default function TodayDailyPick() {
             </p>
             <h2
               id="today-daily-pick-title"
-              className="mt-1 text-2xl font-bold tracking-tight text-[#1d1d1f] md:text-3xl"
+              className="mt-1 text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white md:text-3xl"
             >
               오늘의 추천 맛집
             </h2>
           </div>
           {data?.date ? (
-            <time className="text-sm text-[#6e6e73]" dateTime={data.date}>
+            <time className="text-sm text-[#6e6e73] dark:text-white/50" dateTime={data.date}>
               {data.date}
             </time>
           ) : null}
         </div>
 
         {loading ? (
-          <p className="text-sm text-[#6e6e73]">오늘의 한 곳을 고르는 중…</p>
+          <p className="text-sm text-[#6e6e73] dark:text-white/50">오늘의 한 곳을 고르는 중…</p>
         ) : null}
 
         {error ? (
@@ -96,7 +96,7 @@ export default function TodayDailyPick() {
 
         {!loading && !error && data ? (
           <>
-            <p className="mb-5 text-sm leading-relaxed text-[#6e6e73]">
+            <p className="mb-5 text-sm leading-relaxed text-[#6e6e73] dark:text-white/50">
               {data.message}
               {data.budget_applied && data.daily_budget != null ? (
                 <span className="mt-1 block font-medium text-[#1d1d1f]">

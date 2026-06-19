@@ -67,17 +67,17 @@ export default function GourmetMateHero() {
         onSuggestionClick={handleSuggestionClick}
       />
 
-      <div className="flex flex-col items-center bg-[#fbfbfd] px-4 pb-6 pt-6 text-center sm:px-6 md:pb-8 md:pt-8">
-        <p className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-[#86868b] md:text-sm">
+      <div className="flex flex-col items-center bg-[#fbfbfd] px-4 pb-6 pt-6 text-center dark:bg-[#0a0a0a] sm:px-6 md:pb-8 md:pt-8">
+        <p className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.18em] text-[#86868b] dark:text-white/40 md:text-sm">
           <Sparkles className="h-3.5 w-3.5 text-amber-500" aria-hidden />
           Seoul Dining · AI Guide
         </p>
 
-        <h1 className="text-balance text-4xl font-bold tracking-tight text-[#1d1d1f] md:text-6xl lg:text-7xl">
+        <h1 className="text-balance text-4xl font-bold tracking-tight text-[#1d1d1f] dark:text-white md:text-6xl lg:text-7xl">
           GourmetMate
         </h1>
 
-        <p className="mt-3 text-lg font-medium text-[#1d1d1f] md:text-xl">
+        <p className="mt-3 text-lg font-medium text-[#1d1d1f] dark:text-white/90 md:text-xl">
           {user && isNearbyMode
             ? "내 주변 맛집을 가까운 순으로 추천합니다"
             : user
@@ -85,14 +85,14 @@ export default function GourmetMateHero() {
               : "서울 맛집, AI가 주제별로 찾아드립니다"}
         </p>
 
-        <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-[#6e6e73] md:text-lg">
+        <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-[#6e6e73] dark:text-white/50 md:text-lg">
           &quot;오늘 뭐 먹지?&quot; 고민은 이제 끝, 내 입맛을 가장 잘 아는 인공지능 미식
           파트너 &apos;gourmetmate&apos;를 만나보세요!
         </p>
 
         <Link
           href="/admin"
-          className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#1d1d1f]/15 bg-white px-4 py-2 text-sm font-medium text-[#1d1d1f] shadow-sm transition hover:bg-[#f5f5f7]"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#1d1d1f]/15 bg-white px-4 py-2 text-sm font-medium text-[#1d1d1f] shadow-sm transition hover:bg-[#f5f5f7] dark:border-white/15 dark:bg-white/8 dark:text-white dark:hover:bg-white/12"
         >
           <LayoutDashboard size={15} />
           관리자
@@ -100,7 +100,7 @@ export default function GourmetMateHero() {
 
         {!isSearchMode ? (
           <div className="home-apple-chat mt-8 w-full max-w-3xl text-left">
-            <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#86868b]">
+            <p className="mb-5 text-center text-xs font-medium uppercase tracking-[0.2em] text-[#86868b] dark:text-white/40">
               AI에게 바로 물어보기
             </p>
             <GeminiChat
