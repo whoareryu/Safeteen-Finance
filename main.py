@@ -82,10 +82,12 @@ app.add_middleware(
 
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 from silicon_valley.adapter.inbound.api import silicon_valley_router
+from star_craft.adapter.inbound.api import star_craft_router
 
 from restaurant.adapter.inbound.api import restaurant_router
 from user.adapter.inbound.api import user_router
 
+app.include_router(star_craft_router, prefix="/api")
 app.include_router(titanic_router, prefix="/api")
 app.include_router(silicon_valley_router, prefix="/api")
 app.include_router(restaurant_router)

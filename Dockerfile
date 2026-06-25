@@ -1,5 +1,5 @@
 # 1. 파이썬 베이스 이미지 가져오기
-FROM python:3.13-slim
+FROM python:3.12.13-slim
 
 # 2. 컨테이너 내부 작업 디렉토리 설정
 WORKDIR /whoareryu

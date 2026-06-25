@@ -1,6 +1,6 @@
 # CLAUDE.md — Titanic 앱
 
-Titanic 앱 전용 규약. 상위 규칙은 [[whoareryu/CLAUDE\|백엔드 CLAUDE.md]]를 먼저 읽는다.
+Titanic 앱 전용 규약. 상위 규칙은 [[fastapi/CLAUDE\|백엔드 CLAUDE.md]]를 먼저 읽는다.
 
 ---
 
@@ -128,7 +128,7 @@ python -c "from titanic.adapter.inbound.api import titanic_router; print('ok')"
 
 ## 관련 문서
 
-[[whoareryu/CLAUDE\|Backend CLAUDE]]
+[[fastapi/CLAUDE\|Backend CLAUDE]]
 
 
 

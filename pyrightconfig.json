@@ -1,7 +1,8 @@
 {
-  "include": ["apps/titanic", "apps/titanic (머신러닝)/app", "apps/titanic (머신러닝)/adapter"],
+  "include": ["apps/titanic", "apps/titanic (머신러닝)/app", "apps/titanic (머신러닝)/adapter", "apps/silicon_valley"],
   "exclude": ["**/__pycache__", "**/node_modules"],
   "extraPaths": ["."],
-  "pythonVersion": "3.13",
+  "pythonVersion": "3.12",
+  "pythonPath": "/Users/ryujun/.pyenv/versions/3.12.13/bin/python",
   "typeCheckingMode": "basic"
 }
