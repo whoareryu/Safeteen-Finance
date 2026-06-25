@@ -1,5 +1,7 @@
 {
   "userIgnoreFilters": [
+    "flutter/build",
+    "flutter/.dart_tool",
     "__pycache__",
     "**/*.py",
     "alembic",

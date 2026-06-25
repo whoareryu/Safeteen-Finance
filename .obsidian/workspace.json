@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "145c468ed09ec983",
+        "id": "ab513df91c0cb981",
         "type": "tabs",
         "children": [
           {
-            "id": "0dbba1a7ecf88579",
+            "id": "c397fc669c544d60",
             "type": "leaf",
             "state": {
               "type": "graph",
               "state": {},
               "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "title": "그래프 뷰"
             }
           }
         ]
@@ -40,7 +40,7 @@
                 "autoReveal": false
               },
               "icon": "lucide-folder-closed",
-              "title": "Files"
+              "title": "파일 탐색기"
             }
           },
           {
@@ -167,17 +167,22 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
-      "graph:Open graph view": false,
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "templates:Insert template": false,
-      "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "switcher:빠른 전환기 열기": false,
+      "graph:그래프 뷰 열기": false,
+      "canvas:새 캔버스 만들기": false,
+      "daily-notes:오늘의 일일 노트 열기": false,
+      "templates:템플릿 삽입": false,
+      "command-palette:명령어 팔레트 열기": false,
+      "bases:새 베이스 생성하기": false
     }
   },
-  "active": "0dbba1a7ecf88579",
+  "active": "c397fc669c544d60",
   "lastOpenFiles": [
+    "flutter/build/ios/SourcePackages/checkouts/SDWebImage/CHANGELOG.md",
+    "fastapi/apps/restaurant/_docs/gourmetmate_v2_erd.md.tmp.28641.c7df7a4ec297",
+    "fastapi/apps/restaurant/_docs/EXTERNAL_API_KEYS.md.tmp.28641.bb6c6a780eb2",
+    "fastapi/apps/titanic/_docs/CLAUDE.md.tmp.28641.4360496d585b",
+    "flutter/build/ios/SourcePackages/checkouts/SwiftyGif/README.md",
     "Untitled.canvas",
     "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.131602339681680",
     "whoareryu/apps/titanic/app/use_cases/__pycache__/crew_walter_roaster_interactor.cpython-313.pyc.128736145629104",
@@ -186,9 +191,6 @@
     "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.137948719092992",
     "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.133284339881360",
     "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.127563043919248",
-    "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.136759269545360",
-    "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.124146218145168",
-    "whoareryu/apps/titanic/app/ports/input/__pycache__/crew_walter_roaster_use_case.cpython-313.pyc.123580374095104",
     "CLAUDE.md",
     "vault/whoareryu/scaffold-rules.md",
     "vault/whoareryu/entity-rules.md",
@@ -212,7 +214,6 @@
     "whoareryu/apps/gourmet/_docs/CLAUDE.md",
     "whoareryu/apps/gourmet/_claude/gourmetmate_v2_erd.md",
     "www/_cluade/VERCEL_V0_DEPLOY.md",
-    "whoareryu/apps/gourmet/_claude/EXTERNAL_API_KEYS.md",
-    "whoareryu/apps/gourmet/_claude/GOURMET_ERD.md"
+    "whoareryu/apps/gourmet/_claude/EXTERNAL_API_KEYS.md"
   ]
 }

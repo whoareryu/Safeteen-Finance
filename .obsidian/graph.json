@@ -8,14 +8,7 @@
   "collapse-color-groups": false,
   "colorGroups": [
     {
-      "query": "path:vault/gourmet개발",
-      "color": {
-        "a": 1,
-        "rgb": 15158332
-      }
-    },
-    {
-      "query": "path:whoareryu",
+      "query": "path:fastapi  ",
       "color": {
         "a": 1,
         "rgb": 13375769
@@ -26,6 +19,13 @@
       "color": {
         "a": 1,
         "rgb": 13311
+      }
+    },
+    {
+      "query": "path:flutter",
+      "color": {
+        "a": 1,
+        "rgb": 11657298
       }
     }
   ],
@@ -39,6 +39,6 @@
   "repelStrength": 18.0208333333333,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.3213363860503559,
+  "scale": 0.5603675925785403,
   "close": false
 }

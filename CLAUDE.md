@@ -120,12 +120,13 @@ Violating any of the rules above (SOLID, architecture layers) is a blocker — s
 
 | 영역 | 문서 |
 |------|------|
-| 백엔드 (FastAPI + 헥사고날) | [whoareryu/CLAUDE.md](whoareryu/CLAUDE.md) |
+| 백엔드 (FastAPI + 헥사고날) | [fastapi/CLAUDE.md](fastapi/CLAUDE.md) |
 | 프론트엔드 (Next.js + React) | [www/CLAUDE.md](www/CLAUDE.md) |
+| 모바일 (Flutter) | [flutter/CLAUDE.md](flutter/CLAUDE.md) |
 
 
 ---
 
 ## 그래프 링크
 
-[[whoareryu/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]]
+[[fastapi/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]] · [[flutter/CLAUDE\|Flutter]]

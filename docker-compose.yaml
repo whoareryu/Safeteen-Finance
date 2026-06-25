@@ -2,15 +2,20 @@ services:
   # 1. FastAPI 백엔드 설정
   backend:
     build:
-      context: ./whoareryu
+      context: ./fastapi
       dockerfile: Dockerfile
     container_name: whoareryu-backend
     ports:
       - "8000:8000"
     volumes:
-      - ./whoareryu:/whoareryu
+      - ./fastapi:/whoareryu
     env_file:
-      - ./whoareryu/.env
+      - ./fastapi/.env
+    environment:
+      - AUTO_CREATE_TABLES=false
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     networks:
       - app-network
 
@@ -35,6 +40,20 @@ services:
     networks:
       - app-network
 
+  # 3. n8n 워크플로우 자동화
+  n8n:
+    image: n8nio/n8n
+    container_name: whoareryu-n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  n8n_data:
