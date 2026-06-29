@@ -25,11 +25,7 @@ from restaurant.app.use_cases.restaurant_browse_interactor import (
     rows_to_card_summaries,
     sort_rows_by_distance,
 )
-from restaurant.app.use_cases.restaurant_location_interactor import distance_km_to_entity
-from restaurant.app.ports.input.restaurant_search_use_case import RestaurantSearchUseCase
-from restaurant.adapter.inbound.api.schemas.restaurant_search_schema import RestaurantSearchSchema
-from restaurant.app.dtos.restaurant_search_dto import RestaurantSearchQuery, RestaurantSearchResponse
-from restaurant.app.ports.output.restaurant_search_repository import RestaurantSearchRepository
+from restaurant.domain.location import distance_km_to_entity
 
 
 logger = logging.getLogger(__name__)
@@ -256,13 +252,3 @@ def search_restaurants(
             "has_more": slice_end < total_matched,
         },
     }
-
-
-class RestaurantSearchInteractor(RestaurantSearchUseCase):
-    def __init__(self, repository: RestaurantSearchRepository) -> None:
-        self.repository = repository
-
-    async def introduce_myself(self, schema: RestaurantSearchSchema) -> RestaurantSearchResponse:
-        return await self.repository.introduce_myself(
-            RestaurantSearchQuery(id=schema.id, name=schema.name)
-        )

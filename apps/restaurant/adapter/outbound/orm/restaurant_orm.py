@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.database import Base, IntIdPrimaryKeyMixin
 from restaurant.adapter.outbound.orm.gourmet_entity_orm import GourmetEntityMixin
-from restaurant.app.use_cases.restaurant_location_interactor import distance_km_to_entity
+from restaurant.domain.location import distance_km_to_entity
 
 if TYPE_CHECKING:
     from restaurant.adapter.outbound.orm.biz_classification_orm import BizClassification
@@ -65,8 +65,6 @@ class Restaurant(IntIdPrimaryKeyMixin, GourmetEntityMixin, Base):
 
     description: Mapped[str] = mapped_column(Text, default="", server_default="")
     image_url: Mapped[str] = mapped_column(String(512), default="", server_default="")
-
-    view_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     price: Mapped[RestaurantPrice | None] = relationship(
         back_populates="restaurant",
@@ -223,7 +221,6 @@ class Restaurant(IntIdPrimaryKeyMixin, GourmetEntityMixin, Base):
             "district": self.district or self.sigungu_name or "",
             "description": self.description or "",
             "image_url": self.image_url or "",
-            "view_count": self.view_count,
             "closed_weekdays": closed_days,
             "closed_weekdays_label": closed_label,
             "address": addr,

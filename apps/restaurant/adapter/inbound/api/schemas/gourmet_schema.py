@@ -105,42 +105,6 @@ class TodayPickItem(BaseModel):
     }
 
 
-class RestaurantViewStatResponse(BaseModel):
-    restaurant_id: int
-    restaurant_name: str
-    view_count: int
-    first_viewed_at: str | None
-    last_viewed_at: str | None
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "restaurant_id": 42,
-                "restaurant_name": "스시 오마카세 강남",
-                "view_count": 0,
-                "first_viewed_at": None,
-                "last_viewed_at": None,
-            }
-        }
-    }
-
-
-class RecordViewResponse(BaseModel):
-    restaurant_id: int
-    view_count: int
-    message: str = "조회가 기록되었습니다."
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "restaurant_id": 42,
-                "view_count": 0,
-                "message": "조회가 기록되었습니다.",
-            }
-        }
-    }
-
-
 class MenuItemResponse(BaseModel):
     name: str
     price: int

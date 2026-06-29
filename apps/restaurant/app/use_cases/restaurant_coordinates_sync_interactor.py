@@ -8,7 +8,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
-from restaurant.app.use_cases.restaurant_location_interactor import coords_for_district
+from restaurant.domain.location import coords_for_district
 
 logger = logging.getLogger(__name__)
 

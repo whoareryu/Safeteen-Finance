@@ -1,11 +1,13 @@
 from fastapi import APIRouter
 
-from user.adapter.inbound.api.v1.favorite_router import favorite_router
-from user.adapter.inbound.api.v1.meal_plan_router import router as meal_plan_router
+from user.adapter.inbound.api.v1.onboarding_router import onboarding_router
+from user.adapter.inbound.api.v1.budget_report_router import budget_report_router
+from user.adapter.inbound.api.v1.visit_rating_router import visit_rating_router
 
 user_router = APIRouter()
-user_router.include_router(favorite_router)
-user_router.include_router(meal_plan_router)
+user_router.include_router(onboarding_router)
+user_router.include_router(budget_report_router)
+user_router.include_router(visit_rating_router)
 
 router = user_router
 

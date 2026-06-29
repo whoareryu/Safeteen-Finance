@@ -18,11 +18,7 @@ from restaurant.adapter.outbound.orm.biz_classification_orm import BizClassifica
 from restaurant.adapter.outbound.orm.food_category_orm import FoodCategory
 from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
 from restaurant.adapter.outbound.orm.sigungu_district_orm import SigunguDistrict
-from restaurant.app.use_cases.restaurant_location_interactor import distance_km_to_entity
-from restaurant.app.ports.input.restaurant_browse_use_case import RestaurantBrowseUseCase
-from restaurant.adapter.inbound.api.schemas.restaurant_browse_schema import RestaurantBrowseSchema
-from restaurant.app.dtos.restaurant_browse_dto import RestaurantBrowseQuery, RestaurantBrowseResponse
-from restaurant.app.ports.output.restaurant_browse_repository import RestaurantBrowseRepository
+from restaurant.domain.location import distance_km_to_entity
 
 
 @dataclass(slots=True)
@@ -351,13 +347,3 @@ def restaurant_display_name(db: Session, store_id: int) -> str | None:
     if r is None:
         return None
     return r.display_name()
-
-
-class RestaurantBrowseInteractor(RestaurantBrowseUseCase):
-    def __init__(self, repository: RestaurantBrowseRepository) -> None:
-        self.repository = repository
-
-    async def introduce_myself(self, schema: RestaurantBrowseSchema) -> RestaurantBrowseResponse:
-        return await self.repository.introduce_myself(
-            RestaurantBrowseQuery(id=schema.id, name=schema.name)
-        )

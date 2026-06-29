@@ -92,3 +92,6 @@ logs/
 *.db
 
 
+
+# 대용량 원본 데이터 (CSV 등) — git 미포함
+apps/restaurant/data/raw/
