@@ -17,7 +17,6 @@ export type RestaurantDetail = {
   district: string;
   description: string;
   image_url: string;
-  view_count: number;
   closed_weekdays: number[];
   closed_weekdays_label: string;
   address: string;
@@ -27,6 +26,8 @@ export type RestaurantDetail = {
   reservation_available: boolean;
   reservation_note: string;
   menu_items: MenuItem[];
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export async function fetchRestaurantDetail(
@@ -37,15 +38,6 @@ export async function fetchRestaurantDetail(
   });
   if (!res.ok) return null;
   return (await res.json()) as RestaurantDetail;
-}
-
-export async function recordRestaurantView(restaurantId: number): Promise<number> {
-  const res = await fetch(`/api/gourmet/restaurants/${restaurantId}/view`, {
-    method: "POST",
-  });
-  if (!res.ok) return 0;
-  const body = (await res.json()) as { view_count?: number };
-  return body.view_count ?? 0;
 }
 
 export function restaurantDetailPath(id: number): string {

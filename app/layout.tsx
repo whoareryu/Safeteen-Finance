@@ -4,10 +4,11 @@ import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/components/auth-provider'
-import { FavoritesProvider } from '@/components/favorites-provider'
 import { NearbyLocationProvider } from '@/components/nearby-location-provider'
-import { CategoryMenuProvider } from '@/components/category-menu-context'
-import CategorySidebarDrawer from '@/components/category-sidebar-drawer'
+import OnboardingGate from '@/components/onboarding-gate'
+import FloatingChat from '@/components/floating-chat'
+import BottomTabBar from '@/components/bottom-tab-bar'
+import VisitDetector from '@/components/visit-detector'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -47,18 +48,17 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <FavoritesProvider>
             <NearbyLocationProvider>
-            <CategoryMenuProvider>
-              <CategorySidebarDrawer />
+              <OnboardingGate />
               <Header />
               <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
                 {children}
               </div>
-            </CategoryMenuProvider>
+              <FloatingChat />
+              <BottomTabBar />
+              <VisitDetector />
             {process.env.NODE_ENV === 'production' && <Analytics />}
             </NearbyLocationProvider>
-            </FavoritesProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

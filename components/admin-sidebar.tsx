@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Users,
   Store,
-  Heart,
   User,
   X,
 } from "lucide-react";
@@ -16,7 +15,6 @@ const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard, exact: true },
   { href: "/mypage/customers", label: "고객관리", icon: Users },
   { href: "/mypage/stores", label: "매점관리", icon: Store },
-  { href: "/mypage/favorites", label: "즐겨찾기", icon: Heart },
   { href: "/mypage", label: "내 정보", icon: User, exact: true },
 ];
 

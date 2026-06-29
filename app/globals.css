@@ -15,8 +15,9 @@
   --card-foreground: oklch(0.24 0.02 260);
   --popover: oklch(0.988 0.007 95);
   --popover-foreground: oklch(0.24 0.02 260);
-  --primary: oklch(0.55 0.18 280);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Netflix 레드 액센트 */
+  --primary: oklch(0.55 0.21 27);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.94 0.014 95);
   --secondary-foreground: oklch(0.28 0.02 260);
   --muted: oklch(0.945 0.012 95);
@@ -27,7 +28,7 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.86 0.018 92);
   --input: oklch(0.978 0.01 95);
-  --ring: oklch(0.55 0.18 280);
+  --ring: oklch(0.55 0.21 27);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -51,8 +52,9 @@
   --card-foreground: oklch(0.94 0 0);
   --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.94 0 0);
-  --primary: oklch(0.65 0.18 280);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Netflix 레드 액센트 (다크) */
+  --primary: oklch(0.62 0.22 27);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.16 0 0);
   --secondary-foreground: oklch(0.94 0 0);
   --muted: oklch(0.16 0 0);
@@ -63,7 +65,7 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.22 0.01 265);
   --input: oklch(0.16 0 0);
-  --ring: oklch(0.65 0.18 280);
+  --ring: oklch(0.62 0.22 27);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, UserCircle } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogIn, LogOut, UserCircle } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,22 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useCategoryMenu } from "@/components/category-menu-context";
-
-function CategoryMenuButton() {
-  const { setOpen } = useCategoryMenu();
-  return (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-[#1d1d1f]/85 transition hover:bg-black/[0.06]"
-      aria-label="카테고리 메뉴 열기"
-    >
-      <Menu className="h-5 w-5" aria-hidden />
-      <span className="hidden sm:inline">메뉴</span>
-    </button>
-  );
-}
 
 export default function Header() {
   const pathname = usePathname();
@@ -47,12 +31,6 @@ export default function Header() {
   const isPortfolioActive =
     pathname === "/portfolio" || pathname.startsWith("/portfolio/");
 
-  const showCategoryMenu =
-    pathname === "/" ||
-    pathname.startsWith("/food/") ||
-    pathname.startsWith("/topics/") ||
-    pathname.startsWith("/restaurants/");
-
   const isMypageActive = pathname.startsWith("/mypage");
 
   return (
@@ -60,7 +38,6 @@ export default function Header() {
       <header className="site-header--apple fixed top-0 left-0 right-0 z-50 w-full">
         <div className="relative flex h-14 w-full items-center px-4 sm:px-6 lg:px-8 md:h-[3.25rem]">
           <div className="flex shrink-0 items-center gap-2 md:gap-3">
-            {showCategoryMenu ? <CategoryMenuButton /> : null}
             <Link
               href="/"
               className="shrink-0 text-lg font-semibold tracking-tight text-[#1d1d1f] hover:opacity-80 md:text-xl"
@@ -131,9 +108,6 @@ export default function Header() {
                     <DropdownMenuContent align="end" className="min-w-[11rem]">
                       <DropdownMenuItem asChild>
                         <Link href="/mypage">내 정보</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/mypage/favorites">즐겨찾기</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/mypage/budget">버짓설정</Link>

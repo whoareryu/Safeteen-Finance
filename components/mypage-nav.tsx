@@ -7,7 +7,6 @@ import { isAdmin, useAuth } from "@/components/auth-provider";
 
 const BASE_LINKS = [
   { href: "/mypage", label: "내 정보" },
-  { href: "/mypage/favorites", label: "즐겨찾기" },
   { href: "/mypage/budget", label: "버짓설정" },
 ];
 
@@ -24,7 +23,7 @@ export default function MypageNav() {
 
   return (
     <nav
-      className="flex flex-wrap gap-2 border-b border-black/10 pb-4"
+      className="flex flex-wrap gap-2 border-b border-border pb-4"
       aria-label="마이페이지 메뉴"
     >
       {links.map((item) => {
@@ -40,8 +39,8 @@ export default function MypageNav() {
             className={cn(
               "rounded-full px-4 py-2 text-sm transition",
               active
-                ? "bg-[#1d1d1f] text-white"
-                : "bg-black/[0.05] text-[#1d1d1f]/85 hover:bg-black/[0.08]"
+                ? "bg-primary text-white"
+                : "bg-muted text-muted-foreground hover:bg-accent"
             )}
           >
             {item.label}
