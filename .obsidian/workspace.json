@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "ab513df91c0cb981",
+        "id": "a64a2b33cefa3e06",
         "type": "tabs",
         "children": [
           {
-            "id": "c397fc669c544d60",
+            "id": "3f163f9d9145699d",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "그래프 뷰"
+              "icon": "lucide-file",
+              "title": "새 탭"
             }
           }
         ]
@@ -176,19 +176,21 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "c397fc669c544d60",
+  "active": "3f163f9d9145699d",
   "lastOpenFiles": [
     "www/_docs/darkmode-spec.md",
-    "fastapi/scripts/validate_harness.py",
-    "fastapi/core/torch_test.py",
-    "fastapi/core/mlx_test.py",
-    "fastapi/apps/titanic/domain/value_objects/sibsp_vo.py",
-    "fastapi/apps/titanic/domain/value_objects/parch_vo.py",
-    "fastapi/apps/titanic/domain/value_objects/cabin_vo.py",
-    "fastapi/apps/star_craft/dependencies/zeratul_context_provider.py",
-    "fastapi/apps/star_craft/dependencies/kerrigan_topology_provider.py",
-    "fastapi/apps/star_craft/dependencies/artanis_graph_provider.py",
-    "fastapi/apps/star_craft/dependencies/__init__.py",
+    "fastapi/_docs/gourmetmate-progress.md.tmp.60845.df5e2a5baa9e",
+    "fastapi/_docs/gourmetmate-migration-plan.md",
+    "fastapi/_docs/gourmetmate-progress.md",
+    "www/app/social/telegram/page.tsx",
+    "www/app/social/telegram",
+    "www/app/social/discord/page.tsx",
+    "www/app/social/discord",
+    "www/app/social/mail/page.tsx",
+    "www/app/social/mail",
+    "www/app/social/page.tsx",
+    "www/app/social/layout.tsx",
+    "www/app/social",
     "fastapi/_docs/scaffold-rules.md",
     "fastapi/_docs/entity-rules.md",
     "fastapi/_docs/db-rules.md",
@@ -211,9 +213,6 @@
     "whoareryu/_claude/ENTITY_RULE.md",
     "whoareryu/_claude/CLAUDE.md",
     "www/node_modules/eventemitter3/README.md",
-    "www/node_modules/cmdk/LICENSE.md",
-    "whoareryu/apps/gourmet/_docs/EXTERNAL_API_KEYS.md",
-    "whoareryu/apps/gourmet/_docs/GOURMET_ERD.md",
-    "whoareryu/apps/gourmet/_docs/gourmetmate_v2_erd.md"
+    "www/node_modules/cmdk/LICENSE.md"
   ]
 }
