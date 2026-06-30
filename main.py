@@ -1,4 +1,3 @@
-import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -13,12 +12,9 @@ import logging
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
-from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-import google.generativeai as genai
 
 load_dotenv(_backend_root / ".env")
 
@@ -27,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 from core.db_health_adapter import DbHealthAdapter
 from core.database import dispose_engine, get_db, init_db, init_engine
+from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 
 try:
     from doro.app.doro_director import DoroDirector
@@ -38,20 +35,10 @@ try:
 except ImportError:
     JamesController = None  # type: ignore[misc, assignment]
 
-GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
-GEMINI_MODEL = "gemini-1.5-flash"
-
-_gemini_model: genai.GenerativeModel | None
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    _gemini_model = genai.GenerativeModel(GEMINI_MODEL)
-else:
-    _gemini_model = None
+_faker = T1MidFakerOrchestrator()
 
 
 class ChatRequest(BaseModel):
-    """채팅 요청 본문. 사용자 메시지를 JSON으로 전달합니다."""
-
     message: str = Field(..., min_length=1, description="사용자 메시지")
 
 
@@ -74,7 +61,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -82,16 +69,49 @@ app.add_middleware(
 
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 from silicon_valley.adapter.inbound.api import silicon_valley_router
-from star_craft.adapter.inbound.api import star_craft_router
+from ontology.adapter.inbound.api import ontology_router
+from chef.adapter.inbound.api import chef_router
 
 from restaurant.adapter.inbound.api import restaurant_router
 from user.adapter.inbound.api import user_router
+from apps.auth.auth_endpoints import auth_router, signup_router, login_router
 
-app.include_router(star_craft_router, prefix="/api")
+# ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
+import os
+
+from chef.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
+from chef.dependencies.email_provider import get_email_use_case
+from chef.dependencies.spam_provider import get_spam_use_case
+from ontology.app.use_cases.maestro_router_interactor import MaestroInteractor
+from ontology.dependencies.maestro_router_provider import (
+    register_dispatch_factory,
+    get_sommelier_use_case,
+    get_lens_use_case,
+)
+
+register_dispatch_factory(
+    lambda: MaestroInteractor(
+        sommelier=get_sommelier_use_case(),
+        lens=get_lens_use_case(),
+        llm=T1MidFakerOrchestrator(),
+        dispatcher=ChefTaskDispatcher(
+            email=get_email_use_case(),
+            spam=get_spam_use_case(),
+        ),
+    )
+)
+# ─────────────────────────────────────────────────────────────────────────
+
+app.include_router(ontology_router, prefix="/api")
 app.include_router(titanic_router, prefix="/api")
 app.include_router(silicon_valley_router, prefix="/api")
+app.include_router(chef_router, prefix="/api")
 app.include_router(restaurant_router)
 app.include_router(user_router)
+app.include_router(auth_router)
+app.include_router(signup_router)
+app.include_router(login_router)
+
 
 @app.get("/")
 def read_root() -> dict[str, str]:
@@ -99,53 +119,18 @@ def read_root() -> dict[str, str]:
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest) -> ChatResponse:
-    """
-    JSON 본문 `{"message": "..."}` 를 받아 Gemini 답변 문자열을 반환합니다.
-    """
-    if _gemini_model is None:
-        raise HTTPException(
-            status_code=503,
-            detail="GEMINI_API_KEY가 설정되지 않았습니다. backend/.env 에 키를 넣어 주세요.",
-        )
-
+async def chat(req: ChatRequest) -> ChatResponse:
+    """JSON 본문 `{"message": "..."}` 를 받아 ExaOne 답변 문자열을 반환합니다."""
     try:
-        response = _gemini_model.generate_content(req.message)
+        reply = await _faker.chat([{"role": "user", "content": req.message}])
     except Exception as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Gemini 호출 실패: {e!s}",
-        ) from e
-
-    try:
-        text = (response.text or "").strip()
-    except ValueError as e:
-        feedback = getattr(response, "prompt_feedback", None)
-        raise HTTPException(
-            status_code=400,
-            detail=f"응답 텍스트를 읽을 수 없습니다: {e!s}. prompt_feedback={feedback}",
-        ) from e
-
-    if not text:
-        reason = None
-        if getattr(response, "candidates", None):
-            c0 = response.candidates[0]
-            reason = getattr(c0, "finish_reason", None)
-        raise HTTPException(
-            status_code=502,
-            detail=(
-                "모델이 비어 있는 응답을 반환했습니다."
-                + (f" (finish_reason={reason})" if reason else "")
-            ),
-        )
-
-    return ChatResponse(reply=text)
+        raise HTTPException(status_code=502, detail=f"ExaOne 호출 실패: {e!s}") from e
+    return ChatResponse(reply=reply)
 
 
 @app.get("/db-check")
 async def check_db(db: AsyncSession = Depends(get_db)):
     return await DbHealthAdapter.neon_time_check(db)
-
 
 
 if __name__ == "__main__":

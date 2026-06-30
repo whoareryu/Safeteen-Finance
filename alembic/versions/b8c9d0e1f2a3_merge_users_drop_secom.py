@@ -49,23 +49,18 @@ def upgrade() -> None:
 
     if "secom_users" in tables:
         if "users" in tables:
-            op.execute(
-                """
-                INSERT INTO users (username, email, nickname, password_hash, role, created_at)
-                SELECT s.username, s.email, s.nickname, s.password_hash, s.role::text, s.created_at
-                FROM secom_users s
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM users u
-                    WHERE lower(u.username) = lower(s.username)
-                )
-                """
-            )
+            op.execute(sa.text(
+                "INSERT INTO users (username, email, nickname, password_hash, role, created_at) "
+                "SELECT s.username, s.email, s.nickname, s.password_hash, s.role::text, s.created_at "
+                "FROM secom_users s "
+                "WHERE NOT EXISTS (SELECT 1 FROM users u WHERE lower(u.username) = lower(s.username))"
+            ))
         op.drop_index(op.f("ix_secom_users_username"), table_name="secom_users")
         op.drop_index(op.f("ix_secom_users_role"), table_name="secom_users")
         op.drop_index(op.f("ix_secom_users_nickname"), table_name="secom_users")
         op.drop_index(op.f("ix_secom_users_email"), table_name="secom_users")
         op.drop_table("secom_users")
-        op.execute("DROP TYPE IF EXISTS secom_user_role")
+        op.execute(sa.text("DROP TYPE IF EXISTS secom_user_role"))
 
 
 def downgrade() -> None:

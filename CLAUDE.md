@@ -244,14 +244,14 @@ result = await asyncio.to_thread(use_case.analyze_intent, question)
 
 ## 스타 토폴로지 (Star Topology)
 
-**허브:** `apps/star_craft` — 지식 그래프의 중앙 교차점. 온톨로지 상위 개념, 컨텍스트 라우팅, 전역 인덱스 관리.
+**허브:** `apps/ontology` — 지식 그래프의 중앙 교차점. 온톨로지 상위 개념, 컨텍스트 라우팅, 전역 인덱스 관리.
 
 **스포크:** `apps/silicon_valley`, `apps/titanic`, `apps/restaurant`, `apps/user`, `apps/auth`
 
 ### 의존성 방향 규칙 (비선형, 비협상)
 
 ```
-         [star_craft] ← Hub
+         [ontology] ← Hub
         /      |      \
  [titanic] [restaurant] [silicon_valley] ← Spokes
                |
@@ -260,12 +260,12 @@ result = await asyncio.to_thread(use_case.analyze_intent, question)
 
 | 방향 | 허용 여부 | 이유 |
 |------|-----------|------|
-| Spoke → Hub (`star_craft`) | ✅ 허용 | 허브 포트/인터페이스 사용 |
+| Spoke → Hub (`ontology`) | ✅ 허용 | 허브 포트/인터페이스 사용 |
 | Hub → Spoke (직접 import) | ❌ 금지 | Hub는 포트만 정의; 조합은 `main.py`에서만 |
 | Spoke → Spoke (직접 import) | ❌ **엄격 금지** | 순환 참조·결합도 발생 원천 |
 | 모든 모듈 → `core` | ✅ 허용 | 인프라 공통 레이어 |
 
-**위반 발견 즉시 멈추고 리팩터링 후 진행.** `star_craft`를 거치지 않는 스포크 간 직접 참조는 아키텍처 위반으로 처리한다.
+**위반 발견 즉시 멈추고 리팩터링 후 진행.** `ontology`를 거치지 않는 스포크 간 직접 참조는 아키텍처 위반으로 처리한다.
 
 ### 하네스 엔지니어링 도구
 
@@ -286,4 +286,4 @@ markdownlint --config .markdownlint.yaml "**/*.md"
 
 ## 관련 문서
 
-[[fastapi/_docs/entity-rules\|엔티티 규칙]] · [[fastapi/_docs/auth-rules\|인증 규칙]] · [[fastapi/_docs/db-rules\|DB 규칙]] · [[fastapi/_docs/scaffold-rules\|스캐폴드 규칙]] · [[fastapi/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]] · [[fastapi/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]]
+[[fastapi/_docs/CLAUDE\|Backend Docs]] · [[fastapi/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]] · [[fastapi/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]]

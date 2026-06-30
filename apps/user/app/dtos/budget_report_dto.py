@@ -11,6 +11,7 @@ class SetBudgetCommand:
     monthly_budget: int
     period_start: date
     period_end: date
+    meal_type: str = "total"  # total / morning / lunch / dinner
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class BudgetPlanView:
     remaining: int
     period_start: date
     period_end: date
+    meal_type: str = "total"
 
 
 @dataclass(frozen=True)

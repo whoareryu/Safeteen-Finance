@@ -116,4 +116,4 @@ SQLAlchemy Mapped 패턴으로 apps.database.Base 상속 모델을 작성해 주
 
 ## 관련 문서
 
-[[fastapi/CLAUDE\|Backend CLAUDE]]
+[[fastapi/_docs/CLAUDE\|Backend Docs]]

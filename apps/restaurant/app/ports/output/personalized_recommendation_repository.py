@@ -10,6 +10,12 @@ class PersonalizedRecommendationRepository(ABC):
 
     @abstractmethod
     def candidate_restaurants(
-        self, db: Session, *, excluded_ids: list[int], limit: int
+        self,
+        db: Session,
+        *,
+        excluded_ids: list[int],
+        limit: int,
+        lat: float | None = None,
+        lng: float | None = None,
     ) -> list[dict]:
         ...

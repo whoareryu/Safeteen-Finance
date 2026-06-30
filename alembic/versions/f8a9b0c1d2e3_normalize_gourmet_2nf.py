@@ -67,7 +67,7 @@ def upgrade() -> None:
             sa.Column("restaurant_id", sa.Integer(), nullable=False),
             sa.Column("avg_price", sa.Integer(), nullable=True),
             sa.ForeignKeyConstraint(
-                ["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"
+                ["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"
             ),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint("restaurant_id", name="uq_restaurant_prices_restaurant_id"),
@@ -89,7 +89,7 @@ def upgrade() -> None:
             sa.Column("sort_order", sa.Integer(), server_default="0", nullable=False),
             sa.Column("unit_price", sa.Integer(), nullable=True),
             sa.ForeignKeyConstraint(
-                ["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"
+                ["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"
             ),
             sa.PrimaryKeyConstraint("id"),
         )
@@ -105,41 +105,37 @@ def upgrade() -> None:
                 sa.Column("category_id", sa.Integer(), nullable=True),
             )
 
-        op.execute(
-            """
-            UPDATE restaurants r
-            SET category_id = c.id
-            FROM food_categories c
-            WHERE r.category_slug = c.slug
-            """
-        )
-        op.execute(
-            """
-            UPDATE restaurants
-            SET category_id = (SELECT id FROM food_categories WHERE slug = 'hansik')
-            WHERE category_id IS NULL
-            """
-        )
+        op.execute(sa.text(
+            "UPDATE restaurants r "
+            "SET category_id = c.id "
+            "FROM food_categories c "
+            "WHERE r.category_slug = c.slug"
+        ))
+        op.execute(sa.text(
+            "UPDATE restaurants "
+            "SET category_id = (SELECT id FROM food_categories WHERE slug = 'hansik') "
+            "WHERE category_id IS NULL"
+        ))
 
-        op.execute(
-            """
-            INSERT INTO restaurant_prices (restaurant_id, avg_price)
-            SELECT r.id, r.avg_price FROM restaurants r
-            WHERE r.avg_price IS NOT NULL
-              AND NOT EXISTS (
-                SELECT 1 FROM restaurant_prices p WHERE p.restaurant_id = r.id
-              )
-            """
-        )
-        op.execute(
-            """
-            INSERT INTO restaurant_menus (restaurant_id, name, is_signature, sort_order)
-            SELECT id, signature_menu, true, 0 FROM restaurants
-            WHERE COALESCE(TRIM(signature_menu), '') <> ''
-            """
-        )
+        inspector = sa.inspect(bind)
+        if _has_column(inspector, "restaurants", "avg_price"):
+            op.execute(sa.text(
+                "INSERT INTO restaurant_prices (restaurant_id, avg_price) "
+                "SELECT r.id, r.avg_price FROM restaurants r "
+                "WHERE r.avg_price IS NOT NULL "
+                "AND NOT EXISTS (SELECT 1 FROM restaurant_prices p WHERE p.restaurant_id = r.id)"
+            ))
 
-        op.alter_column("restaurants", "category_id", nullable=False)
+        if _has_column(inspector, "restaurants", "signature_menu"):
+            op.execute(sa.text(
+                "INSERT INTO restaurant_menus (restaurant_id, name, is_signature, sort_order) "
+                "SELECT id, signature_menu, true, 0 FROM restaurants "
+                "WHERE COALESCE(TRIM(signature_menu), '') <> ''"
+            ))
+
+        op.execute(sa.text(
+            "ALTER TABLE restaurants ALTER COLUMN category_id SET NOT NULL"
+        ))
         inspector = sa.inspect(bind)
         fk_names = {fk["name"] for fk in inspector.get_foreign_keys("restaurants")}
         if "fk_restaurants_category_id" not in fk_names:
@@ -161,15 +157,12 @@ def upgrade() -> None:
             "ix_restaurants_category_price_id",
             "ix_restaurants_category_slug",
         ):
-            try:
-                op.drop_index(idx, table_name="restaurants")
-            except Exception:
-                pass
+            op.execute(sa.text(f"DROP INDEX IF EXISTS {idx}"))
 
-        op.drop_column("restaurants", "category_slug")
-        op.drop_column("restaurants", "category_label")
-        op.drop_column("restaurants", "avg_price")
-        op.drop_column("restaurants", "signature_menu")
+        for col in ("category_slug", "category_label", "avg_price", "signature_menu"):
+            inspector = sa.inspect(bind)
+            if _has_column(inspector, "restaurants", col):
+                op.drop_column("restaurants", col)
 
         inspector = sa.inspect(bind)
         if not _has_index(inspector, "restaurants", "ix_restaurants_category_district_id"):

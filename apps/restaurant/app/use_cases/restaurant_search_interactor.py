@@ -6,6 +6,9 @@ import logging
 
 from sqlalchemy.orm import Session
 
+from typing import TYPE_CHECKING
+
+from restaurant.app.dtos.restaurant_browse_dto import RestaurantBrowseRow
 from restaurant.data.category_topics import (
     CATEGORY_EXTRA_TOPICS,
     COMMON_TOPICS,
@@ -17,15 +20,15 @@ from restaurant.data.search_keywords import (
     topic_slugs_for_query,
 )
 from restaurant.app.use_cases.restaurant_browse_interactor import (
-    RestaurantBrowseRow,
-    bounded_restaurant_slice,
     browse_category_of,
-    fetch_text_search_candidates,
     pick_mixed_by_category,
     rows_to_card_summaries,
     sort_rows_by_distance,
 )
 from restaurant.domain.location import distance_km_to_entity
+
+if TYPE_CHECKING:
+    from restaurant.app.ports.output.restaurant_browse_repository import IRestaurantBrowseRepository
 
 
 logger = logging.getLogger(__name__)
@@ -112,6 +115,7 @@ def search_restaurants(
     user_lng: float | None = None,
     offset: int = 0,
     limit: int = DEFAULT_SEARCH_PAGE_SIZE,
+    repo: IRestaurantBrowseRepository | None = None,
 ) -> dict:
     raw = q.strip()
     if not raw:
@@ -128,6 +132,10 @@ def search_restaurants(
             },
         }
 
+    if repo is None:
+        from restaurant.adapter.outbound.pg.browse_pg_repository import BrowsePgRepository
+        repo = BrowsePgRepository()
+
     terms = expand_search_terms(raw)
 
     patterns: list[str] = []
@@ -141,12 +149,12 @@ def search_restaurants(
             if p not in patterns:
                 patterns.append(p)
 
-    rows_from_fts = fetch_text_search_candidates(
+    rows_from_fts = repo.fetch_text_search_candidates(
         db, patterns=patterns, limit=2_200
     )
     by_id = {r.id: r for r in rows_from_fts}
     if len(by_id) < 800:
-        for r in bounded_restaurant_slice(
+        for r in repo.bounded_slice(
             db,
             limit_rows=14_000,
             rotation_salt=abs(hash(raw)) % (2**31 - 1),

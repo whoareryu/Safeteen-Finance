@@ -10,6 +10,9 @@ class RecommendationRequest(BaseModel):
     weather: str | None = None
     excluded_ids: list[int] = Field(default_factory=list)  # "마음에 안 들어" 누적
     genre_ranking: list[str] = Field(default_factory=list)  # 온보딩 취향 (선택)
+    lat: float | None = None  # 사용자 위치 (위도)
+    lng: float | None = None  # 사용자 위치 (경도)
+    dining_mode: str | None = None  # dine_in / pickup / delivery
 
 
 class RecommendationCardResponse(BaseModel):

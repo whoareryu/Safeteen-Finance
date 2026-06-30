@@ -17,6 +17,7 @@ from restaurant.app.use_cases.strategies.recommendation_scoring_strategy import 
 )
 
 _SLOT_LABEL = {"morning": "아침", "lunch": "점심", "dinner": "저녁"}
+_DINING_LABEL = {"dine_in": "매장에서", "pickup": "포장으로", "delivery": "배달로"}
 _CANDIDATE_POOL = 200
 
 
@@ -34,6 +35,8 @@ class PersonalizedRecommendationInteractor(PersonalizedRecommendationUseCase):
             db,
             excluded_ids=query.preference.excluded_restaurant_ids,
             limit=_CANDIDATE_POOL,
+            lat=query.lat,
+            lng=query.lng,
         )
         if not candidates:
             raise ValueError("추천할 식당이 없습니다.")
@@ -52,7 +55,12 @@ class PersonalizedRecommendationInteractor(PersonalizedRecommendationUseCase):
     def _reason(self, candidate: dict, query: PersonalizedQuery) -> str:
         genre = candidate.get("genre", "")
         ranking = query.preference.genre_ranking
-        if genre in ranking or candidate.get("slug", "") in ranking:
-            return f"취향에 맞는 {genre} 한 곳이에요."
         slot = _SLOT_LABEL.get(query.time_slot, "오늘")
-        return f"{slot}에 어울리는 {genre} 추천이에요."
+        dining = _DINING_LABEL.get(query.dining_mode or "", "")
+        if genre in ranking or candidate.get("slug", "") in ranking:
+            base = f"취향에 맞는 {genre} 한 곳이에요."
+        else:
+            base = f"{slot}에 어울리는 {genre} 추천이에요."
+        if dining:
+            return f"{slot}에 {dining} 즐기기 좋은 {genre}이에요."
+        return base

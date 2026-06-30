@@ -1,7 +1,7 @@
 # GourmetMate 마이그레이션 계획
 
 기획서(`GourmetMate_기획서.docx`) 기준 `apps/restaurant` + `apps/user` 마이그레이션
-실행 계획과 순차 작업 목록. 상위 규칙은 [[fastapi/CLAUDE|Backend CLAUDE]]를 먼저 읽는다.
+실행 계획과 순차 작업 목록. 상위 규칙은 [[fastapi/_docs/CLAUDE|Backend Docs]]를 먼저 읽는다.
 
 ---
 
@@ -161,4 +161,4 @@
 
 ## 관련 문서
 
-[[fastapi/CLAUDE|Backend CLAUDE]] · [[fastapi/apps/restaurant/_docs/CLAUDE|Restaurant CLAUDE]] · [[fastapi/apps/restaurant/_docs/gourmetmate_v2_erd|ERD v2]] · [[fastapi/apps/restaurant/_docs/EXTERNAL_API_KEYS|외부 API 키]]
+[[fastapi/_docs/CLAUDE|Backend Docs]]

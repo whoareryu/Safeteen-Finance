@@ -25,13 +25,17 @@ class BudgetReportPgRepository(BudgetReportRepository):
             remaining=max(0, plan.monthly_budget - plan.spent_amount),
             period_start=plan.period_start,
             period_end=plan.period_end,
+            meal_type=plan.meal_type,
         )
 
-    def _active(self, db: Session, user_id: int, on: date) -> MealPlan | None:
+    def _active(
+        self, db: Session, user_id: int, on: date, meal_type: str = "total"
+    ) -> MealPlan | None:
         stmt = (
             select(MealPlan)
             .where(
                 MealPlan.user_id == user_id,
+                MealPlan.meal_type == meal_type,
                 MealPlan.period_start <= on,
                 MealPlan.period_end >= on,
             )
@@ -48,11 +52,13 @@ class BudgetReportPgRepository(BudgetReportRepository):
         monthly_budget: int,
         period_start: date,
         period_end: date,
+        meal_type: str = "total",
     ) -> BudgetPlanView:
-        plan = self._active(db, user_id, period_start)
+        plan = self._active(db, user_id, period_start, meal_type)
         if plan is None:
             plan = MealPlan(
                 user_id=user_id,
+                meal_type=meal_type,
                 monthly_budget=monthly_budget,
                 spent_amount=0,
                 period_start=period_start,
@@ -68,10 +74,24 @@ class BudgetReportPgRepository(BudgetReportRepository):
         return self._view(plan)
 
     def get_active_plan(
-        self, db: Session, *, user_id: int, on: date
+        self, db: Session, *, user_id: int, on: date, meal_type: str = "total"
     ) -> BudgetPlanView | None:
-        plan = self._active(db, user_id, on)
+        plan = self._active(db, user_id, on, meal_type)
         return self._view(plan) if plan else None
+
+    def get_all_active_plans(
+        self, db: Session, *, user_id: int, on: date
+    ) -> list[BudgetPlanView]:
+        stmt = (
+            select(MealPlan)
+            .where(
+                MealPlan.user_id == user_id,
+                MealPlan.period_start <= on,
+                MealPlan.period_end >= on,
+            )
+        )
+        plans = db.scalars(stmt).all()
+        return [self._view(p) for p in plans]
 
     def add_expense(
         self, db: Session, *, user_id: int, command: ExpenseCommand

@@ -37,6 +37,15 @@ def _plan_response(view: BudgetPlanView) -> BudgetPlanResponse:
     )
 
 
+@budget_report_router.get("/plans", response_model=list[BudgetPlanResponse])
+def read_all_plans(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+    use_case: BudgetReportUseCase = Depends(get_budget_report_use_case),
+) -> list[BudgetPlanResponse]:
+    return [_plan_response(v) for v in use_case.all_plans(db, user.id)]
+
+
 @budget_report_router.get("/plan", response_model=BudgetPlanResponse | None)
 def read_plan(
     user: User = Depends(get_current_user),
@@ -61,6 +70,7 @@ def set_budget(
             monthly_budget=body.monthly_budget,
             period_start=body.period_start,
             period_end=body.period_end,
+            meal_type=body.meal_type,
         ),
     )
     return _plan_response(view)

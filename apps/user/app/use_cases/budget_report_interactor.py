@@ -28,10 +28,14 @@ class BudgetReportInteractor(BudgetReportUseCase):
             monthly_budget=command.monthly_budget,
             period_start=command.period_start,
             period_end=command.period_end,
+            meal_type=command.meal_type,
         )
 
     def current_plan(self, db: Session, user_id: int) -> BudgetPlanView | None:
         return self._repository.get_active_plan(db, user_id=user_id, on=date.today())
+
+    def all_plans(self, db: Session, user_id: int) -> list[BudgetPlanView]:
+        return self._repository.get_all_active_plans(db, user_id=user_id, on=date.today())
 
     def add_expense(
         self, db: Session, user: User, command: ExpenseCommand

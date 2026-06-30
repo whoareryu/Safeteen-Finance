@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("first_viewed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_viewed_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(
-            ["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"
+            ["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("restaurant_id"),

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.database import Base, IntIdPrimaryKeyMixin
@@ -17,6 +17,7 @@ class MealPlan(IntIdPrimaryKeyMixin, Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         index=True,
     )
+    meal_type: Mapped[str] = mapped_column(String(16), default="total", server_default="total")
     monthly_budget: Mapped[int] = mapped_column(Integer)
     spent_amount: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     period_start: Mapped[date] = mapped_column(Date, index=True)

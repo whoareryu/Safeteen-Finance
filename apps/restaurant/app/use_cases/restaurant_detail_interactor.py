@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.orm import Session
 
-from restaurant.adapter.outbound.http.restaurant_detail_adapter import OrmRestaurantDetailAdapter
-from restaurant.adapter.inbound.api.schemas.restaurant_detail_schema import RestaurantDetailSchema
-from restaurant.app.dtos.restaurant_detail_dto import RestaurantDetailResponse
 from restaurant.app.ports.input.restaurant_detail_use_case import RestaurantDetailUseCase
 from restaurant.app.ports.output.restaurant_detail_repository import RestaurantDetailRepository
+
+if TYPE_CHECKING:
+    from restaurant.adapter.outbound.http.restaurant_detail_adapter import OrmRestaurantDetailAdapter
 
 
 class RestaurantDetailInteractor(RestaurantDetailUseCase):
@@ -19,7 +19,10 @@ class RestaurantDetailInteractor(RestaurantDetailUseCase):
         adapter: OrmRestaurantDetailAdapter | None = None,
         repository: RestaurantDetailRepository | None = None,
     ) -> None:
-        self._adapter = adapter or OrmRestaurantDetailAdapter()
+        if adapter is None:
+            from restaurant.adapter.outbound.http.restaurant_detail_adapter import OrmRestaurantDetailAdapter
+            adapter = OrmRestaurantDetailAdapter()
+        self._adapter = adapter
         self._repository = repository
 
     def get_detail(self, db: Session, restaurant_id: int) -> dict[str, Any] | None:
@@ -34,5 +37,3 @@ class RestaurantDetailInteractor(RestaurantDetailUseCase):
             return None
         return str(detail.get("name") or "")
 
-    async def introduce_myself(self, schema: RestaurantDetailSchema) -> RestaurantDetailResponse:
-        return RestaurantDetailResponse(id=schema.id, name=schema.name)

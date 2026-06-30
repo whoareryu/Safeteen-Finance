@@ -17,7 +17,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("DROP TABLE IF EXISTS restaurant CASCADE")
+    import sqlalchemy as sa
+    op.execute(sa.text("DROP TABLE IF EXISTS restaurant CASCADE"))
 
 
 def downgrade() -> None:

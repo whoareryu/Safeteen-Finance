@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
-from restaurant.adapter.outbound.pg.restaurant_pg_repository import RestaurantRepository
 from restaurant.app.use_cases.restaurant_search_interactor import search_restaurants
+
+if TYPE_CHECKING:
+    from restaurant.app.ports.output.restaurant_repository import IRestaurantRepository
 
 
 def build_gourmet_context(
@@ -13,6 +17,7 @@ def build_gourmet_context(
     *,
     restaurant_id: int | None = None,
     q: str | None = None,
+    repo: IRestaurantRepository | None = None,
 ) -> str:
     parts: list[str] = [
         "당신은 서울 맛집 앱 GourmetMate 의 AI 미식 가이드입니다.",
@@ -20,7 +25,10 @@ def build_gourmet_context(
     ]
 
     if restaurant_id is not None:
-        row = RestaurantRepository().get_by_id(db, restaurant_id)
+        if repo is None:
+            from restaurant.adapter.outbound.pg.restaurant_pg_repository import RestaurantRepository
+            repo = RestaurantRepository()
+        row = repo.get_by_id(db, restaurant_id)
         if row is not None:
             slug, label = row.category_pair()
             menu_names = [

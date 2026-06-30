@@ -54,8 +54,11 @@ CHILD_TABLES = (
     "restaurant_prices",
     "restaurant_tags",
     "restaurant_operating_hours",
+    "restaurant_view_stats",
+    "restaurant_visits",
     "daily_recommendations",
-    "favorites",
+    "daily_picks",
+    "meal_plan_expenses",
 )
 
 RESTAURANT_COLUMNS = [
@@ -70,7 +73,6 @@ RESTAURANT_COLUMNS = [
     "longitude",
     "description",
     "image_url",
-    "view_count",
     "category_id",
     "sigungu_id",
     "biz_classification_id",
@@ -78,6 +80,10 @@ RESTAURANT_COLUMNS = [
 
 
 def _env_database_url() -> str:
+    # 환경변수 우선 (Docker 컨테이너 내부)
+    env_url = os.getenv("DATABASE_URL", "").strip()
+    if env_url:
+        return env_url.replace("postgresql+asyncpg://", "postgresql://").split("?")[0]
     for line in (ROOT / ".env").read_text().splitlines():
         if line.startswith("DATABASE_URL"):
             raw = line.split("=", 1)[1].strip()
@@ -207,7 +213,10 @@ async def run(execute: bool) -> None:
         print("[dry-run] DB 미변경. 적재하려면 --execute")
         return
 
-    conn = await asyncpg.connect(_env_database_url(), ssl="require")
+    db_url = _env_database_url()
+    # 로컬 Docker 컨테이너는 SSL 불필요
+    use_ssl = "neon.tech" in db_url or os.getenv("DB_SSL", "") == "require"
+    conn = await asyncpg.connect(db_url, ssl="require" if use_ssl else False)
     try:
         async with conn.transaction():
             cat_map, sig_map, biz_map = await _ensure_masters(conn, rows)
@@ -228,7 +237,6 @@ async def run(execute: bool) -> None:
                         r["lng"],
                         "",
                         "",
-                        0,
                         cat_map[r["slug"]],
                         sig_map.get(r["gu"] or "서울특별시", sig_map.get("서울특별시")),
                         biz_map[r["biz_minor"]],

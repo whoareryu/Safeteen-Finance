@@ -56,6 +56,9 @@ def post_today_recommendation(
         ),
         time_slot=slot,
         weather=payload.weather,
+        lat=payload.lat,
+        lng=payload.lng,
+        dining_mode=payload.dining_mode,
     )
     try:
         pick = use_case.pick_one(db, query)

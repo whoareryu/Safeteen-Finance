@@ -1,90 +1,16 @@
-"""``restaurants`` 테이블 기반 브라우즈·카드 목록 헬퍼."""
+"""브라우즈·카드 목록 순수 로직 — SQL·ORM 의존 없음."""
 
 from __future__ import annotations
 
 import hashlib
 from collections import defaultdict
-from dataclasses import dataclass
-from datetime import date
 
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
-
+from restaurant.app.dtos.restaurant_browse_dto import RestaurantBrowseRow
 from restaurant.data.category_topics import TopicDef
 from restaurant.data.category_catalog import CATEGORY_LABEL_BY_SLUG
 from restaurant.data.ingestion.category_normalizer import classify_sgma_category
 from restaurant.data.restaurant_images import image_url_for_restaurant
-from restaurant.adapter.outbound.orm.biz_classification_orm import BizClassification
-from restaurant.adapter.outbound.orm.food_category_orm import FoodCategory
-from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
-from restaurant.adapter.outbound.orm.sigungu_district_orm import SigunguDistrict
 from restaurant.domain.location import distance_km_to_entity
-
-
-@dataclass(slots=True)
-class RestaurantBrowseRow:
-    """목록·검색 풀용 — 필요 컬럼만 projection."""
-
-    id: int
-    name: str
-    store_name: str
-    branch_name: str
-    category_slug: str
-    category_label: str
-    biz_mid_name: str
-    biz_minor_name: str
-    ksic_name: str
-    biz_number: str
-    district: str
-    sigungu_name: str
-    latitude: float | None
-    longitude: float | None
-    road_address: str = ""
-    parcel_address: str = ""
-    image_url: str = ""
-
-
-RESTAURANT_BROWSE_COLUMNS = (
-    Restaurant.id,
-    Restaurant.name,
-    Restaurant.store_name,
-    Restaurant.branch_name,
-    FoodCategory.slug,
-    FoodCategory.label,
-    BizClassification.biz_mid_name,
-    BizClassification.biz_minor_name,
-    BizClassification.ksic_name,
-    Restaurant.biz_number,
-    SigunguDistrict.district_label,
-    SigunguDistrict.sigungu_name,
-    Restaurant.latitude,
-    Restaurant.longitude,
-    Restaurant.road_address,
-    Restaurant.parcel_address,
-    Restaurant.image_url,
-)
-
-
-def _browse_row_from_tuple(t: tuple) -> RestaurantBrowseRow:
-    return RestaurantBrowseRow(
-        id=int(t[0]),
-        name=str(t[1] or ""),
-        store_name=str(t[2] or ""),
-        branch_name=str(t[3] or ""),
-        category_slug=str(t[4] or "hansik"),
-        category_label=str(t[5] or ""),
-        biz_mid_name=str(t[6] or ""),
-        biz_minor_name=str(t[7] or ""),
-        ksic_name=str(t[8] or ""),
-        biz_number=str(t[9] or ""),
-        district=str(t[10] or ""),
-        sigungu_name=str(t[11] or ""),
-        latitude=t[12],
-        longitude=t[13],
-        road_address=str(t[14] or ""),
-        parcel_address=str(t[15] or ""),
-        image_url=str(t[16] or ""),
-    )
 
 
 def browse_category_of(r: RestaurantBrowseRow) -> tuple[str, str]:
@@ -255,95 +181,3 @@ def browse_topic_row(
         ),
         "link_title": link_title,
     }
-
-
-def _browse_base_select():
-    return (
-        select(*RESTAURANT_BROWSE_COLUMNS)
-        .join(FoodCategory, Restaurant.category_id == FoodCategory.id)
-        .join(SigunguDistrict, Restaurant.sigungu_id == SigunguDistrict.id)
-        .join(
-            BizClassification,
-            Restaurant.biz_classification_id == BizClassification.id,
-        )
-    )
-
-
-def count_restaurants(db: Session, *, category_slug: str | None = None) -> int:
-    stmt = select(func.count()).select_from(Restaurant).join(
-        FoodCategory, Restaurant.category_id == FoodCategory.id
-    )
-    if category_slug:
-        stmt = stmt.where(FoodCategory.slug == category_slug)
-    return int(db.execute(stmt).scalar_one() or 0)
-
-
-def bounded_restaurant_slice(
-    db: Session,
-    *,
-    limit_rows: int = 10_000,
-    rotation_salt: int = 0,
-    day_ord: int | None = None,
-    total_row_count: int | None = None,
-    category_slug: str | None = None,
-) -> list[RestaurantBrowseRow]:
-    """대량 ``restaurants`` — id 순 윈도우(선택: 카테고리 필터)."""
-    do = day_ord if day_ord is not None else date.today().toordinal()
-    if total_row_count is not None:
-        cnt = int(total_row_count)
-    else:
-        cnt = count_restaurants(db, category_slug=category_slug)
-    if cnt == 0:
-        return []
-    n = min(limit_rows, cnt)
-    span = cnt - n
-    off = ((do * 79_691 + rotation_salt * 3_961) % (span + 1)) if span > 0 else 0
-    stmt = _browse_base_select()
-    if category_slug:
-        stmt = stmt.where(FoodCategory.slug == category_slug)
-    stmt = stmt.order_by(Restaurant.id).offset(off).limit(n)
-    return [_browse_row_from_tuple(t) for t in db.execute(stmt).all()]
-
-
-RESTAURANT_TEXT_SEARCH_COLUMNS = (
-    Restaurant.name,
-    Restaurant.store_name,
-    Restaurant.branch_name,
-    BizClassification.biz_mid_name,
-    BizClassification.biz_minor_name,
-    BizClassification.ksic_name,
-    SigunguDistrict.district_label,
-    SigunguDistrict.sigungu_name,
-    Restaurant.road_address,
-    Restaurant.parcel_address,
-)
-
-
-def fetch_text_search_candidates(
-    db: Session,
-    *,
-    patterns: list[str],
-    limit: int = 1_600,
-) -> list[RestaurantBrowseRow]:
-    uniq: list[str] = []
-    for p in patterns:
-        if p and p not in uniq:
-            uniq.append(p)
-        if len(uniq) >= 14:
-            break
-    if not uniq:
-        return bounded_restaurant_slice(db, limit_rows=min(6_000, limit * 4))
-    parts = [or_(*[col.ilike(p) for col in RESTAURANT_TEXT_SEARCH_COLUMNS]) for p in uniq]
-    cond = or_(*parts) if len(parts) > 1 else parts[0]
-    stmt = _browse_base_select().where(cond).limit(limit)
-    rows = [_browse_row_from_tuple(t) for t in db.execute(stmt).all()]
-    if not rows:
-        return bounded_restaurant_slice(db, limit_rows=min(8_000, limit * 5))
-    return rows
-
-
-def restaurant_display_name(db: Session, store_id: int) -> str | None:
-    r = db.get(Restaurant, store_id)
-    if r is None:
-        return None
-    return r.display_name()

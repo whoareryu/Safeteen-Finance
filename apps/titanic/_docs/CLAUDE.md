@@ -134,9 +134,8 @@ python -c "from titanic.adapter.inbound.api import titanic_router; print('ok')"
 
 ## 타이타닉 도메인 문서 연결
 
-* 타이타닉 도메인 문서 연결
-* 타이타닉 피처 정리 : [[titanic-features]]
-* 타이타닉 머신러닝 : [[titanic-machine-learning]]
-* 타이타닉 ERD : [[titanic-erd]]
-* 타이타닉 NF : [[titanic-nf]]
-* 타이타닉 알고리즘 : [[titanic-algorithm]]
+* [[fastapi/apps/titanic/_docs/titanic-features\|타이타닉 피처]]
+* [[fastapi/apps/titanic/_docs/titanic-machine-learning\|타이타닉 머신러닝]]
+* [[fastapi/apps/titanic/_docs/titanic-erd\|타이타닉 ERD]]
+* [[fastapi/apps/titanic/_docs/titanic-nf\|타이타닉 NF]]
+* [[fastapi/apps/titanic/_docs/titanic-algorithm\|타이타닉 알고리즘]]

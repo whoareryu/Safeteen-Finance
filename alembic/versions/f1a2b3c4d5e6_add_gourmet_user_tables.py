@@ -69,7 +69,7 @@ def upgrade() -> None:
             "ix_user_preferences_user_id", "user_preferences", ["user_id"]
         )
 
-    if not _has_table("meal_plan_expenses"):
+    if not _has_table("meal_plan_expenses") and _has_table("meal_plans"):
         op.create_table(
             "meal_plan_expenses",
             sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),

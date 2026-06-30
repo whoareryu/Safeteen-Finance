@@ -83,7 +83,7 @@ def upgrade() -> None:
             sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
             sa.Column("restaurant_id", sa.Integer(), nullable=False),
             sa.Column("tag_id", sa.Integer(), nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
             sa.ForeignKeyConstraint(["tag_id"], ["tags.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint(
@@ -101,7 +101,7 @@ def upgrade() -> None:
             sa.Column("phone", sa.String(32), nullable=True),
             sa.Column("place_url", sa.String(512), nullable=True),
             sa.Column("source_note", sa.Text(), server_default="", nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint("restaurant_id"),
         )
@@ -122,7 +122,7 @@ def upgrade() -> None:
             sa.Column("close_time", sa.String(8), nullable=True),
             sa.Column("is_closed", sa.Boolean(), server_default="false", nullable=False),
             sa.Column("note", sa.String(256), server_default="", nullable=False),
-            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurant.id"], ondelete="CASCADE"),
+            sa.ForeignKeyConstraint(["restaurant_id"], ["restaurants.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint(
                 "restaurant_id", "weekday", name="uq_restaurant_operating_hours_day"
@@ -135,28 +135,25 @@ def upgrade() -> None:
         )
 
     inspector = sa.inspect(bind)
-    if _has_column(inspector, "restaurants", "district"):
-        op.execute(
-            """
-            INSERT INTO sigungu_districts (sigungu_name, district_label)
-            SELECT DISTINCT
-                COALESCE(NULLIF(TRIM(sigungu_name), ''), '미상'),
-                COALESCE(NULLIF(TRIM(district), ''), '미상')
-            FROM restaurants
-            ON CONFLICT ON CONSTRAINT uq_sigungu_districts_name_label DO NOTHING
-            """
-        )
-        op.execute(
-            """
-            INSERT INTO biz_classifications (biz_mid_name, biz_minor_name, ksic_name)
-            SELECT DISTINCT
-                COALESCE(TRIM(biz_mid_name), ''),
-                COALESCE(TRIM(biz_minor_name), ''),
-                COALESCE(TRIM(ksic_name), '')
-            FROM restaurants
-            ON CONFLICT ON CONSTRAINT uq_biz_classifications_triple DO NOTHING
-            """
-        )
+    if _has_column(inspector, "restaurants", "district") and _has_column(inspector, "restaurants", "sigungu_name"):
+        op.execute(sa.text(
+            "INSERT INTO sigungu_districts (sigungu_name, district_label) "
+            "SELECT DISTINCT "
+            "COALESCE(NULLIF(TRIM(sigungu_name), ''), '미상'), "
+            "COALESCE(NULLIF(TRIM(district), ''), '미상') "
+            "FROM restaurants "
+            "ON CONFLICT ON CONSTRAINT uq_sigungu_districts_name_label DO NOTHING"
+        ))
+    if _has_column(inspector, "restaurants", "biz_mid_name"):
+        op.execute(sa.text(
+            "INSERT INTO biz_classifications (biz_mid_name, biz_minor_name, ksic_name) "
+            "SELECT DISTINCT "
+            "COALESCE(TRIM(biz_mid_name), ''), "
+            "COALESCE(TRIM(biz_minor_name), ''), "
+            "COALESCE(TRIM(ksic_name), '') "
+            "FROM restaurants "
+            "ON CONFLICT ON CONSTRAINT uq_biz_classifications_triple DO NOTHING"
+        ))
 
     inspector = sa.inspect(bind)
     if not _has_column(inspector, "restaurants", "sigungu_id"):
@@ -171,25 +168,21 @@ def upgrade() -> None:
         )
 
     if _has_column(inspector, "restaurants", "district"):
-        op.execute(
-            """
-            UPDATE restaurants r
-            SET sigungu_id = s.id
-            FROM sigungu_districts s
-            WHERE COALESCE(NULLIF(TRIM(r.sigungu_name), ''), '미상') = s.sigungu_name
-              AND COALESCE(NULLIF(TRIM(r.district), ''), '미상') = s.district_label
-            """
-        )
-        op.execute(
-            """
-            UPDATE restaurants r
-            SET biz_classification_id = b.id
-            FROM biz_classifications b
-            WHERE COALESCE(TRIM(r.biz_mid_name), '') = b.biz_mid_name
-              AND COALESCE(TRIM(r.biz_minor_name), '') = b.biz_minor_name
-              AND COALESCE(TRIM(r.ksic_name), '') = b.ksic_name
-            """
-        )
+        if _has_column(inspector, "restaurants", "sigungu_name"):
+            op.execute(sa.text(
+                "UPDATE restaurants r SET sigungu_id = s.id "
+                "FROM sigungu_districts s "
+                "WHERE COALESCE(NULLIF(TRIM(r.sigungu_name), ''), '미상') = s.sigungu_name "
+                "AND COALESCE(NULLIF(TRIM(r.district), ''), '미상') = s.district_label"
+            ))
+        if _has_column(inspector, "restaurants", "biz_mid_name"):
+            op.execute(sa.text(
+                "UPDATE restaurants r SET biz_classification_id = b.id "
+                "FROM biz_classifications b "
+                "WHERE COALESCE(TRIM(r.biz_mid_name), '') = b.biz_mid_name "
+                "AND COALESCE(TRIM(r.biz_minor_name), '') = b.biz_minor_name "
+                "AND COALESCE(TRIM(r.ksic_name), '') = b.ksic_name"
+            ))
 
         default_sigungu = bind.execute(
             sa.text(
@@ -236,39 +229,26 @@ def upgrade() -> None:
 
         inspector = sa.inspect(bind)
         if _has_column(inspector, "restaurants", "ai_tags"):
-            op.execute(
-                """
-                INSERT INTO tags (slug, label)
-                SELECT DISTINCT
-                    SUBSTRING(MD5(TRIM(elem)) FROM 1 FOR 32),
-                    LEFT(TRIM(elem), 128)
-                FROM restaurants r,
-                     LATERAL jsonb_array_elements_text(
-                         CASE
-                             WHEN jsonb_typeof(r.ai_tags) = 'array' THEN r.ai_tags
-                             ELSE '[]'::jsonb
-                         END
-                     ) AS elem
-                WHERE TRIM(elem) <> ''
-                ON CONFLICT (slug) DO NOTHING
-                """
-            )
-            op.execute(
-                """
-                INSERT INTO restaurant_tags (restaurant_id, tag_id)
-                SELECT DISTINCT r.id, t.id
-                FROM restaurants r,
-                     LATERAL jsonb_array_elements_text(
-                         CASE
-                             WHEN jsonb_typeof(r.ai_tags) = 'array' THEN r.ai_tags
-                             ELSE '[]'::jsonb
-                         END
-                     ) AS elem
-                JOIN tags t ON t.label = LEFT(TRIM(elem), 128)
-                WHERE TRIM(elem) <> ''
-                ON CONFLICT ON CONSTRAINT uq_restaurant_tags_pair DO NOTHING
-                """
-            )
+            op.execute(sa.text(
+                "INSERT INTO tags (slug, label) "
+                "SELECT DISTINCT SUBSTRING(MD5(TRIM(elem)) FROM 1 FOR 32), LEFT(TRIM(elem), 128) "
+                "FROM restaurants r, "
+                "LATERAL jsonb_array_elements_text("
+                "CASE WHEN jsonb_typeof(r.ai_tags) = 'array' THEN r.ai_tags ELSE '[]'::jsonb END"
+                ") AS elem "
+                "WHERE TRIM(elem) <> '' ON CONFLICT (slug) DO NOTHING"
+            ))
+            op.execute(sa.text(
+                "INSERT INTO restaurant_tags (restaurant_id, tag_id) "
+                "SELECT DISTINCT r.id, t.id "
+                "FROM restaurants r, "
+                "LATERAL jsonb_array_elements_text("
+                "CASE WHEN jsonb_typeof(r.ai_tags) = 'array' THEN r.ai_tags ELSE '[]'::jsonb END"
+                ") AS elem "
+                "JOIN tags t ON t.label = LEFT(TRIM(elem), 128) "
+                "WHERE TRIM(elem) <> '' "
+                "ON CONFLICT ON CONSTRAINT uq_restaurant_tags_pair DO NOTHING"
+            ))
 
         for idx in (
             "ix_restaurants_category_district_id",
@@ -301,15 +281,14 @@ def upgrade() -> None:
             ["id"],
             ondelete="RESTRICT",
             )
-        op.alter_column("restaurants", "sigungu_id", nullable=False)
-        op.alter_column("restaurants", "biz_classification_id", nullable=False)
+        op.execute(sa.text("ALTER TABLE restaurants ALTER COLUMN sigungu_id SET NOT NULL"))
+        op.execute(sa.text("ALTER TABLE restaurants ALTER COLUMN biz_classification_id SET NOT NULL"))
 
-        op.drop_column("restaurants", "district")
-        op.drop_column("restaurants", "sigungu_name")
-        op.drop_column("restaurants", "biz_mid_name")
-        op.drop_column("restaurants", "biz_minor_name")
-        op.drop_column("restaurants", "ksic_name")
-        if _has_column(sa.inspect(bind), "restaurants", "ai_tags"):
+        _drop_inspector = sa.inspect(bind)
+        for _col in ("district", "sigungu_name", "biz_mid_name", "biz_minor_name", "ksic_name"):
+            if _has_column(_drop_inspector, "restaurants", _col):
+                op.drop_column("restaurants", _col)
+        if _has_column(_drop_inspector, "restaurants", "ai_tags"):
             op.drop_column("restaurants", "ai_tags")
 
         op.create_index(

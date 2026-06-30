@@ -12,6 +12,6 @@ async def get_current_user(x_user_id: str | None = Header(default=None)) -> User
         user_id = int(x_user_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="X-User-Id는 정수여야 합니다.")
-    user = User.__new__(User)
-    user.id = user_id
+    user = User()
+    user.__dict__["id"] = user_id
     return user

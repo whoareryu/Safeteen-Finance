@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from typing import Annotated, Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -12,13 +12,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import Depends
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 _BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(_BACKEND_DIR / ".env")
@@ -69,6 +70,8 @@ def import_models() -> None:
         "titanic.adapter.outbound.orm.passenger_molly_scaler_orm",
         "titanic.adapter.outbound.orm.passenger_rose_model_orm",
         "titanic.adapter.outbound.orm.passenger_ruth_survivor_orm",
+        # Chef
+        "chef.adapter.outbound.orm.address_orm",
     ]
 
     for model_path in models_to_load:
@@ -204,16 +207,57 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 # ==============================================================================
-# 5. 레거시 호환성 레이어 및 의존성 어노테이션 정의
+# 5. Sync 엔진 및 세션 (restaurant 앱 등 sync SQLAlchemy 사용처)
+# ==============================================================================
+sync_engine = None
+SyncSessionLocal: Optional[sessionmaker[Session]] = None
+
+
+def _get_sync_database_url() -> str:
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL이 설정되지 않았습니다.")
+    url = DATABASE_URL
+    url = url.replace("postgresql+asyncpg://", "postgresql+psycopg://")
+    # sslmode 쿼리 파라미터 제거 (psycopg3에서는 connect_args로 처리)
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query.pop("sslmode", None)
+    query.pop("channel_binding", None)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
+def _init_sync_engine() -> None:
+    global sync_engine, SyncSessionLocal
+    if sync_engine is not None:
+        return
+    if not DATABASE_URL:
+        return
+    try:
+        sync_url = _get_sync_database_url()
+        sync_engine = create_engine(sync_url, pool_pre_ping=True)
+        SyncSessionLocal = sessionmaker(bind=sync_engine, autoflush=False, expire_on_commit=False)
+        logger.info("PostgreSQL 동기 엔진 초기화 완료")
+    except Exception:
+        logger.exception("동기 DB 엔진 생성 실패")
+
+
+def get_sync_db() -> Generator[Session, None, None]:
+    _init_sync_engine()
+    if SyncSessionLocal is None:
+        raise RuntimeError("동기 DB 세션을 초기화할 수 없습니다.")
+    with SyncSessionLocal() as session:
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+
+
+# ==============================================================================
+# 6. 레거시 호환성 레이어 및 의존성 어노테이션 정의
 # ==============================================================================
 AsyncSessionLocal = async_session_maker
-SyncSessionLocal = None
-sync_engine = None
-
-
-async def get_sync_db() -> AsyncGenerator[AsyncSession, None]:
-    async for session in get_db():
-        yield session
 
 
 # FastAPI 0.95+ 사양의 수려한 의존성 주입 타입 선언

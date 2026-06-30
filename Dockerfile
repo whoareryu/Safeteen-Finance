@@ -10,12 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. 의존성 파일 복사 및 설치
+# 4. 기본 의존성만 이미지에 설치 (빌드 캐시 활용)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. 나머지 코드 전체 복사
+# 5. entrypoint 복사 및 실행 권한 부여
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 6. 나머지 코드 전체 복사
 COPY . .
 
-# 6. FastAPI (Uvicorn) 실행 명령 (8000포트 개방)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# 7. 시작 시 requirements.txt 변경분 자동 설치 후 uvicorn 실행
+CMD ["/entrypoint.sh"]

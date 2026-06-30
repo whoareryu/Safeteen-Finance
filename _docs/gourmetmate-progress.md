@@ -1,8 +1,8 @@
 # GourmetMate 진행 현황 / 인계 노트
 
-마지막 갱신: 2026-06-28. 상위 계획은 [[fastapi/_docs/gourmetmate-migration-plan|마이그레이션 계획]].
+마지막 갱신: 2026-06-28. 상위 문서는 [[fastapi/_docs/CLAUDE|Backend Docs]].
 
-**가드레일(불변):** 수업 폴더 `apps/titanic`·`apps/silicon_valley`·`apps/star_craft`,
+**가드레일(불변):** 수업 폴더 `apps/titanic`·`apps/silicon_valley`·`apps/ontology`,
 프론트 `app/portfolio/**`·`titanic-*`·`agent(s)-*`·`lesson-*`·`himedia-*`·
 `neon-flow-lines`·`portfolio-project-tiles` 는 **건드리지 않는다.**
 
@@ -144,7 +144,7 @@ fresh DB엔 실제 생성. **멀티헤드 정리(완료)**: 기존 3 head(titani
 - Neon 접속: `venv/bin/python` + asyncpg, `ssl="require"`, URL 쿼리스트링 제거 후 연결.
 
 ## 🧹 SOLID/헥사고날 리팩터링 (수업 폴더 제외)
-하네스 규칙 점검 후 위반 수정. **수업(titanic·star_craft·silicon_valley) 무수정.**
+하네스 규칙 점검 후 위반 수정. **수업(titanic·ontology·silicon_valley) 무수정.**
 
 수정 결과(before→after):
 - ✅ **스포크 순환결합 restaurant↔user: 다수(양방향) → 0**. 구버전 `meal_plan`·`daily_pick`·
@@ -163,4 +163,4 @@ fresh DB엔 실제 생성. **멀티헤드 정리(완료)**: 기존 3 head(titani
 - import-linter 미설치(계약 정적검증 불가) → 설치 권장. 일부 _docs MD frontmatter `type:` 누락.
 
 ## 관련 문서
-[[fastapi/_docs/gourmetmate-migration-plan|마이그레이션 계획]] · [[fastapi/CLAUDE|Backend CLAUDE]] · [[www/CLAUDE|Frontend CLAUDE]]
+[[fastapi/_docs/CLAUDE|Backend Docs]]

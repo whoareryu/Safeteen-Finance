@@ -24,13 +24,20 @@ class BudgetReportRepository(ABC):
         monthly_budget: int,
         period_start: date,
         period_end: date,
+        meal_type: str = "total",
     ) -> BudgetPlanView:
         ...
 
     @abstractmethod
     def get_active_plan(
-        self, db: Session, *, user_id: int, on: date
+        self, db: Session, *, user_id: int, on: date, meal_type: str = "total"
     ) -> BudgetPlanView | None:
+        ...
+
+    @abstractmethod
+    def get_all_active_plans(
+        self, db: Session, *, user_id: int, on: date
+    ) -> list[BudgetPlanView]:
         ...
 
     @abstractmethod

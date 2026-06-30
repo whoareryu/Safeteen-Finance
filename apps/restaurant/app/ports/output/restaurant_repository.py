@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
-from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
+if TYPE_CHECKING:
+    from restaurant.adapter.outbound.orm.restaurant_orm import Restaurant
 
 
 class IRestaurantRepository(ABC):

@@ -9,6 +9,7 @@ class SetBudgetRequest(BaseModel):
     monthly_budget: int = Field(..., ge=0)
     period_start: date
     period_end: date
+    meal_type: str = "total"  # total / morning / lunch / dinner
 
 
 class ExpenseRequest(BaseModel):
@@ -25,6 +26,7 @@ class BudgetPlanResponse(BaseModel):
     remaining: int
     period_start: date
     period_end: date
+    meal_type: str = "total"
 
 
 class BudgetReportResponse(BaseModel):

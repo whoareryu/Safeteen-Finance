@@ -6,4 +6,4 @@
 
 ## 관련 문서
 
-[[fastapi/CLAUDE\|Backend CLAUDE]] · [[GOURMET_ERD]] · [[gourmetmate_v2_erd]] · [[EXTERNAL_API_KEYS]] · [[restaurant-casting]]
+[[fastapi/CLAUDE\|Backend CLAUDE]] · [[fastapi/apps/restaurant/_docs/GOURMET_ERD\|GOURMET ERD]] · [[fastapi/apps/restaurant/_docs/gourmetmate_v2_erd\|ERD v2]] · [[fastapi/apps/restaurant/_docs/EXTERNAL_API_KEYS\|외부 API 키]] · [[fastapi/apps/restaurant/_docs/restaurant-casting\|레스토랑 캐스팅]]

@@ -27,6 +27,10 @@ class BudgetReportUseCase(ABC):
         ...
 
     @abstractmethod
+    def all_plans(self, db: Session, user_id: int) -> list[BudgetPlanView]:
+        ...
+
+    @abstractmethod
     def add_expense(
         self, db: Session, user: User, command: ExpenseCommand
     ) -> BudgetPlanView:

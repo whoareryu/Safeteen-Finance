@@ -23,6 +23,9 @@ class PersonalizedQuery:
     preference: PreferenceSnapshot
     time_slot: str  # morning / lunch / dinner
     weather: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    dining_mode: str | None = None  # dine_in / pickup / delivery
 
 
 @dataclass(frozen=True)
