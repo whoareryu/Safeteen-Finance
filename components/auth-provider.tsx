@@ -9,12 +9,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   isAdmin,
   loadStoredUser,
   login as apiLogin,
   saveStoredUser,
   signup as apiSignup,
+  googleLogin as apiGoogleLogin,
   type AuthUser,
   type UserRole,
 } from "@/lib/auth";
@@ -32,6 +34,7 @@ type AuthContextValue = {
     email: string;
     nickname: string;
   }) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -40,6 +43,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setUser(loadStoredUser());
@@ -63,8 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = await apiSignup(payload);
       saveStoredUser(u);
       setUser(u);
+      router.push("/onboarding");
     },
-    []
+    [router]
+  );
+
+  const googleLogin = useCallback(
+    async (credential: string) => {
+      const u = await apiGoogleLogin(credential);
+      const isNew = !loadStoredUser();
+      saveStoredUser(u);
+      setUser(u);
+      if (isNew) router.push("/onboarding");
+    },
+    [router]
   );
 
   const logout = useCallback(() => {
@@ -73,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, login, signup, logout }),
-    [user, ready, login, signup, logout]
+    () => ({ user, ready, login, signup, googleLogin, logout }),
+    [user, ready, login, signup, googleLogin, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

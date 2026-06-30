@@ -1,20 +1,6 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-const ALLOWED_MODELS = new Set([
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-]);
-
 export type ChatMessage = { role: "user" | "assistant"; content: string };
-
-function toGeminiContents(messages: ChatMessage[]) {
-  return messages.map((m) => ({
-    role: m.role === "assistant" ? ("model" as const) : ("user" as const),
-    parts: [{ text: m.content.slice(0, 24000) }],
-  }));
-}
 
 export type GourmetChatBody = {
   messages?: ChatMessage[];
@@ -25,16 +11,8 @@ export type GourmetChatBody = {
 
 export async function runGeminiChat(
   body: GourmetChatBody,
-  options?: { systemPrefix?: string }
+  _options?: { systemPrefix?: string }
 ) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "GEMINI_API_KEY가 설정되지 않았습니다. (Vercel Environment Variables)" },
-      { status: 503 }
-    );
-  }
-
   const messages = body.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages 배열이 필요합니다." }, { status: 400 });
@@ -58,47 +36,28 @@ export async function runGeminiChat(
     );
   }
 
-  const modelName =
-    typeof body.model === "string" && ALLOWED_MODELS.has(body.model)
-      ? body.model
-      : "gemini-2.0-flash";
-
-  const contextBits: string[] = [];
-  if (options?.systemPrefix) contextBits.push(options.systemPrefix);
-  if (body.q?.trim()) contextBits.push(`검색 맥락: ${body.q.trim()}`);
-  if (body.restaurant_id != null) {
-    contextBits.push(`선택 매장 ID: ${body.restaurant_id} (DB 미연결 — 일반 조언만)`);
-  }
-  const system = [
-    "당신은 서울 맛집 앱 GourmetMate의 AI 가이드입니다.",
-    "확실하지 않은 매장 정보는 지어내지 말고, 일반적인 조언을 하세요.",
-    ...contextBits,
-  ].join("\n");
-
-  const contents = [
-    { role: "user" as const, parts: [{ text: system }] },
-    {
-      role: "model" as const,
-      parts: [{ text: "네, 서울 맛집 가이드로서 도와드리겠습니다." }],
-    },
-    ...toGeminiContents(trimmed.slice(-20)),
-  ];
+  const backendUrl = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelName });
-    const result = await model.generateContent({ contents });
-    const text = result.response.text().trim();
-    if (!text) {
-      return NextResponse.json({ error: "빈 응답입니다." }, { status: 502 });
-    }
-    return NextResponse.json({
-      text,
-      model: modelName,
-      context_summary: "standalone (Vercel API, 백엔드 미사용)",
+    const res = await fetch(`${backendUrl}/gourmet/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: trimmed,
+        restaurant_id: body.restaurant_id ?? null,
+        q: body.q ?? null,
+      }),
     });
+
+    if (!res.ok) {
+      const err = await res.text();
+      return NextResponse.json({ error: `백엔드 오류: ${err}` }, { status: res.status });
+    }
+
+    const data = (await res.json()) as { text: string; model: string; context_summary?: string };
+    return NextResponse.json(data);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Gemini 오류";
+    const message = err instanceof Error ? err.message : "백엔드 연결 오류";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

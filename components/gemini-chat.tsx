@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChevronDown,
   Mic,
   Plus,
   SendHorizontal,
@@ -14,10 +13,7 @@ type Role = "user" | "assistant";
 
 type Msg = { id: string; role: Role; content: string };
 
-const MODEL_OPTIONS = [
-  { value: "gemini-2.5-flash", label: "빠른 모델" },
-  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-] as const;
+const EXAONE_MODEL = "exaone3.5:7.8b";
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -33,15 +29,13 @@ type GeminiChatProps = {
 export default function GeminiChat({
   variant = "dark",
   apiPath = "/api/chat",
-  inputPlaceholder = "Gemini에게 물어보기",
+  inputPlaceholder = "ExaOne에게 물어보기",
 }: GeminiChatProps) {
   const isApple = variant === "apple";
   const neonShield = isApple ? "neon-hit-shield" : "";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<(typeof MODEL_OPTIONS)[number]["value"]>(
-    "gemini-2.5-flash"
-  );
+  const model = EXAONE_MODEL;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -99,7 +93,7 @@ export default function GeminiChat({
             : typeof data.error === "string"
               ? data.error
               : res.status === 502
-                ? "백엔드 또는 Gemini API 연결에 실패했습니다. backend 서버와 GEMINI_API_KEY를 확인하세요."
+                ? "백엔드 또는 ExaOne 연결에 실패했습니다. backend 서버를 확인하세요."
                 : "요청에 실패했습니다.");
         setError(msg);
         return;
@@ -212,40 +206,16 @@ export default function GeminiChat({
           </div>
 
           <div className="flex items-center gap-0.5">
-            <div className="relative">
-              <select
-                value={model}
-                disabled={loading}
-                onChange={(e) =>
-                  setModel(
-                    e.target.value as (typeof MODEL_OPTIONS)[number]["value"]
-                  )
-                }
-                className={cn(
-                  "appearance-none rounded-full border py-1.5 pl-3 pr-8 text-sm outline-none disabled:opacity-50",
-                  isApple
-                    ? "border-border bg-card text-foreground hover:bg-secondary"
-                    : "border-white/15 bg-white/[0.06] text-[#e8eaed] hover:bg-white/10"
-                )}
-                aria-label="모델 선택"
-              >
-                {MODEL_OPTIONS.map((o) => (
-                  <option
-                    key={o.value}
-                    value={o.value}
-                    className={isApple ? "bg-card text-foreground" : "bg-[#1e1f20]"}
-                  >
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className={cn(
-                  "pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2",
-                  isApple ? "text-muted-foreground" : "text-[#9aa0a6]"
-                )}
-              />
-            </div>
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm",
+                isApple
+                  ? "border-border bg-card text-foreground"
+                  : "border-white/15 bg-white/[0.06] text-[#e8eaed]"
+              )}
+            >
+              ExaOne 3.5
+            </span>
 
             <button
               type="button"
@@ -330,20 +300,7 @@ export default function GeminiChat({
           isApple ? "text-muted-foreground" : "text-[#8e918f]"
         )}
       >
-        Gemini는 AI이며 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.{" "}
-        <a
-          href="https://gemini.google.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "underline underline-offset-2",
-            isApple
-              ? "text-blue-600 decoration-blue-600/50 hover:text-blue-700"
-              : "text-[#a8c7fa] decoration-[#a8c7fa]/70 hover:text-[#c5d8fc]"
-          )}
-        >
-          개인 정보 보호 및 Gemini
-        </a>
+        ExaOne은 AI이며 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.
       </p>
     </div>
   );

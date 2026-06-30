@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { submitOnboarding } from "@/lib/gourmet-onboarding";
+import {
+  fetchMyPreference,
+  markOnboardingDone,
+  submitOnboarding,
+} from "@/lib/gourmet-onboarding";
 import { cn } from "@/lib/utils";
 
-const TOTAL_STEPS = 5;
-
-const DINING_OPTIONS = [
-  { value: "dine_in", label: "외식" },
-  { value: "delivery", label: "배달" },
-  { value: "pickup", label: "픽업" },
-] as const;
+const TOTAL_STEPS = 3;
 
 const PORTION_OPTIONS = [
   { value: "under_one", label: "1인분 이하" },
@@ -24,41 +22,55 @@ const PORTION_OPTIONS = [
 
 const INITIAL_GENRES = ["한식", "중식", "일식", "양식", "분식", "아시안"];
 
-// 진행바 너비 (step 인덱스: 1~5). 인라인 style 금지 → 정적 Tailwind 클래스.
 const STEP_WIDTH: Record<number, string> = {
-  1: "w-1/5",
-  2: "w-2/5",
-  3: "w-3/5",
-  4: "w-4/5",
-  5: "w-full",
+  1: "w-1/3",
+  2: "w-2/3",
+  3: "w-full",
 };
 
 function toList(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
+  return raw.split(",").map((x) => x.trim()).filter(Boolean);
 }
 
-export default function OnboardingWizard() {
+export default function OnboardingWizard({ editMode = false }: { editMode?: boolean }) {
   const { user, ready } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [genres, setGenres] = useState<string[]>(INITIAL_GENRES);
-  const [diningMode, setDiningMode] = useState("dine_in");
   const [portion, setPortion] = useState("one");
   const [allergies, setAllergies] = useState("");
   const [avoidFoods, setAvoidFoods] = useState("");
-  const [useBudget, setUseBudget] = useState(false);
-  const [monthlyBudget, setMonthlyBudget] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefetched, setPrefetched] = useState(!editMode);
+
+  // 편집 모드: 기존 선호도 불러와서 초기값으로 채움
+  useEffect(() => {
+    if (!editMode || !user) return;
+    fetchMyPreference(user.id)
+      .then((pref) => {
+        if (pref.genre_ranking?.length) setGenres(pref.genre_ranking);
+        if (pref.portion) setPortion(pref.portion);
+        if (pref.allergies?.length) setAllergies(pref.allergies.join(", "));
+        if (pref.avoid_foods?.length) setAvoidFoods(pref.avoid_foods.join(", "));
+        setPrefetched(true);
+      })
+      .catch(() => setPrefetched(true));
+  }, [editMode, user]);
 
   if (ready && !user) {
     return (
       <div className="mx-auto max-w-sm px-4 py-16 text-center text-sm text-muted-foreground">
         온보딩은 로그인 후 이용할 수 있어요.
+      </div>
+    );
+  }
+
+  if (!prefetched) {
+    return (
+      <div className="mx-auto max-w-sm px-4 py-16 text-center text-sm text-muted-foreground">
+        불러오는 중…
       </div>
     );
   }
@@ -82,14 +94,15 @@ export default function OnboardingWizard() {
     try {
       await submitOnboarding(user.id, {
         genre_ranking: genres,
-        dining_mode: diningMode,
+        dining_mode: "dine_in",
         portion,
         allergies: toList(allergies),
         avoid_foods: toList(avoidFoods),
-        use_budget: useBudget,
-        monthly_budget: useBudget && monthlyBudget ? Number(monthlyBudget) : null,
+        use_budget: false,
+        monthly_budget: null,
       });
-      router.replace("/");
+      markOnboardingDone(user.id);
+      router.replace(editMode ? "/mypage" : "/");
     } catch (e) {
       setError(e instanceof Error ? e.message : "저장에 실패했어요.");
       setSubmitting(false);
@@ -97,22 +110,15 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-var(--site-header-height))] max-w-sm flex-col px-4 py-6">
+    <div className="mx-auto flex min-h-[calc(100dvh-var(--site-header-height))] max-w-sm flex-col px-4 pt-6 pb-24">
       {/* 프로그레스바 */}
       <div className="mb-6">
         <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-          <span>
-            {step} / {TOTAL_STEPS}
-          </span>
+          <span>{step} / {TOTAL_STEPS}</span>
           <span>{Math.round((step / TOTAL_STEPS) * 100)}%</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn(
-              "h-full rounded-full bg-primary transition-all",
-              STEP_WIDTH[step],
-            )}
-          />
+          <div className={cn("h-full rounded-full bg-primary transition-all", STEP_WIDTH[step])} />
         </div>
       </div>
 
@@ -123,13 +129,8 @@ export default function OnboardingWizard() {
             <p className="mt-1 text-sm text-muted-foreground">위일수록 더 좋아하는 장르예요.</p>
             <ul className="mt-4 space-y-2">
               {genres.map((g, i) => (
-                <li
-                  key={g}
-                  className="flex items-center justify-between rounded-xl bg-muted px-4 py-3"
-                >
-                  <span className="text-sm font-medium">
-                    {i + 1}. {g}
-                  </span>
+                <li key={g} className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
+                  <span className="text-sm font-medium">{i + 1}. {g}</span>
                   <span className="flex gap-1">
                     <button
                       type="button"
@@ -158,15 +159,6 @@ export default function OnboardingWizard() {
 
         {step === 2 ? (
           <Choices
-            title="식사 방식"
-            options={DINING_OPTIONS}
-            value={diningMode}
-            onSelect={setDiningMode}
-          />
-        ) : null}
-
-        {step === 3 ? (
-          <Choices
             title="평소 식사량"
             options={PORTION_OPTIONS}
             value={portion}
@@ -174,7 +166,7 @@ export default function OnboardingWizard() {
           />
         ) : null}
 
-        {step === 4 ? (
+        {step === 3 ? (
           <section>
             <h2 className="text-lg font-bold">알레르기 · 기피 음식</h2>
             <p className="mt-1 text-sm text-muted-foreground">선택 입력이에요. 쉼표로 구분해 주세요.</p>
@@ -192,51 +184,6 @@ export default function OnboardingWizard() {
               placeholder="예: 오이, 양고기"
               className="mt-1 w-full rounded-xl border border-border px-4 py-3 text-sm"
             />
-          </section>
-        ) : null}
-
-        {step === 5 ? (
-          <section>
-            <h2 className="text-lg font-bold">버짓 서비스</h2>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setUseBudget(true)}
-                className={cn(
-                  "flex-1 rounded-xl py-3 text-sm font-semibold",
-                  useBudget ? "bg-primary text-white" : "bg-muted text-foreground",
-                )}
-              >
-                사용할게요
-              </button>
-              <button
-                type="button"
-                onClick={() => setUseBudget(false)}
-                className={cn(
-                  "flex-1 rounded-xl py-3 text-sm font-semibold",
-                  !useBudget ? "bg-primary text-white" : "bg-muted text-foreground",
-                )}
-              >
-                안 쓸게요
-              </button>
-            </div>
-            {useBudget ? (
-              <div className="mt-4">
-                <label className="block text-sm font-medium">월 예산 (원)</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={monthlyBudget}
-                  onChange={(e) => setMonthlyBudget(e.target.value)}
-                  placeholder="예: 500000"
-                  className="mt-1 w-full rounded-xl border border-border px-4 py-3 text-sm"
-                />
-                <p className="mt-2 rounded-xl bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
-                  한달 점심 비용 50만원으로 적용 시, 매일 한달 동안 비용을 나눠서
-                  점심에 사용할 수 있는 금액에 맞는 식당을 추천해주는 서비스입니다.
-                </p>
-              </div>
-            ) : null}
           </section>
         ) : null}
       </div>
@@ -268,7 +215,7 @@ export default function OnboardingWizard() {
             disabled={submitting}
             className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {submitting ? "저장 중…" : "시작하기"}
+            {submitting ? "저장 중…" : editMode ? "저장하기" : "시작하기"}
           </button>
         )}
       </div>
@@ -298,9 +245,7 @@ function Choices({
               onClick={() => onSelect(opt.value)}
               className={cn(
                 "w-full rounded-xl px-4 py-3 text-left text-sm font-medium",
-                value === opt.value
-                  ? "bg-primary text-white"
-                  : "bg-muted text-foreground",
+                value === opt.value ? "bg-primary text-white" : "bg-muted text-foreground",
               )}
             >
               {opt.label}

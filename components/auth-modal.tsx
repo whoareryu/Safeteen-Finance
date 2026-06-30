@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X, Lock, User, Mail, Eye, EyeOff, AtSign } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 import { checkNicknameAvailable, checkUsernameAvailable } from "@/lib/auth";
 import { useAuth } from "./auth-provider";
 
@@ -70,7 +71,8 @@ export default function AuthModal({
   onClose,
   initialView = "login",
 }: AuthModalProps) {
-  const { login, signup } = useAuth();
+  const { login, signup, googleLogin } = useAuth();
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const [state, setState] = useState<AuthModalState>(() =>
     createInitialState(initialView)
   );
@@ -380,6 +382,35 @@ export default function AuthModal({
               </button>
             </form>
 
+            {googleClientId && (
+              <>
+                <div className="relative my-5 flex items-center gap-3">
+                  <div className="modal-divider flex-1" />
+                  <span className="shrink-0 text-xs text-muted-foreground">또는</span>
+                  <div className="modal-divider flex-1" />
+                </div>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (res) => {
+                      if (!res.credential) return;
+                      patch({ submitting: true, error: null });
+                      try {
+                        await googleLogin(res.credential);
+                        resetAndClose();
+                      } catch (e) {
+                        patch({ error: e instanceof Error ? e.message : "Google 로그인 실패" });
+                      } finally {
+                        patch({ submitting: false });
+                      }
+                    }}
+                    onError={() => patch({ error: "Google 로그인에 실패했습니다." })}
+                    useOneTap={false}
+                    text="signin_with"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="modal-divider my-5" />
 
             <p className="text-center text-sm text-muted-foreground">
@@ -566,6 +597,35 @@ export default function AuthModal({
                 {submitting ? "가입 중…" : "회원가입"}
               </button>
             </form>
+
+            {googleClientId && (
+              <>
+                <div className="relative my-4 flex items-center gap-3">
+                  <div className="modal-divider flex-1" />
+                  <span className="shrink-0 text-xs text-muted-foreground">또는</span>
+                  <div className="modal-divider flex-1" />
+                </div>
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (res) => {
+                      if (!res.credential) return;
+                      patch({ submitting: true, error: null });
+                      try {
+                        await googleLogin(res.credential);
+                        resetAndClose();
+                      } catch (e) {
+                        patch({ error: e instanceof Error ? e.message : "Google 로그인 실패" });
+                      } finally {
+                        patch({ submitting: false });
+                      }
+                    }}
+                    onError={() => patch({ error: "Google 로그인에 실패했습니다." })}
+                    useOneTap={false}
+                    text="signup_with"
+                  />
+                </div>
+              </>
+            )}
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               이미 계정이 있으신가요?{" "}

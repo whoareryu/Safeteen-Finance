@@ -239,3 +239,9 @@ Tailwind `dark:` 클래스와 병행해서 CSS 변수로 시맨틱 토큰 관리
 ## 10. 요약 — 한 줄 지시
 
 > "next-themes로 `defaultTheme='light'`, `attribute='class'` 설정. Tailwind `darkMode: 'class'`. Topbar 우측에 ThemeToggle 컴포넌트 배치. 모든 색상은 `bg-white dark:bg-[#0a0a0a]` 패턴으로 적용. 사이드바·우측패널·본문·코드블록 전부 dark: 클래스 대응."
+
+---
+
+## 관련 문서
+
+[[www/_docs/CLAUDE\|Frontend Docs]]

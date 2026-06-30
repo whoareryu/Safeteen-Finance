@@ -1,5 +1,17 @@
 /** 온보딩 API 래퍼 (백엔드 /gourmet/onboarding, X-User-Id 인증). */
 
+const _key = (userId: number) => `onboarding_done_${userId}`;
+
+export function markOnboardingDone(userId: number) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(_key(userId), "1");
+}
+
+export function isOnboardingLocallyDone(userId: number): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(_key(userId)) === "1";
+}
+
 export type OnboardingPayload = {
   genre_ranking: string[];
   dining_mode: string;

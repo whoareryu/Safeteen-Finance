@@ -78,6 +78,14 @@ const nextConfig = {
         source: "/api/silicon-valley/:path*",
         destination: `${backendUrl}/api/silicon-valley/:path*`,
       },
+      {
+        source: "/api/chef/:path*",
+        destination: `${backendUrl}/api/chef/:path*`,
+      },
+      {
+        source: "/api/ontology/:path*",
+        destination: `${backendUrl}/api/ontology/:path*`,
+      },
     ];
   },
 };

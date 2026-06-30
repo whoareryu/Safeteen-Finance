@@ -4,6 +4,15 @@ function userHeader(userId: number): Record<string, string> {
   return { "X-User-Id": String(userId) };
 }
 
+export type MealType = "total" | "morning" | "lunch" | "dinner";
+
+export const MEAL_TYPE_LABEL: Record<MealType, string> = {
+  morning: "아침",
+  lunch: "점심",
+  dinner: "저녁",
+  total: "전체",
+};
+
 export type BudgetPlan = {
   meal_plan_id: number;
   monthly_budget: number;
@@ -11,6 +20,7 @@ export type BudgetPlan = {
   remaining: number;
   period_start: string;
   period_end: string;
+  meal_type: MealType;
 };
 
 export type BudgetRankItem = {
@@ -27,6 +37,15 @@ export type BudgetReport = {
   top_categories: BudgetRankItem[];
 };
 
+export async function fetchAllBudgetPlans(userId: number): Promise<BudgetPlan[]> {
+  const res = await fetch("/api/gourmet/budget/plans", {
+    headers: userHeader(userId),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`예산 조회 실패: ${res.status}`);
+  return (await res.json()) as BudgetPlan[];
+}
+
 export async function fetchBudgetPlan(userId: number): Promise<BudgetPlan | null> {
   const res = await fetch("/api/gourmet/budget/plan", {
     headers: userHeader(userId),
@@ -41,6 +60,7 @@ export async function setBudget(
   monthlyBudget: number,
   periodStart: string,
   periodEnd: string,
+  mealType: MealType = "total",
 ): Promise<BudgetPlan> {
   const res = await fetch("/api/gourmet/budget/plan", {
     method: "PUT",
@@ -49,6 +69,7 @@ export async function setBudget(
       monthly_budget: monthlyBudget,
       period_start: periodStart,
       period_end: periodEnd,
+      meal_type: mealType,
     }),
   });
   if (!res.ok) throw new Error(`예산 설정 실패: ${res.status}`);

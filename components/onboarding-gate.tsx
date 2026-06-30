@@ -3,12 +3,14 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
-import { fetchMyPreference } from "@/lib/gourmet-onboarding";
+import {
+  fetchMyPreference,
+  isOnboardingLocallyDone,
+  markOnboardingDone,
+} from "@/lib/gourmet-onboarding";
 
-/**
- * 첫 가입(온보딩 미완료) 사용자를 /onboarding 으로 유도.
- * 수업 영역(/portfolio)과 온보딩 페이지 자체는 제외.
- */
+const SKIP_PATHS = ["/onboarding", "/portfolio"];
+
 export default function OnboardingGate() {
   const { user, ready } = useAuth();
   const pathname = usePathname();
@@ -16,17 +18,25 @@ export default function OnboardingGate() {
 
   useEffect(() => {
     if (!ready || !user) return;
-    if (pathname.startsWith("/onboarding") || pathname.startsWith("/portfolio")) {
-      return;
-    }
+    if (SKIP_PATHS.some((p) => pathname.startsWith(p))) return;
+
+    // localStorage 캐시 우선 — 완료된 사용자는 API 호출 없이 통과
+    if (isOnboardingLocallyDone(user.id)) return;
+
     let cancelled = false;
     fetchMyPreference(user.id)
       .then((pref) => {
-        if (!cancelled && !pref.completed) router.replace("/onboarding");
+        if (cancelled) return;
+        if (pref.completed) {
+          markOnboardingDone(user.id);
+        } else {
+          router.replace("/onboarding");
+        }
       })
       .catch(() => {
-        /* 온보딩 조회 실패 시 유도하지 않음 */
+        // 네트워크·서버 오류 시 온보딩으로 보내지 않음 (오탐 방지)
       });
+
     return () => {
       cancelled = true;
     };

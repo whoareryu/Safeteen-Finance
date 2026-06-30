@@ -133,3 +133,13 @@ export async function login(username: string, password: string): Promise<AuthUse
   if (!res.ok) throw new Error(await parseError(res));
   return (await res.json()) as AuthUser;
 }
+
+export async function googleLogin(credential: string): Promise<AuthUser> {
+  const res = await authFetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential }),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return (await res.json()) as AuthUser;
+}

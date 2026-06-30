@@ -113,4 +113,4 @@ npm run build
 
 ## 관련 문서
 
-[[www/CLAUDE\|Frontend CLAUDE]]
+[[www/_docs/CLAUDE\|Frontend Docs]]

@@ -19,6 +19,8 @@ type GenreRestaurantCardProps = {
   userLng?: number | null;
   onLike?: (restaurant: GenreRestaurant) => void;
   onDislike?: (restaurant: GenreRestaurant) => void;
+  /** 카드 클릭 시 호출 (지도 등) */
+  onClick?: () => void;
 };
 
 /** 두 좌표 사이 거리(m) — Haversine. */
@@ -49,6 +51,7 @@ export default function GenreRestaurantCard({
   userLng,
   onLike,
   onDislike,
+  onClick,
 }: GenreRestaurantCardProps) {
   const style = genreStyle({ label: restaurant.genre });
 
@@ -69,8 +72,13 @@ export default function GenreRestaurantCard({
 
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
       className={cn(
         "relative flex aspect-[2/3] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b shadow-lg",
+        onClick && "cursor-pointer",
         style.gradient,
       )}
     >
@@ -82,7 +90,7 @@ export default function GenreRestaurantCard({
         <button
           type="button"
           aria-label="좋아요"
-          onClick={() => onLike?.(restaurant)}
+          onClick={(e) => { e.stopPropagation(); onLike?.(restaurant); }}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50 active:scale-90"
         >
           <ThumbsUp className="h-4 w-4" aria-hidden />
@@ -90,7 +98,7 @@ export default function GenreRestaurantCard({
         <button
           type="button"
           aria-label="싫어요"
-          onClick={() => onDislike?.(restaurant)}
+          onClick={(e) => { e.stopPropagation(); onDislike?.(restaurant); }}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition hover:bg-black/50 active:scale-90"
         >
           <ThumbsDown className="h-4 w-4" aria-hidden />

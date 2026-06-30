@@ -13,11 +13,22 @@ export type RecommendationCard = {
   time_slot: string;
 };
 
+export type DiningMode = "dine_in" | "pickup" | "delivery";
+
+export const DINING_MODE_LABEL: Record<DiningMode, string> = {
+  dine_in: "매장식사",
+  pickup: "포장",
+  delivery: "배달",
+};
+
 export type RecommendationRequest = {
   time_slot?: TimeSlot;
   weather?: string;
   excluded_ids?: number[];
   genre_ranking?: string[];
+  lat?: number | null;
+  lng?: number | null;
+  dining_mode?: DiningMode | null;
 };
 
 /** 06~10 아침 / 10~16 점심 / 그 외 저녁 (기획서 3-2). */
