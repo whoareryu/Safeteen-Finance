@@ -21,11 +21,11 @@
 - **Case B (중요/에스컬레이션 업무)**: 중요 거래처이거나 자동 보고서 생성을 요청하는 경우
   ➔ 상위 온톨로지 버스인 `apps/ontology/`를 경유하여 최고 에이전트인 **페이커(Faker / EXAONE)**에게 격상(Escalation). 페이커가 전사 ERP 데이터를 취합하여 최종 보고서를 생성하고 하향 전달.
 
-## 3. Watson (Watcher Hub / Entry Point) 역할 정의
+## 3. Chef Watcher (Watcher Hub / Entry Point) 역할 정의
 
-`apps/chef/app/chef_watcher.py`에 위치한 **왓슨(Watson)**은 본 테스트 하네스의 핵심 검증 대상이자 인바운드 게이트웨이이다. 왓슨은 단순한 라우터가 아닌 **'Triage Nurse(초진 및 분류 관문)'** 역할을 수행한다.
+`apps/chef/app/chef_watcher.py`에 위치한 **Chef Watcher**는 본 테스트 하네스의 핵심 검증 대상이자 인바운드 게이트웨이이다. Chef Watcher는 단순한 라우터가 아닌 **'Triage Nurse(초진 및 분류 관문)'** 역할을 수행한다.
 
-### 왓슨의 핵심 메커니즘
+### Chef Watcher의 핵심 메커니즘
 
 1. **감시 및 후킹 (Watch & Hook)**: 인바운드 라우터(`telegram_router.py`, `discord_router.py`, `receiver_router.py`)로부터 유저 메시지 및 이벤트를 낚아챔.
 2. **1차 분류 및 조율 (Validation & Triage)**: 인입된 메시지의 발신자(중요 거래처 여부)와 본문(보고서 요청 등의 의도)을 가볍고 빠르게 분석.
@@ -44,7 +44,7 @@
   - **Scenario 1**: 일반 거래처의 단순 인사/일반 문의 메일 인입.
   - **Scenario 2**: VIP 거래처(`important_client: true`)의 "분기 실적 자동 보고서 발행 요망" 메시지 인입.
 
-### [지시사항 2] 왓슨(Watson / chef_watcher.py)의 라우팅 인터셉터 구현
+### [지시사항 2] Chef Watcher (chef_watcher.py)의 라우팅 인터셉터 구현
 
 - 가상 이벤트 생성기에서 발생한 raw 데이터를 `apps/chef/app/chef_watcher.py`가 가로채어 검증하는 라우팅 로직을 구현할 것.
 - **인터랙터 호출 트리거**: Scenario 1 감지 시, `apps/chef/app/use_cases/email_interactor.py` 내의 가상 처리 함수를 호출하고 로그를 남길 것.
@@ -63,11 +63,11 @@
 | 최고 오케스트레이터 (Faker) | `core/lol/t1_mid_faker_orchestrator.py` |
 | 온톨로지 버스 (Ontology Hub) | `apps/ontology/` |
 | 커뮤니케이션 스포크 | `apps/chef/` |
-| Watson (Watcher Hub) | `apps/chef/app/chef_watcher.py` |
+| Chef Watcher (Watcher Hub) | `apps/chef/app/chef_watcher.py` |
 | Telegram 인바운드 라우터 | `apps/chef/adapter/inbound/api/v1/telegram_router.py` |
 | Discord 인바운드 라우터 | `apps/chef/adapter/inbound/api/v1/discord_router.py` |
 | Gmail 인바운드 라우터 | `apps/chef/adapter/inbound/api/v1/receiver_router.py` |
-| 일반 메일 처리 (Holmes role) | `apps/chef/app/use_cases/email_interactor.py` |
+| 일반 메일 처리 (email_interactor) | `apps/chef/app/use_cases/email_interactor.py` |
 | Telegram 처리 | `apps/chef/app/use_cases/telegram_interactor.py` |
 | Discord 처리 | `apps/chef/app/use_cases/discord_interactor.py` |
 | Mock 이벤트 생성기 위치 | `apps/chef/tests/` |
