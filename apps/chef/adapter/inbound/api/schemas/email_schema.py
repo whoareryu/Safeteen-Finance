@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class EmailSendRequest(BaseModel):
@@ -11,3 +11,15 @@ class EmailSendResponse(BaseModel):
     subject: str
     body: str
     status: str = "sent"
+
+
+class EmailReceiveRequest(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    sender: str = Field(alias="from", default="")
+    subject: str = ""
+    body: str = ""
+
+
+class EmailReceiveResponse(BaseModel):
+    status: str = "received"
