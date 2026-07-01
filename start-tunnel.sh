@@ -2,7 +2,7 @@
 
 PROJECT_ID="jb-silver-connect"
 SUBSCRIPTION="gmail-push-sub"
-WEBHOOK_PATH="/webhook/6cb631de-6505-47c3-a978-e0d628a56e64"
+WEBHOOK_PATH="/webhook/gmail-push"
 
 echo "[tunnel] cloudflared 시작 중..."
 
