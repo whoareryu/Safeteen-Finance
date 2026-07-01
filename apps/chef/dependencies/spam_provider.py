@@ -1,4 +1,4 @@
-from chef.app.chef_orchestrator import get_chef_llm
+from chef.app.chef_watcher import get_chef_llm
 from chef.app.use_cases.classify_spam_interactor import ClassifySpamInteractor
 
 

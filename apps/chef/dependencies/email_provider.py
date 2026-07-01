@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from chef.adapter.outbound.n8n.n8n_email_gateway import N8nEmailGateway
-from chef.app.chef_orchestrator import get_chef_llm
+from chef.app.chef_watcher import get_chef_llm
 from chef.app.use_cases.email_interactor import EmailInteractor
 from ontology.dependencies.maestro_router_provider import get_maestro_use_case
 

@@ -7,5 +7,5 @@ receiver_router = APIRouter(prefix="/email", tags=["chef-email"])
 
 @receiver_router.post("/receive", response_model=EmailReceiveResponse)
 async def receive_email(body: EmailReceiveRequest) -> EmailReceiveResponse:
-    print(f"[Gmail] from={body.sender} subject={body.subject}")
+    print(f"[Gmail] from={body.sender} to={body.to} subject={body.subject} messageId={body.message_id}")
     return EmailReceiveResponse()

@@ -18,7 +18,9 @@ class EmailReceiveRequest(BaseModel):
 
     sender: str = Field(alias="from", default="")
     subject: str = ""
-    body: str = ""
+    to: str = ""
+    preview: str = ""
+    message_id: str = Field(alias="messageId", default="")
 
 
 class EmailReceiveResponse(BaseModel):
