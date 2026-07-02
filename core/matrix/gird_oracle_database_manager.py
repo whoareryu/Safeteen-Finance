@@ -72,6 +72,7 @@ def import_models() -> None:
         "titanic.adapter.outbound.orm.passenger_ruth_survivor_orm",
         # Chef
         "chef.adapter.outbound.orm.address_orm",
+        "chef.adapter.outbound.orm.receiver_orm",
     ]
 
     for model_path in models_to_load:

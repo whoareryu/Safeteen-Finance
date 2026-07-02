@@ -14,9 +14,8 @@ _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
 _DEFAULT_COLLECTION = "knowledge"
 
 _TASK_SIGNALS: dict[str, list[str]] = {
-    "email":          ["이메일", "메일", "email", "메시지 보내", "편지"],
-    "spam_classify":  ["스팸", "spam", "스팸 분류", "광고메일 확인"],
-    "telegram":       ["텔레그램", "telegram"],
+    "email":    ["이메일", "메일", "email", "메시지 보내", "편지"],
+    "telegram": ["텔레그램", "telegram"],
 }
 
 

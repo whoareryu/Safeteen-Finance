@@ -1,24 +1,26 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
-from chef.adapter.inbound.api.schemas.address_schema import AddressUploadResultSchema, ContactUploadSchema
-from chef.app.dtos.address_dto import AddressCreateCommand, AddressDetailResult, AddressQuery, AddressResponse
+from chef.app.dtos.address_dto import (
+    AddressCreateCommand,
+    AddressDetailResult,
+    AddressQuery,
+    AddressResponse,
+    AddressUploadResult,
+    ContactUploadDto,
+)
 
 
 class AddressUseCase(ABC):
+    @abstractmethod
+    async def introduce_myself(self, query: AddressQuery) -> AddressResponse: ...
 
     @abstractmethod
-    async def introduce_myself(self, query: AddressQuery) -> AddressResponse:
-        pass
+    async def add_contact(self, cmd: AddressCreateCommand) -> AddressDetailResult: ...
 
     @abstractmethod
-    async def add_contact(self, cmd: AddressCreateCommand) -> AddressDetailResult:
-        pass
+    async def list_contacts(self) -> list[AddressDetailResult]: ...
 
     @abstractmethod
-    async def list_contacts(self) -> list[AddressDetailResult]:
-        pass
-
-    @abstractmethod
-    async def upload_contacts(self, rows: list[ContactUploadSchema]) -> AddressUploadResultSchema:
-        pass
+    async def upload_contacts(self, rows: list[ContactUploadDto]) -> AddressUploadResult: ...

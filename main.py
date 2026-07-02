@@ -86,7 +86,6 @@ import os
 
 from chef.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
 from chef.dependencies.email_provider import get_email_use_case
-from chef.dependencies.spam_provider import get_spam_use_case
 from ontology.app.use_cases.maestro_router_interactor import MaestroInteractor
 from ontology.dependencies.maestro_router_provider import (
     register_dispatch_factory,
@@ -101,7 +100,6 @@ register_dispatch_factory(
         llm=T1MidFakerOrchestrator(),
         dispatcher=ChefTaskDispatcher(
             email=get_email_use_case(),
-            spam=get_spam_use_case(),
         ),
     )
 )

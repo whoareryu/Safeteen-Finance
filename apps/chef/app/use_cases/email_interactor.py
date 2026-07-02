@@ -7,7 +7,7 @@ import re
 from chef.app.dtos.email_dto import EmailTaskDto
 from chef.app.ports.input.email_use_case import EmailUseCase
 from chef.app.ports.output.email_gateway import EmailGateway
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from chef.app.ports.output.llm_port import LlmPort
 from ontology.app.dtos.maestro_dto import MaestroQueryDto
 from ontology.app.ports.input.maestro_router_use_case import MaestroUseCase
 
@@ -23,7 +23,7 @@ _BASE_SYSTEM = (
 class EmailInteractor(EmailUseCase):
     def __init__(
         self,
-        llm: T1MidFakerOrchestrator,
+        llm: LlmPort,
         gateway: EmailGateway,
         maestro: MaestroUseCase,
     ) -> None:
