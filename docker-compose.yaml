@@ -89,7 +89,20 @@ services:
     networks:
       - app-network
 
-  # 6. Neo4j — Graph DB
+  # 6. Cloudflare Named Tunnel (api.whoareryu.cloud → backend:8000)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: whoareryu-cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # 7. Neo4j — Graph DB
   neo4j:
     image: neo4j:5
     container_name: whoareryu-neo4j
