@@ -46,20 +46,16 @@ async def get_history() -> list[TelegramHistoryItem]:
             .get("resultData", {})
             .get("runData", {})
         )
-        webhook_runs = run_data.get("Webhook — Ontology Hub", [])
-        if not webhook_runs:
+        tg_runs = run_data.get("Send Telegram Message", [])
+        if not tg_runs:
             continue
         try:
-            body = (
-                webhook_runs[0]["data"]["main"][0][0]["json"]["body"]
-            )
+            text = tg_runs[0]["data"]["main"][0][0]["json"]["result"]["text"]
         except (KeyError, IndexError):
-            continue
-        if body.get("type") != "telegram":
             continue
         items.append(
             TelegramHistoryItem(
-                text=body.get("text", ""),
+                text=text,
                 sent_at=execution.get("startedAt", ""),
             )
         )
