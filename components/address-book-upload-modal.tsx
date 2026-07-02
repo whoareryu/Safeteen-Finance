@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { FileSpreadsheet, Loader2, Upload, X } from "lucide-react";
 import { uploadContactsFile } from "@/lib/chef-address";
+import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function AddressBookUploadModal({ onClose, onSaved }: Props) {
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -37,7 +39,7 @@ export default function AddressBookUploadModal({ onClose, onSaved }: Props) {
   );
 
   const upload = async () => {
-    if (!file || loading) return;
+    if (!file || loading || !user) return;
     setLoading(true);
     setResult(null);
     try {

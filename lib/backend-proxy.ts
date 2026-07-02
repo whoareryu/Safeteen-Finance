@@ -6,6 +6,7 @@ const FORWARD_HEADERS = [
   "x-user-id",
   "accept",
   "accept-language",
+  "cookie",
 ] as const;
 
 export function getBackendBaseUrl(): string | null {

@@ -15,6 +15,14 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/_next/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/history", destination: "/", permanent: true },

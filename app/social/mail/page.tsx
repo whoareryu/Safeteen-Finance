@@ -9,6 +9,7 @@ import { sendEmail, type EmailSendResponse } from "@/lib/chef-email";
 import AddressBookPanel from "@/components/address-book-panel";
 import EmailAutocomplete from "@/components/email-autocomplete";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 
 const schema = z.object({
   to: z.string().email("올바른 이메일 주소를 입력해주세요"),
@@ -17,6 +18,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function MailPage() {
+  const { user } = useAuth();
   const [showBook, setShowBook] = useState(false);
   const [result, setResult] = useState<EmailSendResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,19 +50,21 @@ export default function MailPage() {
       <div className={cn("flex-1 min-w-0", showBook ? "max-w-[55%]" : "max-w-lg mx-auto w-full")}>
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-xl font-bold">이메일 작성</h1>
-          <button
-            type="button"
-            onClick={() => setShowBook((v) => !v)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition",
-              showBook
-                ? "bg-primary text-white"
-                : "bg-muted text-foreground hover:bg-muted/70"
-            )}
-          >
-            <BookUser className="h-3.5 w-3.5" />
-            주소록
-          </button>
+          {user && (
+            <button
+              type="button"
+              onClick={() => setShowBook((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition",
+                showBook
+                  ? "bg-primary text-white"
+                  : "bg-muted text-foreground hover:bg-muted/70"
+              )}
+            >
+              <BookUser className="h-3.5 w-3.5" />
+              주소록
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -139,7 +143,7 @@ export default function MailPage() {
       </div>
 
       {/* ── 오른쪽: 주소록 패널 ── */}
-      {showBook && (
+      {user && showBook && (
         <div className="w-72 shrink-0">
           <AddressBookPanel
             onSelect={(email) => {

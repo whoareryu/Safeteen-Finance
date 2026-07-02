@@ -75,16 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const googleLogin = useCallback(
     async (credential: string) => {
       const u = await apiGoogleLogin(credential);
-      const isNew = !loadStoredUser();
       saveStoredUser(u);
+      document.cookie = `wr_session=${u.id}; path=/; SameSite=Lax; max-age=2592000`;
       setUser(u);
-      if (isNew) router.push("/onboarding");
     },
-    [router]
+    []
   );
 
   const logout = useCallback(() => {
     saveStoredUser(null);
+    document.cookie = "wr_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     setUser(null);
   }, []);
 

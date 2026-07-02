@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import { Loader2, UserPlus } from "lucide-react";
 import { fetchContacts, type ApiContact } from "@/lib/chef-address";
 import AddressBookUploadModal from "@/components/address-book-upload-modal";
+import { useAuth } from "@/components/auth-provider";
 
 type Props = {
   onSelect: (email: string) => void;
 };
 
 export default function AddressBookPanel({ onSelect }: Props) {
+  const { user } = useAuth();
   const [contacts, setContacts] = useState<ApiContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   const reload = () => {
+    if (!user) return;
     setLoading(true);
     fetchContacts()
       .then(setContacts)
@@ -22,7 +25,19 @@ export default function AddressBookPanel({ onSelect }: Props) {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    reload();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-black/10 bg-white shadow-sm px-4 py-8 text-center text-sm text-muted-foreground">
+        로그인 후 주소록을 이용할 수 있습니다.
+      </div>
+    );
+  }
 
   return (
     <>
