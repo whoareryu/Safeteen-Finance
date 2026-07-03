@@ -94,6 +94,10 @@ const nextConfig = {
         source: "/api/ontology/:path*",
         destination: `${backendUrl}/api/ontology/:path*`,
       },
+      {
+        source: "/api/vision/:path*",
+        destination: `${backendUrl}/api/vision/:path*`,
+      },
     ];
   },
 };
