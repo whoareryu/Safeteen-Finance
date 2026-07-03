@@ -39,3 +39,4 @@ langchain-community==0.4.2
 langchain-ollama==1.1.0
 langsmith==0.9.3
 langgraph==1.2.6
+boto3==1.43.40
