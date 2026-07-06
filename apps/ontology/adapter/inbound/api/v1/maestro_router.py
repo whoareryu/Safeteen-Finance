@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Cookie, Depends, HTTPException
 
 from ontology.adapter.inbound.api.schemas.ontology_schema import (
     DispatchRequest,
@@ -32,8 +32,13 @@ async def route_query(
 async def dispatch_task(
     body: DispatchRequest,
     use_case: MaestroUseCase = Depends(get_dispatch_maestro_use_case),
+    wr_owner_session: str | None = Cookie(default=None),
 ) -> DispatchResponse:
-    result = await use_case.dispatch(DispatchRequestDto(task=body.task, payload=body.payload))
+    result = await use_case.dispatch(
+        DispatchRequestDto(task=body.task, payload=body.payload, owner_session=wr_owner_session)
+    )
+    if result.routed_to == "denied":
+        raise HTTPException(status_code=403, detail=result.result.get("error", "권한이 없습니다."))
     return DispatchResponse(
         task_type=result.task_type,
         routed_to=result.routed_to,

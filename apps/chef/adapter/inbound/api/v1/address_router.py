@@ -2,8 +2,9 @@
 import csv
 from io import StringIO
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
+from apps.auth.dependencies import require_owner
 from chef.adapter.inbound.api.schemas.address_schema import (
     AddressCreateRequest,
     AddressDetailResponse,
@@ -49,13 +50,12 @@ async def introduce_myself(
     return {"id": result.id, "name": result.name}
 
 
-@address_router.get("/contacts", response_model=list[AddressDetailResponse])
+@address_router.get(
+    "/contacts", response_model=list[AddressDetailResponse], dependencies=[Depends(require_owner)]
+)
 async def list_contacts(
-    request: Request,
     use_case: AddressUseCase = Depends(get_address_use_case),
 ) -> list[AddressDetailResponse]:
-    if not request.cookies.get("wr_session"):
-        return []
     results = await use_case.list_contacts()
     return [
         AddressDetailResponse(
@@ -66,7 +66,9 @@ async def list_contacts(
     ]
 
 
-@address_router.post("/contacts", response_model=AddressDetailResponse)
+@address_router.post(
+    "/contacts", response_model=AddressDetailResponse, dependencies=[Depends(require_owner)]
+)
 async def add_contact(
     body: AddressCreateRequest,
     use_case: AddressUseCase = Depends(get_address_use_case),
@@ -90,14 +92,12 @@ async def add_contact(
     "/upload",
     response_model=AddressUploadResultSchema,
     summary="Google 연락처 CSV 파일 업로드",
+    dependencies=[Depends(require_owner)],
 )
 async def upload_contacts(
-    request: Request,
     file: UploadFile = File(...),
     use_case: AddressUseCase = Depends(get_address_use_case),
 ) -> AddressUploadResultSchema:
-    if not request.cookies.get("wr_session"):
-        raise HTTPException(status_code=403, detail="로그인이 필요합니다.")
     text = (await file.read()).decode("utf-8", errors="replace")
     schema_rows = _parse_csv(text)
     dto_rows = [_to_dto(r) for r in schema_rows]

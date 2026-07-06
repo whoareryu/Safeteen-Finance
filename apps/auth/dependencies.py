@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import Cookie, Header, HTTPException
 
+from apps.auth.owner_session import is_valid_owner_token
 from apps.auth.user_model import User
 
 
@@ -20,3 +21,9 @@ async def get_current_user(
     user = User()
     user.__dict__["id"] = user_id
     return user
+
+
+async def require_owner(wr_owner_session: str | None = Cookie(default=None)) -> None:
+    """이메일 발송·주소록·lesson 탭처럼 소유자 본인만 써야 하는 기능의 게이트."""
+    if not is_valid_owner_token(wr_owner_session):
+        raise HTTPException(status_code=403, detail="본인 Google 계정으로 로그인해야 합니다.")

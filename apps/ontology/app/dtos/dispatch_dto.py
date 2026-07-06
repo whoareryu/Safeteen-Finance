@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 class DispatchRequestDto:
     task: str
     payload: dict = field(default_factory=dict)
+    owner_session: str | None = None
 
 
 @dataclass

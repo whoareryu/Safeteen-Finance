@@ -5,9 +5,16 @@ FROM python:3.12.13-slim
 WORKDIR /whoareryu
 
 # 3. 리눅스 패키지 업데이트 및 필요한 기본 도구 설치 (알렘빅 등 빌드 오류 방지)
+# libgl1/libglib2.0-0/libsm6/libxext6/libxrender1/libxcb1: opencv-python(YOLO) 런타임 의존성
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 
 # 4. 기본 의존성만 이미지에 설치 (빌드 캐시 활용)

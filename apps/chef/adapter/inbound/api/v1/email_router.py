@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from apps.auth.dependencies import require_owner
 from chef.adapter.inbound.api.schemas.email_schema import EmailSendRequest, EmailSendResponse
 from chef.app.ports.input.email_use_case import EmailUseCase
 from chef.dependencies.email_provider import get_email_use_case
@@ -17,7 +18,7 @@ async def introduce_myself() -> dict:
     return {"id": 0, "name": "Chef Email Agent (ExaOne 2.4b + Gmail SMTP)"}
 
 
-@email_router.post("/send", response_model=EmailSendResponse)
+@email_router.post("/send", response_model=EmailSendResponse, dependencies=[Depends(require_owner)])
 async def send_email(
     body: EmailSendRequest,
     use_case: EmailUseCase = Depends(get_email_use_case),

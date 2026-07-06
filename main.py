@@ -85,14 +85,22 @@ from apps.auth.auth_endpoints import auth_router, signup_router, login_router
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
 import os
 
+from apps.auth.owner_session import is_valid_owner_token
 from chef.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
 from chef.dependencies.email_provider import get_email_use_case
+from ontology.app.ports.output.owner_gate_port import OwnerGatePort
 from ontology.app.use_cases.maestro_router_interactor import MaestroInteractor
 from ontology.dependencies.maestro_router_provider import (
     register_dispatch_factory,
     get_sommelier_use_case,
     get_lens_use_case,
 )
+
+
+class _OwnerGateAdapter(OwnerGatePort):
+    def is_owner(self, owner_session: str | None) -> bool:
+        return is_valid_owner_token(owner_session)
+
 
 register_dispatch_factory(
     lambda: MaestroInteractor(
@@ -102,6 +110,7 @@ register_dispatch_factory(
         dispatcher=ChefTaskDispatcher(
             email=get_email_use_case(),
         ),
+        owner_gate=_OwnerGateAdapter(),
     )
 )
 # ─────────────────────────────────────────────────────────────────────────

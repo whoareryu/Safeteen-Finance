@@ -8,6 +8,7 @@ from ontology.app.ports.input.maestro_router_use_case import MaestroUseCase
 from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.input.lens_search_use_case import LensUseCase
 from ontology.app.ports.output.task_dispatch_port import TaskDispatchPort
+from ontology.app.ports.output.owner_gate_port import OwnerGatePort
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 
 _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
@@ -19,6 +20,14 @@ _TASK_SIGNALS: dict[str, list[str]] = {
 }
 
 
+def classify_task(task: str) -> str:
+    task_lower = task.lower()
+    for task_type, signals in _TASK_SIGNALS.items():
+        if any(sig in task_lower for sig in signals):
+            return task_type
+    return "email"  # 기본값
+
+
 class MaestroInteractor(MaestroUseCase):
     def __init__(
         self,
@@ -26,11 +35,13 @@ class MaestroInteractor(MaestroUseCase):
         lens: LensUseCase,
         llm: T1MidFakerOrchestrator,
         dispatcher: TaskDispatchPort | None = None,
+        owner_gate: OwnerGatePort | None = None,
     ) -> None:
         self._sommelier = sommelier
         self._lens = lens
         self._llm = llm
         self._dispatcher = dispatcher
+        self._owner_gate = owner_gate
 
     # ── 지식 쿼리 라우팅 ─────────────────────────────────────────────────
     async def route(self, dto: MaestroQueryDto) -> MaestroResultDto:
@@ -61,7 +72,13 @@ class MaestroInteractor(MaestroUseCase):
 
     # ── 태스크 디스패치 ──────────────────────────────────────────────────
     async def dispatch(self, dto: DispatchRequestDto) -> DispatchResultDto:
-        task_type = self._classify_task(dto.task)
+        task_type = classify_task(dto.task)
+        if task_type == "email" and self._owner_gate is not None and not self._owner_gate.is_owner(dto.owner_session):
+            return DispatchResultDto(
+                task_type=task_type,
+                routed_to="denied",
+                result={"error": "본인 Google 계정으로 로그인해야 합니다."},
+            )
         if self._dispatcher is None:
             return DispatchResultDto(
                 task_type=task_type,
@@ -70,10 +87,3 @@ class MaestroInteractor(MaestroUseCase):
             )
         result = await self._dispatcher.dispatch(task_type, dto.payload)
         return DispatchResultDto(task_type=task_type, routed_to="chef", result=result)
-
-    def _classify_task(self, task: str) -> str:
-        task_lower = task.lower()
-        for task_type, signals in _TASK_SIGNALS.items():
-            if any(sig in task_lower for sig in signals):
-                return task_type
-        return "email"  # 기본값

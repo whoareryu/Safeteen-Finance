@@ -8,11 +8,12 @@ import os
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from apps.auth.owner_session import is_valid_owner_token, issue_owner_token
 from apps.auth.user_model import User
 from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
@@ -72,6 +73,10 @@ class UserResponse(BaseModel):
     role: str
 
 
+class GoogleLoginResponse(UserResponse):
+    owner_token: str | None = None
+
+
 def _user_response(user: User) -> UserResponse:
     return UserResponse(
         id=user.id,
@@ -127,6 +132,11 @@ def get_me(
     if not user:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
     return _user_response(user)
+
+
+@auth_router.get("/owner-check")
+def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
+    return {"is_owner": is_valid_owner_token(wr_owner_session)}
 
 
 # ---------------------------------------------------------------------------
@@ -198,13 +208,9 @@ def login(body: LoginRequest, db: Session = Depends(get_sync_db)) -> UserRespons
     user.last_login_at = datetime.now(timezone.utc)
     db.flush()
     return _user_response(user)
-
-
 # ---------------------------------------------------------------------------
-# Google OAuth
-# ---------------------------------------------------------------------------
-@auth_router.post("/google")
-async def google_login(body: GoogleLoginRequest, db: Session = Depends(get_sync_db)) -> UserResponse:
+@auth_router.post("/google", response_model=GoogleLoginResponse)
+async def google_login(body: GoogleLoginRequest, db: Session = Depends(get_sync_db)) -> GoogleLoginResponse:
     """Google ID 토큰 검증 후 사용자 생성(신규) 또는 로그인(기존)."""
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -271,4 +277,4 @@ async def google_login(body: GoogleLoginRequest, db: Session = Depends(get_sync_
 
     user.last_login_at = datetime.now(timezone.utc)
     db.flush()
-    return _user_response(user)
+    return GoogleLoginResponse(**_user_response(user).model_dump(), owner_token=issue_owner_token(email))
