@@ -45,9 +45,9 @@ export default function MailPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-4xl gap-4 px-4 pb-28 pt-6">
+    <main className="mx-auto flex max-w-4xl flex-col gap-4 px-4 pb-28 pt-6 md:flex-row">
       {/* ── 왼쪽: 이메일 작성 폼 ── */}
-      <div className={cn("flex-1 min-w-0", showBook ? "max-w-[55%]" : "max-w-lg mx-auto w-full")}>
+      <div className={cn("w-full min-w-0 flex-1", showBook ? "md:max-w-[55%]" : "max-w-lg mx-auto")}>
         <div className="mb-5 flex items-center justify-between">
           <h1 className="text-xl font-bold">이메일 작성</h1>
           {isOwner && (
@@ -152,7 +152,7 @@ export default function MailPage() {
 
       {/* ── 오른쪽: 주소록 패널 ── */}
       {isOwner && showBook && (
-        <div className="w-72 shrink-0">
+        <div className="w-full shrink-0 md:w-72">
           <AddressBookPanel
             onSelect={(email) => {
               setValue("to", email, { shouldValidate: true });

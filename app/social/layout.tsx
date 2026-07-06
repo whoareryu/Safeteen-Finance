@@ -18,7 +18,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     <div className="flex flex-col">
       {/* 서브탭 바 */}
       <div className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur">
-        <nav className="mx-auto flex max-w-4xl px-4">
+        <nav className="mx-auto flex max-w-4xl overflow-x-auto px-4">
           {SUB_TABS.map(({ href, label, Icon }) => {
             const active = pathname.startsWith(href);
             return (
@@ -26,7 +26,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 border-b-2 px-4 py-3 text-sm font-medium transition",
+                  "flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition",
                   active
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
