@@ -405,6 +405,8 @@ export default function AuthModal({
                     }}
                     onError={() => patch({ error: "Google 로그인에 실패했습니다." })}
                     useOneTap={false}
+                    use_fedcm_for_button
+                    itp_support
                     text="signin_with"
                   />
                 </div>
@@ -621,6 +623,8 @@ export default function AuthModal({
                     }}
                     onError={() => patch({ error: "Google 로그인에 실패했습니다." })}
                     useOneTap={false}
+                    use_fedcm_for_button
+                    itp_support
                     text="signup_with"
                   />
                 </div>
