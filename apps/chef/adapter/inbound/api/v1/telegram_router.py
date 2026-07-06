@@ -5,6 +5,7 @@ import os
 import httpx
 from fastapi import APIRouter, Depends
 
+from apps.auth.dependencies import require_owner
 from chef.adapter.inbound.api.schemas.telegram_schema import (
     TelegramHistoryItem,
     TelegramSchema,
@@ -26,7 +27,9 @@ async def introduce_myself(
     return {"id": result.id, "name": result.name}
 
 
-@telegram_router.get("/history", response_model=list[TelegramHistoryItem])
+@telegram_router.get(
+    "/history", response_model=list[TelegramHistoryItem], dependencies=[Depends(require_owner)]
+)
 async def get_history() -> list[TelegramHistoryItem]:
     api_url = os.getenv("N8N_API_URL", "http://localhost:5678")
     api_key = os.getenv("N8N_API_KEY", "")
