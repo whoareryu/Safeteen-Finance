@@ -96,14 +96,15 @@ export default function Header() {
                 {isAdmin(user) ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger
+                      aria-label="마이페이지"
                       className={cn(
-                        "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] md:text-sm",
+                        "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
                         isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
                       )}
                     >
                       <UserCircle className="h-3.5 w-3.5" aria-hidden />
-                      마이페이지
-                      <ChevronDown className="h-3 w-3 opacity-60" />
+                      <span className="hidden sm:inline">마이페이지</span>
+                      <ChevronDown className="hidden h-3 w-3 opacity-60 sm:inline" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="min-w-[11rem]">
                       <DropdownMenuItem asChild>
@@ -123,22 +124,24 @@ export default function Header() {
                 ) : (
                   <Link
                     href="/mypage"
+                    aria-label="마이페이지"
                     className={cn(
-                      "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] md:text-sm",
+                      "apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
                       isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
                     )}
                   >
                     <UserCircle className="h-3.5 w-3.5" aria-hidden />
-                    마이페이지
+                    <span className="hidden sm:inline">마이페이지</span>
                   </Link>
                 )}
                 <button
                   type="button"
                   onClick={logout}
-                  className="apple-nav-cta flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs md:text-sm"
+                  aria-label="로그아웃"
+                  className="apple-nav-cta flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs sm:px-3 md:text-sm"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  로그아웃
+                  <span className="hidden sm:inline">로그아웃</span>
                 </button>
               </>
             ) : (
