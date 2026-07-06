@@ -82,7 +82,7 @@ export default function Header() {
 
             <Link
               href="/admin"
-              className="apple-nav-link inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] dark:border-white/10 dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/15 md:text-sm"
+              className="apple-nav-link hidden items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] dark:border-white/10 dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/15 sm:inline-flex md:text-sm"
             >
               <LayoutDashboard className="h-3.5 w-3.5" aria-hidden />
               관리자
