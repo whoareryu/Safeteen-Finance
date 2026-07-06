@@ -24,7 +24,10 @@ const TOPICS: LessonTopic[] = [
   {
     id: "vision",
     label: "Vision",
-    items: [{ href: "/portfolio/vision/upload", label: "1. 이미지 업로드" }],
+    items: [
+      { href: "/portfolio/vision/upload", label: "1. 이미지 업로드" },
+      { href: "/portfolio/vision/object-detection", label: "2. 객체 탐지" },
+    ],
   },
 ];
 

@@ -134,12 +134,26 @@ export async function login(username: string, password: string): Promise<AuthUse
   return (await res.json()) as AuthUser;
 }
 
-export async function googleLogin(credential: string): Promise<AuthUser> {
+export type GoogleLoginResult = AuthUser & { owner_token: string | null };
+
+export async function googleLogin(credential: string): Promise<GoogleLoginResult> {
   const res = await authFetch("/api/auth/google", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ credential }),
   });
   if (!res.ok) throw new Error(await parseError(res));
-  return (await res.json()) as AuthUser;
+  return (await res.json()) as GoogleLoginResult;
+}
+
+/** 소유자(owner) 전용 기능(이메일 발송·주소록·lesson 탭) 접근 가능 여부. */
+export async function checkOwner(): Promise<boolean> {
+  try {
+    const res = await authFetch("/api/auth/owner-check");
+    if (!res.ok) return false;
+    const data = (await res.json()) as { is_owner: boolean };
+    return data.is_owner;
+  } catch {
+    return false;
+  }
 }

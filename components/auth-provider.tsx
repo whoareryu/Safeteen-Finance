@@ -17,6 +17,7 @@ import {
   saveStoredUser,
   signup as apiSignup,
   googleLogin as apiGoogleLogin,
+  checkOwner,
   type AuthUser,
   type UserRole,
 } from "@/lib/auth";
@@ -26,6 +27,7 @@ export { isAdmin, type AuthUser, type UserRole };
 type AuthContextValue = {
   user: AuthUser | null;
   ready: boolean;
+  isOwner: boolean;
   login: (username: string, password: string) => Promise<void>;
   signup: (payload: {
     username: string;
@@ -43,11 +45,16 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setUser(loadStoredUser());
+    const stored = loadStoredUser();
+    setUser(stored);
     setReady(true);
+    if (stored) {
+      checkOwner().then(setIsOwner);
+    }
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -77,7 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = await apiGoogleLogin(credential);
       saveStoredUser(u);
       document.cookie = `wr_session=${u.id}; path=/; SameSite=Lax; max-age=2592000`;
+      if (u.owner_token) {
+        document.cookie = `wr_owner_session=${u.owner_token}; path=/; SameSite=Lax; max-age=2592000`;
+      } else {
+        document.cookie = "wr_owner_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      }
       setUser(u);
+      setIsOwner(!!u.owner_token);
     },
     []
   );
@@ -85,12 +98,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     saveStoredUser(null);
     document.cookie = "wr_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "wr_owner_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     setUser(null);
+    setIsOwner(false);
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, login, signup, googleLogin, logout }),
-    [user, ready, login, signup, googleLogin, logout]
+    () => ({ user, ready, isOwner, login, signup, googleLogin, logout }),
+    [user, ready, isOwner, login, signup, googleLogin, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
