@@ -1,0 +1,76 @@
+# .importlinter
+# 목적: 스타 토폴로지 하네스 — Python import 정적 분석으로 스포크 간 직접 참조를 차단.
+# 사용법: pip install import-linter && lint-imports
+# 공식 문서: https://import-linter.readthedocs.io/
+
+[importlinter]
+root_packages =
+    star_craft
+    silicon_valley
+    titanic
+    restaurant
+    user
+    auth
+    core
+
+# ── Contract 1: 스포크 독립성 ──────────────────────────────────────────────────
+# 핵심 규칙: 스포크 모듈은 서로 직접 import할 수 없다.
+# 허브(star_craft)를 통해서만 상호작용해야 한다.
+[importlinter:contract:spoke-independence]
+name = Spoke modules must be independent of each other
+type = independence
+modules =
+    silicon_valley
+    titanic
+    restaurant
+    user
+
+# ── Contract 2: 허브 보호 ──────────────────────────────────────────────────────
+# Hub(star_craft)는 포트와 인터페이스만 정의한다.
+# 스포크 구현체를 직접 import하면 의존성 역전 원칙(DIP) 위반.
+# 조합(wiring)은 오직 main.py(Composition Root)에서만 허용.
+[importlinter:contract:hub-does-not-depend-on-spokes]
+name = Hub (star_craft) must not import spoke implementations
+type = forbidden
+source_modules =
+    star_craft
+forbidden_modules =
+    silicon_valley
+    titanic
+    restaurant
+    user
+
+# ── Contract 3: 헥사고날 레이어 순서 ─────────────────────────────────────────
+# 각 앱 내부의 의존성 방향: adapter → app → domain
+# adapter(인프라)는 app(유스케이스)을 알 수 있지만, 역방향은 금지.
+[importlinter:contract:hexagonal-layers-restaurant]
+name = Restaurant hexagonal layers
+type = layers
+layers =
+    restaurant.adapter
+    restaurant.app
+    restaurant.domain
+
+[importlinter:contract:hexagonal-layers-user]
+name = User hexagonal layers
+type = layers
+layers =
+    user.adapter
+    user.app
+    user.domain
+
+[importlinter:contract:hexagonal-layers-titanic]
+name = Titanic hexagonal layers
+type = layers
+layers =
+    titanic.adapter
+    titanic.app
+    titanic.domain
+
+[importlinter:contract:hexagonal-layers-silicon-valley]
+name = Silicon Valley hexagonal layers
+type = layers
+layers =
+    silicon_valley.adapter
+    silicon_valley.app
+    silicon_valley.domain

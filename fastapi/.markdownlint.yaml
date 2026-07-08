@@ -1,0 +1,24 @@
+# .markdownlint.yaml
+# 목적: 스타 토폴로지 하네스 — MD 파일이 온톨로지 노드로서 올바른 구조를 갖추도록 강제.
+# 모든 _docs/*.md 는 frontmatter(type: hub|spoke, links: [])를 포함해야 한다.
+# markdownlint-cli 설치: npm install -g markdownlint-cli
+
+default: true
+
+MD025: true
+
+# MD024: 중복 제목 금지 (노드 내 섹션 유일성)
+MD024:
+  siblings_only: true
+
+# MD022: 제목 앞뒤 빈 줄 필수 (가독성·파서 호환)
+MD022: true
+
+# MD032: 목록 앞뒤 빈 줄 필수
+MD032: true
+
+# MD010: 탭 금지 (스페이스 강제)
+MD010: true
+
+# MD047: 파일 끝 개행 필수
+MD047: true

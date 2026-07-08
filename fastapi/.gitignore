@@ -1,0 +1,106 @@
+# --- 비밀·자격 증명 (GitHub에 올리면 안 되는 정보) ---
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*_rsa
+*_ed25519
+*_ecdsa
+*.pem.pub
+secrets/
+.secrets/
+credentials.json
+*credentials*.json
+service-account*.json
+.aws/credentials
+.azure/
+gcloud/
+*.db-journal
+
+# --- API 키·토큰이 들어가기 쉬운 로컬 설정 ---
+*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.cover
+.tox/
+.nox/
+
+# --- Node / 프론트엔드 ---
+node_modules/
+.npm
+.pnpm-store/
+.next/
+out/
+.nuxt/
+.vite/
+*.tsbuildinfo
+
+# --- IDE·에디터 (개인/기기별 경로가 섞일 수 있음) ---
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- 로그·덤프·임시 ---
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.dump
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- 기타 로컬 전용 ---
+.cache/
+*.sqlite3
+*.db
+
+
+
+# 대용량 원본 데이터 (CSV 등) — git 미포함
+apps/restaurant/data/raw/
+
+# --- YOLO 등 실행 시 자동 다운로드되는 모델 가중치·샘플 ---
+*.pt
+bus.jpg
+runs/
+
+# 얼굴 인식 학습용 원본 이미지 (인물 사진 — git 미포함)
+apps/vision/resources/yolo_train/train/
+apps/vision/resources/yolo_train/val/
