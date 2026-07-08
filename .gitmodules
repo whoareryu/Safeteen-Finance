@@ -1,6 +1,3 @@
-[submodule "backend"]
-	path = fastapi
-	url = https://github.com/whoareryu/cloud.whoareryu.api.git
 [submodule "frontend"]
 	path = www
 	url = https://github.com/whoareryu/cloud.whoareryu.www.git
