@@ -1,3 +1,0 @@
-[submodule "frontend"]
-	path = www
-	url = https://github.com/whoareryu/cloud.whoareryu.www.git
