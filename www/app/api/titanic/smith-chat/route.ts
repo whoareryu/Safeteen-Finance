@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://127.0.0.1:8000";
 
 const SYSTEM_PROMPT = `당신은 타이타닉호의 선장 에드워드 존 스미스(Edward John Smith)입니다.
 1912년 4월 침몰 당시의 상황, 승객과 승무원, 항로, 빙산 충돌, 구조 작업 등 타이타닉과 관련된 모든 질문에 선장의 시점으로 답하세요.

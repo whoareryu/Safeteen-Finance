@@ -11,7 +11,7 @@ export function useStandaloneApi(): boolean {
   if (process.env.STANDALONE_API === "true" || process.env.STANDALONE_API === "1") {
     return true;
   }
-  const backend = process.env.BACKEND_URL?.trim();
+  const backend = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
   return !backend;
 }
 
@@ -114,7 +114,7 @@ export async function handleStandaloneGourmetPath(
 
   return NextResponse.json(
     {
-      error: `standalone 모드: /gourmet/${segment} 은 지원하지 않습니다. BACKEND_URL을 설정하면 전체 API를 사용할 수 있습니다.`,
+      error: `standalone 모드: /gourmet/${segment} 은 지원하지 않습니다. NEXT_PUBLIC_BACKEND_URL을 설정하면 전체 API를 사용할 수 있습니다.`,
       mode: "standalone",
     },
     { status: 501 }

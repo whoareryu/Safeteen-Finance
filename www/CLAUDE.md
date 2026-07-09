@@ -17,7 +17,7 @@ Next.js 프론트엔드 프로젝트 규약. 루트 규칙은 [../CLAUDE.md](../
 | 차트 | recharts |
 | 패키지 매니저 | npm (package-lock.json) |
 | 진입점 | `app/layout.tsx`, `app/page.tsx` |
-| 백엔드 프록시 | `next.config.mjs` rewrites → `BACKEND_URL` (Docker: `http://backend:8000`) |
+| 백엔드 프록시 | `next.config.mjs` rewrites → `NEXT_PUBLIC_BACKEND_URL` (Docker: `http://backend:8000`) |
 
 ---
 
@@ -64,27 +64,27 @@ www/
 ## API 프록시 구조
 
 백엔드 직접 호출은 `next.config.mjs`의 `rewrites`로 처리한다.  
-브라우저 → Next.js `/api/*` → `BACKEND_URL` (백엔드 컨테이너).
+브라우저 → Next.js `/api/*` → `NEXT_PUBLIC_BACKEND_URL` (백엔드 컨테이너).
 
 ```js
 // next.config.mjs
-const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8000";
-// Docker 내부: BACKEND_URL=http://backend:8000
-// 로컬 개발:   BACKEND_URL=http://127.0.0.1:8000 (.env.local)
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+// Docker 내부: NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+// 로컬 개발:   NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000 (.env.local)
 ```
 
 현재 등록된 rewrite 경로:
 
 | 프론트 경로 | 백엔드 경로 |
 |------------|------------|
-| `/api/titanic/walter/myself` | `{BACKEND_URL}/api/titanic/walter/myself` |
-| `/api/titanic/chat` | `{BACKEND_URL}/api/titanic/chat` |
-| `/api/titanic/upload` | `{BACKEND_URL}/api/titanic/upload` |
-| `/api/titanic/james/upload` | `{BACKEND_URL}/api/titanic/james/upload` |
-| `/api/gourmet/:path*` | `{BACKEND_URL}/gourmet/:path*` |
-| `/api/chat` | `{BACKEND_URL}/chat` |
-| `/api/auth/:path*` | `{BACKEND_URL}/auth/:path*` |
-| `/api/weather` | `{BACKEND_URL}/weather` |
+| `/api/titanic/walter/myself` | `{NEXT_PUBLIC_BACKEND_URL}/api/titanic/walter/myself` |
+| `/api/titanic/chat` | `{NEXT_PUBLIC_BACKEND_URL}/api/titanic/chat` |
+| `/api/titanic/upload` | `{NEXT_PUBLIC_BACKEND_URL}/api/titanic/upload` |
+| `/api/titanic/james/upload` | `{NEXT_PUBLIC_BACKEND_URL}/api/titanic/james/upload` |
+| `/api/gourmet/:path*` | `{NEXT_PUBLIC_BACKEND_URL}/gourmet/:path*` |
+| `/api/chat` | `{NEXT_PUBLIC_BACKEND_URL}/chat` |
+| `/api/auth/:path*` | `{NEXT_PUBLIC_BACKEND_URL}/auth/:path*` |
+| `/api/weather` | `{NEXT_PUBLIC_BACKEND_URL}/weather` |
 
 새 백엔드 엔드포인트 추가 시 반드시 `next.config.mjs` rewrites에 등록.
 
@@ -139,9 +139,9 @@ docker compose up --build
 
 환경변수 (`www/.env.local`):
 ```
-BACKEND_URL=http://127.0.0.1:8000   # 로컬
+NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000   # 로컬
 # Docker 실행 시 docker-compose.yaml의 environment가 오버라이드
-# BACKEND_URL=http://backend:8000
+# NEXT_PUBLIC_BACKEND_URL=http://backend:8000
 ```
 
 ---

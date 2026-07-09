@@ -15,7 +15,7 @@ This repository is linked to a [v0](https://v0.app) project. You can continue de
 1. [Vercel → Authentication](https://vercel.com/account/settings/authentication) 에서 **GitHub 재연결**
 2. `git config user.email` 이 GitHub·Vercel과 동일한지 확인
 3. [Hobby 플랜](https://vercel.com/docs/plans/hobby) 은 **본인 커밋**만 자동 배포 — v0/타 계정 커밋이면 본인으로 **새 커밋** push
-4. Vercel **Environment Variables** 에 `BACKEND_URL` = 공개 백엔드 URL ( `127.0.0.1` 불가 )
+4. Vercel **Environment Variables** 에 `NEXT_PUBLIC_BACKEND_URL` = 공개 백엔드 URL ( `127.0.0.1` 불가 )
 
 상세: 모노레포 저장소 `com.ragwatson` 의 `docs/DevOps/Frontend/VERCEL_V0_DEPLOY.md`
 

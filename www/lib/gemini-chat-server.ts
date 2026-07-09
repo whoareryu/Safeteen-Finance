@@ -36,7 +36,7 @@ export async function runGeminiChat(
     );
   }
 
-  const backendUrl = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
   try {
     const res = await fetch(`${backendUrl}/gourmet/chat`, {

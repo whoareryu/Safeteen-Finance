@@ -53,21 +53,21 @@ git push origin main
 
 | 변수 | 예시 |
 |------|------|
-| `BACKEND_URL` | 공개 FastAPI URL (로컬 `127.0.0.1` 은 Vercel에서 동작 안 함) |
+| `NEXT_PUBLIC_BACKEND_URL` | 공개 FastAPI URL (로컬 `127.0.0.1` 은 Vercel에서 동작 안 함) |
 
 ### 백엔드 없이 UI만 테스트 (standalone)
 
-`BACKEND_URL` 을 **설정하지 않으면** Next.js `/api` 가 직접 응답합니다.
+`NEXT_PUBLIC_BACKEND_URL` 을 **설정하지 않으면** Next.js `/api` 가 직접 응답합니다.
 
 | 변수 | 필수 | 역할 |
 |------|------|------|
 | `GEMINI_API_KEY` | 채팅 테스트 시 | `/api/gourmet/chat`, `/api/gemini/chat` |
 | `OPENWEATHER_API_KEY` | 날씨 위젯 | `/api/weather` |
 | `OPENWEATHER_CITY` | 선택 (기본 Seoul) | 위치 거부 시 도시 |
-| `STANDALONE_API` | 선택 `true` | `BACKEND_URL` 이 있어도 프록시 대신 standalone |
+| `STANDALONE_API` | 선택 `true` | `NEXT_PUBLIC_BACKEND_URL` 이 있어도 프록시 대신 standalone |
 
 - **목 데이터:** 홈 피드·오늘의 한 끼 (실제 13만 건 DB 아님)
-- **미지원:** 즐겨찾기·식단·로그인 DB 연동 → `BACKEND_URL` 필요
+- **미지원:** 즐겨찾기·식단·로그인 DB 연동 → `NEXT_PUBLIC_BACKEND_URL` 필요
 
 배포 후 확인: `https://your-app.vercel.app/api/gourmet/home-browse` → JSON + `"mode":"standalone"`
 

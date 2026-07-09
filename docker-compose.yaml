@@ -46,7 +46,7 @@ services:
     env_file:
       - ./www/.env.local
     environment:
-      - BACKEND_URL=http://backend:8000
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
     depends_on:
       - backend
     networks:

@@ -10,7 +10,7 @@ const FORWARD_HEADERS = [
 ] as const;
 
 export function getBackendBaseUrl(): string | null {
-  const raw = process.env.BACKEND_URL?.trim();
+  const raw = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
   if (!raw) return null;
   return raw.replace(/\/$/, "");
 }
@@ -19,13 +19,13 @@ export function backendNotConfiguredResponse() {
   return NextResponse.json(
     {
       error:
-        "백엔드 URL이 설정되지 않았습니다. Vercel Environment Variables에 BACKEND_URL(공개 FastAPI 주소)을 등록한 뒤 재배포하세요.",
+        "백엔드 URL이 설정되지 않았습니다. Vercel Environment Variables에 NEXT_PUBLIC_BACKEND_URL(공개 FastAPI 주소)을 등록한 뒤 재배포하세요.",
     },
     { status: 503 }
   );
 }
 
-/** FastAPI로 요청을 그대로 전달 (Vercel 런타임에서 BACKEND_URL 사용). */
+/** FastAPI로 요청을 그대로 전달 (Vercel 런타임에서 NEXT_PUBLIC_BACKEND_URL 사용). */
 export async function proxyToBackend(
   request: Request,
   backendPath: string

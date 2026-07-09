@@ -69,7 +69,7 @@ OPENWEATHER_CITY=Seoul
 - **날씨:** 프론트 `frontend/.env.local` 에 있던 `OPENWEATHER_API_KEY` 는 **`backend/.env`로 옮기세요.**
 - **보강:** `GET /gourmet/restaurants/{id}/enrichment` 호출 시 Kakao·LOCALDATA 키가 있으면 실시간 조회합니다.
 
-적용 후: `cd backend` → 서버 재시작. 프론트는 `BACKEND_URL` 만 있으면 됩니다.
+적용 후: `cd backend` → 서버 재시작. 프론트는 `NEXT_PUBLIC_BACKEND_URL` 만 있으면 됩니다.
 
 ---
 
