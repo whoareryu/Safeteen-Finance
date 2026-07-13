@@ -77,9 +77,8 @@ from admin.adapter.inbound.api import silicon_valley_router
 from ontology.adapter.inbound.api import ontology_router
 from community.adapter.inbound.api import chef_router
 
-from restaurant.adapter.inbound.api import restaurant_router
-from user.adapter.inbound.api import user_router
 from ontology.adapter.inbound.api.v1.vision_router import vision_router
+from plant.adapter.inbound.api import plant_router
 from apps.auth.auth_endpoints import auth_router, signup_router, login_router
 
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
@@ -113,6 +112,34 @@ register_dispatch_factory(
         owner_gate=_OwnerGateAdapter(),
     )
 )
+
+# ── Composition root: plant 전용 YOLO/이미지 저장소를 ontology 허브 어댑터로 주입 ──
+from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
+from ontology.app.use_cases.yolo_interactor import YoloInteractor
+from plant.adapter.outbound.resource_adapters.plant_yolo_dataset_adapter import (
+    PlantYoloDatasetAdapter,
+)
+from plant.adapter.outbound.resource_adapters.plant_yolo_model_adapter import (
+    PlantYoloModelAdapter,
+)
+from plant.dependencies.diagnosis_provider import (
+    register_species_yolo_factory,
+    register_image_storage_factory,
+)
+
+register_species_yolo_factory(
+    lambda: YoloInteractor(
+        dataset=PlantYoloDatasetAdapter(os.getenv("PLANT_YOLO_DATASET_PATH", "apps/plant/resources/yolo_train")),
+        model=PlantYoloModelAdapter(os.getenv("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")),
+    )
+)
+register_image_storage_factory(
+    lambda: S3ImageStorageGateway(
+        bucket=os.getenv("PLANT_S3_BUCKET", os.getenv("S3_BUCKET", "")),
+        region=os.getenv("AWS_REGION", "ap-northeast-2"),
+        prefix="plant",
+    )
+)
 # ─────────────────────────────────────────────────────────────────────────
 
 app.include_router(ontology_router, prefix="/api")
@@ -120,8 +147,7 @@ app.include_router(titanic_router, prefix="/api")
 app.include_router(silicon_valley_router, prefix="/api")
 app.include_router(chef_router, prefix="/api")
 app.include_router(vision_router, prefix="/api")
-app.include_router(restaurant_router, prefix="/api")
-app.include_router(user_router, prefix="/api")
+app.include_router(plant_router, prefix="/api")
 app.include_router(auth_router)
 app.include_router(signup_router)
 app.include_router(login_router)
