@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
-// 변경 후
-const backendUrl = "https://api.whoareryu.cloud";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.whoareryu.cloud";
 
 const nextConfig = {
   typescript: {
@@ -73,15 +72,15 @@ const nextConfig = {
       },
       {
         source: "/api/gourmet/:path*",
-        destination: `${backendUrl}/gourmet/:path*`,
+        destination: `${backendUrl}/api/gourmet/:path*`,
       },
       {
         source: "/api/weather/icon",
-        destination: `${backendUrl}/weather/icon`,
+        destination: `${backendUrl}/api/weather/icon`,
       },
       {
         source: "/api/weather",
-        destination: `${backendUrl}/weather`,
+        destination: `${backendUrl}/api/weather`,
       },
       {
         source: "/api/silicon-valley/:path*",

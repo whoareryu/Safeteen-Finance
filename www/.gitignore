@@ -11,3 +11,5 @@ node_modules
 
 # 사용자 업로드 (titanic CSV 등)
 uploads/
+.vercel
+.env*

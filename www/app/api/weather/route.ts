@@ -6,5 +6,5 @@ export async function GET(request: Request) {
   if (useStandaloneApi()) {
     return fetchStandaloneWeather(request);
   }
-  return proxyToBackend(request, "/weather");
+  return proxyToBackend(request, "/api/weather");
 }

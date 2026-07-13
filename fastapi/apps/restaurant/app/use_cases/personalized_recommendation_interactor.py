@@ -12,12 +12,11 @@ from restaurant.app.ports.input.personalized_recommendation_use_case import (
 from restaurant.app.ports.output.personalized_recommendation_repository import (
     PersonalizedRecommendationRepository,
 )
+from restaurant.app.ports.output.reason_generator_port import ReasonGeneratorPort
 from restaurant.app.use_cases.strategies.recommendation_scoring_strategy import (
     RecommendationScoringStrategy,
 )
 
-_SLOT_LABEL = {"morning": "아침", "lunch": "점심", "dinner": "저녁"}
-_DINING_LABEL = {"dine_in": "매장에서", "pickup": "포장으로", "delivery": "배달로"}
 _CANDIDATE_POOL = 200
 
 
@@ -26,11 +25,13 @@ class PersonalizedRecommendationInteractor(PersonalizedRecommendationUseCase):
         self,
         repository: PersonalizedRecommendationRepository,
         strategy: RecommendationScoringStrategy,
+        reason_generator: ReasonGeneratorPort,
     ) -> None:
         self._repository = repository
         self._strategy = strategy
+        self._reason_generator = reason_generator
 
-    def pick_one(self, db: Session, query: PersonalizedQuery) -> PersonalizedPick:
+    async def pick_one(self, db: Session, query: PersonalizedQuery) -> PersonalizedPick:
         candidates = self._repository.candidate_restaurants(
             db,
             excluded_ids=query.preference.excluded_restaurant_ids,
@@ -49,18 +50,5 @@ class PersonalizedRecommendationInteractor(PersonalizedRecommendationUseCase):
             road_address=best.get("road_address", ""),
             latitude=best.get("latitude"),
             longitude=best.get("longitude"),
-            reason=self._reason(best, query),
+            reason=await self._reason_generator.generate(best, query),
         )
-
-    def _reason(self, candidate: dict, query: PersonalizedQuery) -> str:
-        genre = candidate.get("genre", "")
-        ranking = query.preference.genre_ranking
-        slot = _SLOT_LABEL.get(query.time_slot, "오늘")
-        dining = _DINING_LABEL.get(query.dining_mode or "", "")
-        if genre in ranking or candidate.get("slug", "") in ranking:
-            base = f"취향에 맞는 {genre} 한 곳이에요."
-        else:
-            base = f"{slot}에 어울리는 {genre} 추천이에요."
-        if dining:
-            return f"{slot}에 {dining} 즐기기 좋은 {genre}이에요."
-        return base

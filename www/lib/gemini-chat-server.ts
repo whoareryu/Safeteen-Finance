@@ -39,7 +39,7 @@ export async function runGeminiChat(
   const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
   try {
-    const res = await fetch(`${backendUrl}/gourmet/chat`, {
+    const res = await fetch(`${backendUrl}/api/gourmet/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

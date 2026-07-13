@@ -41,7 +41,7 @@ def _current_slot() -> str:
 @personalized_recommendation_router.post(
     "/recommendation/today", response_model=RecommendationCardResponse
 )
-def post_today_recommendation(
+async def post_today_recommendation(
     payload: RecommendationRequest,
     db: Session = Depends(get_sync_db),
     use_case: PersonalizedRecommendationUseCase = Depends(
@@ -61,7 +61,7 @@ def post_today_recommendation(
         dining_mode=payload.dining_mode,
     )
     try:
-        pick = use_case.pick_one(db, query)
+        pick = await use_case.pick_one(db, query)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

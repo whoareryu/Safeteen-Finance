@@ -12,7 +12,7 @@ async function handle(request: Request, context: RouteContext) {
   if (useStandaloneApi()) {
     return handleStandaloneGourmetPath(request, segment);
   }
-  return proxyToBackend(request, `/gourmet/${segment}`);
+  return proxyToBackend(request, `/api/gourmet/${segment}`);
 }
 
 export const GET = handle;

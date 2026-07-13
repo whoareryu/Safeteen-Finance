@@ -7,5 +7,5 @@ export async function GET(request: Request) {
     const code = new URL(request.url).searchParams.get("code") ?? "";
     return standaloneWeatherIcon(code);
   }
-  return proxyToBackend(request, "/weather/icon");
+  return proxyToBackend(request, "/api/weather/icon");
 }

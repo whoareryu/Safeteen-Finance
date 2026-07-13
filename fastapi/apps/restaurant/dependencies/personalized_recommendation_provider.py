@@ -1,5 +1,11 @@
 from functools import lru_cache
 
+from restaurant.adapter.outbound.llm.ollama_reason_generator import (
+    OllamaReasonGenerator,
+)
+from restaurant.adapter.outbound.llm.template_reason_generator import (
+    TemplateReasonGenerator,
+)
 from restaurant.adapter.outbound.pg.personalized_recommendation_pg_repository import (
     PersonalizedRecommendationPgRepository,
 )
@@ -19,4 +25,5 @@ def get_personalized_recommendation_use_case() -> PersonalizedRecommendationUseC
     return PersonalizedRecommendationInteractor(
         repository=PersonalizedRecommendationPgRepository(),
         strategy=ContextScoringStrategy(),
+        reason_generator=OllamaReasonGenerator(fallback=TemplateReasonGenerator()),
     )
