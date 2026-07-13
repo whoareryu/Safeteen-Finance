@@ -34,11 +34,19 @@ jobs:
           push: true
           tags: whoareryu/fastapi:latest
 
+      - name: Install cloudflared
+        run: |
+          curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/cloudflared
+
       - name: Deploy to remote server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_SSH_KEY }}
-          script: |
-            cd ~/project && docker compose pull && docker compose up -d
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.REMOTE_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -o StrictHostKeyChecking=no \
+              -o ProxyCommand="cloudflared access ssh --hostname ssh.whoareryu.cloud" \
+              -i ~/.ssh/deploy_key \
+              "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" \
+              "cd ~/project && docker compose pull && docker compose up -d"
