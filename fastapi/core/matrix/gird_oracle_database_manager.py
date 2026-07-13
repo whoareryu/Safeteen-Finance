@@ -73,6 +73,11 @@ def import_models() -> None:
         # Chef
         "chef.adapter.outbound.orm.address_orm",
         "chef.adapter.outbound.orm.receiver_orm",
+        # Soccer
+        "soccer.adapter.outbound.orm.stadium_orm",
+        "soccer.adapter.outbound.orm.team_orm",
+        "soccer.adapter.outbound.orm.schedule_orm",
+        "soccer.adapter.outbound.orm.player_orm",
         # Plant — 6개 ORM
         "plant.adapter.outbound.orm.plant_orm",
         "plant.adapter.outbound.orm.diagnosis_record_orm",
