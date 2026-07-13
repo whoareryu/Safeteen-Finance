@@ -172,4 +172,4 @@ NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000   # 로컬
 
 ## 관련 문서
 
-[[www/_docs/CLAUDE\|Frontend Docs]]
+[[www/_docs/CLAUDE\|Frontend Docs]] · [[_docs/architecture\|Master Architecture]]

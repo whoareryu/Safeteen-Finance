@@ -129,4 +129,4 @@ Violating any of the rules above (SOLID, architecture layers) is a blocker — s
 
 ## 그래프 링크
 
-[[fastapi/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]] · [[flutter/CLAUDE\|Flutter]]
+[[fastapi/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]] · [[flutter/CLAUDE\|Flutter]] · [[_docs/architecture\|Master Architecture]]

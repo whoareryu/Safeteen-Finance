@@ -286,4 +286,6 @@ markdownlint --config .markdownlint.yaml "**/*.md"
 
 ## 관련 문서
 
-[[fastapi/_docs/CLAUDE\|Backend Docs]] · [[fastapi/apps/restaurant/_docs/CLAUDE\|Restaurant CLAUDE]] · [[fastapi/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]]
+[[fastapi/_docs/CLAUDE\|Backend Docs]] · [[fastapi/apps/titanic/_docs/CLAUDE\|Titanic CLAUDE]] · [[_docs/architecture\|Master Architecture]]
+
+> 신규 앱(`apps/plant` 등)은 `_docs/architecture.md` §12 Fractal 11-File Set(mapper/orm_mapper 포함)을 따른다. 기존 앱(titanic/community/admin/soccer/dumb_and_dumber/ontology)은 레거시 규약을 유지한다.
