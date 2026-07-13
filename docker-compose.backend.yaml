@@ -1,3 +1,5 @@
+# pgvector/neo4j/cloudflared 의 ${...} 치환값은 이 파일과 같은 경로의 .env를 자동으로 읽지 않음.
+# 실행 시 명시적으로 지정: docker compose --env-file fastapi/.env -f docker-compose.backend.yaml up
 services:
   # 1. FastAPI 백엔드
   backend:
@@ -24,6 +26,7 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -35,6 +38,7 @@ services:
       - "5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -50,6 +54,7 @@ services:
       - POSTGRES_DB=${PGVECTOR_DB:-whoareryu}
     volumes:
       - pgvector_data:/var/lib/postgresql/data
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -61,6 +66,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -85,6 +91,7 @@ services:
       - "8080:8080"
     depends_on:
       - pgvector
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -99,6 +106,7 @@ services:
       - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-changeme}
     volumes:
       - neo4j_data:/data
+    restart: unless-stopped
     networks:
       - app-network
 
