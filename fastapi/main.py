@@ -75,7 +75,7 @@ app.add_middleware(
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 from silicon_valley.adapter.inbound.api import silicon_valley_router
 from ontology.adapter.inbound.api import ontology_router
-from chef.adapter.inbound.api import chef_router
+from community.adapter.inbound.api import chef_router
 
 from restaurant.adapter.inbound.api import restaurant_router
 from user.adapter.inbound.api import user_router
@@ -86,8 +86,8 @@ from apps.auth.auth_endpoints import auth_router, signup_router, login_router
 import os
 
 from apps.auth.owner_session import is_valid_owner_token
-from chef.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
-from chef.dependencies.email_provider import get_email_use_case
+from community.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
+from community.dependencies.email_provider import get_email_use_case
 from ontology.app.ports.output.owner_gate_port import OwnerGatePort
 from ontology.app.use_cases.maestro_router_interactor import MaestroInteractor
 from ontology.dependencies.maestro_router_provider import (
