@@ -1,11 +1,11 @@
 import os
 
-from vision.adapter.outbound.resource_adapters.yolo.yolo_dataset_adapter import YoloDatasetAdapter
-from vision.adapter.outbound.resource_adapters.yolo.yolo_model_adapter import YoloModelAdapter
-from vision.app.ports.input.yolo_use_case import YoloUseCase
-from vision.app.ports.output.yolo_model_port import YoloModelPort
-from vision.app.ports.output.yolo_port import YoloPort
-from vision.app.use_cases.yolo_interactor import YoloInteractor
+from ontology.adapter.outbound.resource_adapters.yolo.yolo_dataset_adapter import YoloDatasetAdapter
+from ontology.adapter.outbound.resource_adapters.yolo.yolo_model_adapter import YoloModelAdapter
+from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.app.ports.output.yolo_model_port import YoloModelPort
+from ontology.app.ports.output.yolo_port import YoloPort
+from ontology.app.use_cases.yolo_interactor import YoloInteractor
 
 _DEFAULT_DATASET_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "resources", "yolo_train"

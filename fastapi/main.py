@@ -79,7 +79,7 @@ from chef.adapter.inbound.api import chef_router
 
 from restaurant.adapter.inbound.api import restaurant_router
 from user.adapter.inbound.api import user_router
-from vision.adapter.inbound.api import vision_router
+from ontology.adapter.inbound.api.v1.vision_router import vision_router
 from apps.auth.auth_endpoints import auth_router, signup_router, login_router
 
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────

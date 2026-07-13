@@ -1,14 +1,14 @@
 import os
 
-from vision.app.ports.input.vision_use_case import VisionUseCase
-from vision.app.use_cases.vision_interactor import VisionInteractor
+from ontology.app.ports.input.vision_use_case import VisionUseCase
+from ontology.app.use_cases.vision_interactor import VisionInteractor
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from core.matrix.gird_oracle_database_manager import get_db
-from vision.adapter.outbound.repositories.vision_repository import VisionRepository
-from vision.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
-from vision.app.ports.output.image_storage_gateway import ImageStorageGateway
-from vision.app.ports.output.vision_port import VisionPort
+from ontology.adapter.outbound.repositories.vision_repository import VisionRepository
+from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
+from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
+from ontology.app.ports.output.vision_port import VisionPort
 
 _S3_BUCKET = os.getenv("VISION_S3_BUCKET", "")
 _AWS_REGION = os.getenv("AWS_REGION", "ap-northeast-2")

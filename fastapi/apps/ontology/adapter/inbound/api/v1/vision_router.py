@@ -2,18 +2,18 @@ import asyncio
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
-from vision.adapter.inbound.api.schemas.vision_schema import VisionSchema
-from vision.adapter.inbound.api.schemas.yolo_schema import (
+from ontology.adapter.inbound.api.schemas.vision_schema import VisionSchema
+from ontology.adapter.inbound.api.schemas.yolo_schema import (
     YoloPredictResponse,
     YoloTrainRequest,
     YoloTrainResponse,
 )
-from vision.app.dtos.vision_dto import VisionImageQuery, VisionImageResponse, VisionResponse
-from vision.app.dtos.yolo_dto import YoloPredictCommand, YoloTrainCommand
-from vision.app.ports.input.vision_use_case import VisionUseCase
-from vision.app.ports.input.yolo_use_case import YoloUseCase
-from vision.dependencies.vision_provider import get_vision_use_case
-from vision.dependencies.yolo_provider import get_yolo_use_case
+from ontology.app.dtos.vision_dto import VisionImageQuery, VisionImageResponse, VisionResponse
+from ontology.app.dtos.yolo_dto import YoloPredictCommand, YoloTrainCommand
+from ontology.app.ports.input.vision_use_case import VisionUseCase
+from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.dependencies.vision_provider import get_vision_use_case
+from ontology.dependencies.yolo_provider import get_yolo_use_case
 
 vision_router = APIRouter(prefix="/vision", tags=["vision"])
 

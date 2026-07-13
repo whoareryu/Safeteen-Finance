@@ -6,7 +6,7 @@ import uuid
 
 import boto3
 
-from vision.app.ports.output.image_storage_gateway import ImageStorageGateway
+from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
 
 logger = logging.getLogger(__name__)
 

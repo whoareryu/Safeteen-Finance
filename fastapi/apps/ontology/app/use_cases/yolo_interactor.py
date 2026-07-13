@@ -6,15 +6,15 @@ import os
 from PIL import Image
 from ultralytics import YOLO
 
-from vision.app.dtos.yolo_dto import (
+from ontology.app.dtos.yolo_dto import (
     YoloPredictCommand,
     YoloPredictResult,
     YoloTrainCommand,
     YoloTrainResult,
 )
-from vision.app.ports.input.yolo_use_case import YoloUseCase
-from vision.app.ports.output.yolo_model_port import YoloModelPort
-from vision.app.ports.output.yolo_port import YoloPort
+from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.app.ports.output.yolo_model_port import YoloModelPort
+from ontology.app.ports.output.yolo_port import YoloPort
 
 _BASE_MODEL = "yolo11n-cls.pt"
 

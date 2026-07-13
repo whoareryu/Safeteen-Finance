@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import logging
 
-from vision.app.dtos.vision_dto import (
+from ontology.app.dtos.vision_dto import (
     VisionImageQuery,
     VisionImageResponse,
     VisionResponse,
     VisionQuery,
 )
-from vision.app.ports.output.vision_port import VisionPort
+from ontology.app.ports.output.vision_port import VisionPort
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from vision.app.ports.output.yolo_port import YoloPort
+from ontology.app.ports.output.yolo_port import YoloPort
 
 
 class YoloDatasetAdapter(YoloPort):

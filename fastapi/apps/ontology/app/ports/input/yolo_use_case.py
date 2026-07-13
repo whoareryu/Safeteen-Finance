@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from vision.app.dtos.yolo_dto import (
+from ontology.app.dtos.yolo_dto import (
     YoloPredictCommand,
     YoloPredictResult,
     YoloTrainCommand,

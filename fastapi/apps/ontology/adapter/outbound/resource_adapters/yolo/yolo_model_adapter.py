@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 
-from vision.app.ports.output.yolo_model_port import YoloModelPort
+from ontology.app.ports.output.yolo_model_port import YoloModelPort
 
 
 class YoloModelAdapter(YoloModelPort):
