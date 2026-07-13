@@ -49,4 +49,4 @@ jobs:
               -o ProxyCommand="cloudflared access ssh --hostname ssh.whoareryu.cloud" \
               -i ~/.ssh/deploy_key \
               "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" \
-              "cd ~/project && docker compose pull && docker compose up -d"
+              "cd ~/projects/cloud.whoareryu && docker compose pull && docker compose up -d"
