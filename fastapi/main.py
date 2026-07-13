@@ -73,7 +73,7 @@ app.add_middleware(
 )
 
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
-from silicon_valley.adapter.inbound.api import silicon_valley_router
+from admin.adapter.inbound.api import silicon_valley_router
 from ontology.adapter.inbound.api import ontology_router
 from community.adapter.inbound.api import chef_router
 
