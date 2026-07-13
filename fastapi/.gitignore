@@ -98,9 +98,14 @@ apps/restaurant/data/raw/
 
 # --- YOLO 등 실행 시 자동 다운로드되는 모델 가중치·샘플 ---
 *.pt
+*.cache
 bus.jpg
 runs/
 
 # 얼굴 인식 학습용 원본 이미지 (인물 사진 — git 미포함)
-apps/vision/resources/yolo_train/train/
-apps/vision/resources/yolo_train/val/
+apps/ontology/resources/yolo_train/train/
+apps/ontology/resources/yolo_train/val/
+
+# 식물 진단 학습용 원본 이미지 (PlantDoc 데이터셋 — git 미포함)
+apps/plant/resources/yolo_train/train/
+apps/plant/resources/yolo_train/val/
