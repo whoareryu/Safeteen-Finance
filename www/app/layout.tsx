@@ -5,20 +5,17 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import Header from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/components/auth-provider'
-import { NearbyLocationProvider } from '@/components/nearby-location-provider'
-import OnboardingGate from '@/components/onboarding-gate'
 import FloatingChat from '@/components/floating-chat'
 import BottomTabBar from '@/components/bottom-tab-bar'
-import VisitDetector from '@/components/visit-detector'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'GourmetMate | 서울 맛집 AI 가이드',
+  title: '방구석 플랜트 매니저 | AI 반려식물 케어 가이드',
   description:
-    '서울 맛집을 AI로 카테고리별 검색·추천하고 메뉴·분위기 정보를 받아보는 GourmetMate',
+    '잎사귀 사진 한 장으로 품종과 상태를 진단하고, 날씨에 맞춘 물주기 알림과 케어 처방을 받는 반려식물 케어 에이전트',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -50,17 +47,13 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ""}>
           <AuthProvider>
-            <NearbyLocationProvider>
-              <OnboardingGate />
-              <Header />
-              <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
-                {children}
-              </div>
-              <FloatingChat />
-              <BottomTabBar />
-              <VisitDetector />
+            <Header />
+            <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
+              {children}
+            </div>
+            <FloatingChat />
+            <BottomTabBar />
             {process.env.NODE_ENV === 'production' && <Analytics />}
-            </NearbyLocationProvider>
           </AuthProvider>
           </GoogleOAuthProvider>
         </ThemeProvider>

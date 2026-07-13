@@ -26,9 +26,7 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/history", destination: "/", permanent: true },
-      { source: "/nature", destination: "/food/hansik", permanent: true },
       { source: "/notice", destination: "/", permanent: true },
-      { source: "/restaurant", destination: "/food/hansik", permanent: true },
       { source: "/shopping", destination: "/", permanent: true },
       { source: "/attraction", destination: "/", permanent: true },
       { source: "/seoulmate", destination: "/portfolio", permanent: true },
@@ -71,18 +69,6 @@ const nextConfig = {
         destination: `${backendUrl}/auth/:path*`,
       },
       {
-        source: "/api/gourmet/:path*",
-        destination: `${backendUrl}/api/gourmet/:path*`,
-      },
-      {
-        source: "/api/weather/icon",
-        destination: `${backendUrl}/api/weather/icon`,
-      },
-      {
-        source: "/api/weather",
-        destination: `${backendUrl}/api/weather`,
-      },
-      {
         source: "/api/silicon-valley/:path*",
         destination: `${backendUrl}/api/silicon-valley/:path*`,
       },
@@ -97,6 +83,10 @@ const nextConfig = {
       {
         source: "/api/vision/:path*",
         destination: `${backendUrl}/api/vision/:path*`,
+      },
+      {
+        source: "/api/plant/:path*",
+        destination: `${backendUrl}/api/plant/:path*`,
       },
     ];
   },

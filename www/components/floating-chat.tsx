@@ -6,9 +6,8 @@ import { MessageCircle, X } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
 
 /**
- * 전역 우하단 AI 채팅 플로팅 버튼 (기획서 3-3).
- * 상황 입력("오늘 친구랑 먹을거야" 등)을 맛집 RAG(/api/gourmet/chat)로 전달.
- * 채팅을 닫아도 메인 홈 추천은 그대로 유지(패널만 숨김).
+ * 전역 우하단 AI 채팅 플로팅 버튼.
+ * 식물 케어 관련 질문을 일반 채팅(/api/chat)으로 전달.
  * 수업 영역(/portfolio)에서는 노출하지 않는다.
  */
 export default function FloatingChat() {
@@ -22,7 +21,7 @@ export default function FloatingChat() {
       {open ? (
         <div className="fixed bottom-36 right-4 z-50 flex h-[60vh] max-h-[520px] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-card shadow-2xl ring-1 ring-border">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold">💬 GourmetMate AI</p>
+            <p className="text-sm font-semibold">💬 플랜트 매니저 AI</p>
             <button
               type="button"
               aria-label="채팅 닫기"
@@ -35,8 +34,8 @@ export default function FloatingChat() {
           <div className="flex-1 overflow-y-auto px-3 py-3">
             <GeminiChat
               variant="apple"
-              apiPath="/api/gourmet/chat"
-              inputPlaceholder="오늘 어떤 상황이세요? (예: 친구랑 매운거)"
+              apiPath="/api/chat"
+              inputPlaceholder="식물 상태나 케어가 궁금하신가요?"
             />
           </div>
         </div>

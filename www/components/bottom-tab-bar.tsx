@@ -2,19 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, Heart, Home, MessageCircle, User, Wallet } from "lucide-react";
+import { CalendarCheck, Home, Leaf, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
   { href: "/", label: "홈", Icon: Home },
-  { href: "/couple-travel", label: "커플·여행", Icon: Heart },
-  { href: "/health-diet", label: "헬스식단", Icon: Dumbbell },
-  { href: "/budget", label: "버짓", Icon: Wallet },
+  { href: "/plant", label: "진단", Icon: Leaf },
+  { href: "/plant/care-calendar", label: "케어일정", Icon: CalendarCheck },
   { href: "/social", label: "소셜", Icon: MessageCircle },
-  { href: "/mypage", label: "마이", Icon: User },
 ] as const;
 
-/** 하단 탭바 (기획서 3-4). 수업 영역(/portfolio)에선 숨김. */
+/** 하단 탭바. 수업 영역(/portfolio)에선 숨김. */
 export default function BottomTabBar() {
   const pathname = usePathname();
   if (pathname.startsWith("/portfolio")) return null;

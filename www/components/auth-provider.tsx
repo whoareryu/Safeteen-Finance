@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = await apiSignup(payload);
       saveStoredUser(u);
       setUser(u);
-      router.push("/onboarding");
+      router.push("/plant");
     },
     [router]
   );

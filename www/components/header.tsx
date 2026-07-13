@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, LayoutDashboard, LogIn, LogOut, UserCircle } from "lucide-react";
+import { LogIn, LogOut, UserCircle } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
 import WeatherWidget from "./weather-widget";
-import { isAdmin, useAuth } from "./auth-provider";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useAuth } from "./auth-provider";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
@@ -31,7 +25,7 @@ export default function Header() {
   const isPortfolioActive =
     pathname === "/portfolio" || pathname.startsWith("/portfolio/");
 
-  const isMypageActive = pathname.startsWith("/mypage");
+  const isMypageActive = pathname.startsWith("/plant/care-calendar");
 
   return (
     <>
@@ -42,7 +36,7 @@ export default function Header() {
               href="/"
               className="shrink-0 text-lg font-semibold tracking-tight text-[#1d1d1f] hover:opacity-80 md:text-xl"
             >
-              GourmetMate
+              방구석 플랜트 매니저
             </Link>
           </div>
 
@@ -82,60 +76,22 @@ export default function Header() {
               <ThemeToggle />
             </div>
 
-            <Link
-              href="/admin"
-              className="apple-nav-link hidden shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] dark:border-white/10 dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/15 sm:inline-flex md:text-sm"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" aria-hidden />
-              관리자
-            </Link>
-
             {ready && user ? (
               <>
                 <span className="hidden max-w-[120px] shrink-0 truncate text-xs text-[#6e6e73] md:inline lg:max-w-none lg:text-sm">
                   {user.nickname}님
                 </span>
-                {isAdmin(user) ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      aria-label="마이페이지"
-                      className={cn(
-                        "apple-nav-link inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
-                        isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
-                      )}
-                    >
-                      <UserCircle className="h-3.5 w-3.5" aria-hidden />
-                      <span className="hidden sm:inline">마이페이지</span>
-                      <ChevronDown className="hidden h-3 w-3 opacity-60 sm:inline" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="min-w-[11rem]">
-                      <DropdownMenuItem asChild>
-                        <Link href="/mypage">내 정보</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/mypage/budget">버짓설정</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/mypage/customers">고객관리</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/mypage/stores">매점관리</Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Link
-                    href="/mypage"
-                    aria-label="마이페이지"
-                    className={cn(
-                      "apple-nav-link inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
-                      isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
-                    )}
-                  >
-                    <UserCircle className="h-3.5 w-3.5" aria-hidden />
-                    <span className="hidden sm:inline">마이페이지</span>
-                  </Link>
-                )}
+                <Link
+                  href="/plant/care-calendar"
+                  aria-label="내 식물"
+                  className={cn(
+                    "apple-nav-link inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
+                    isMypageActive && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
+                  )}
+                >
+                  <UserCircle className="h-3.5 w-3.5" aria-hidden />
+                  <span className="hidden sm:inline">내 식물</span>
+                </Link>
                 <button
                   type="button"
                   onClick={logout}

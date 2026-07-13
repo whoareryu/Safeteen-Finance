@@ -7,4 +7,11 @@
 ## [v1.0.0] - 2026-07-13
 
 ### Added
-- `apps/plant` 신규 앱 스캐폴딩 시작 (방구석 플랜트 매니저: photo-diagnosis, care-guide-generation, weather-monitoring, notification-scheduling)
+
+- `apps/plant` 신규 앱 스캐폴딩 완료 (방구석 플랜트 매니저: photo-diagnosis,
+  care-guide-generation, weather-monitoring, notification-scheduling)
+- main.py에 plant_router 연결, `.importlinter`에 plant 스포크 등록
+
+### Removed
+
+- `apps/restaurant`, `apps/user`, `apps/gourmet_stub.py` 삭제 (gourmetmate 도메인 → plant로 전환)
