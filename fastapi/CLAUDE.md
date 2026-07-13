@@ -8,15 +8,15 @@ FastAPI 백엔드 프로젝트 규약. 루트 규칙은 [../CLAUDE.md](../CLAUDE
 
 | 항목 | 값 |
 |------|-----|
-| 진입점 | `whoareryu/main.py` → `uvicorn main:app` |
-| PYTHONPATH | `whoareryu/`, `whoareryu/apps/` (`main.py`에서 `sys.path` 등록) |
-| 환경변수 | `whoareryu/.env` (`DATABASE_URL`, `GEMINI_API_KEY` 등) |
+| 진입점 | `fastapi/main.py` → `uvicorn main:app` |
+| PYTHONPATH | `fastapi/`, `fastapi/apps/` (`main.py`에서 `sys.path` 등록) |
+| 환경변수 | `fastapi/.env` (`DATABASE_URL`, `GEMINI_API_KEY` 등) |
 | DB 모듈 | `core.matrix.gird_oracle_database_manager` (async, Neon PostgreSQL) |
 | DB re-export | `core.database`, `apps.database` (동일 심볼 재익스포트) |
 | Docker | `docker-compose.yaml` — `app-network` 브리지, backend:8000 |
 
 ```text
-whoareryu/
+fastapi/
 ├── main.py                        # FastAPI 앱, 라우터 마운트
 ├── core/
 │   ├── database.py                # gird_oracle_database_manager re-export
@@ -42,7 +42,7 @@ whoareryu/
 
 ## Import 경로 규약
 
-`sys.path`에 `whoareryu/`와 `whoareryu/apps/`가 모두 등록된다.
+`sys.path`에 `fastapi/`와 `fastapi/apps/`가 모두 등록된다.
 
 ```python
 # ✅ 올바른 예
@@ -157,7 +157,7 @@ get_favorite_use_case()  ← dependencies/favorite_provider.py   ← 반드시 �
 - FK: `ForeignKey("{table_plural}.id")` — **복수형 테이블명** 필수
 - users 테이블: `apps/auth/user_model.py` (`role`: admin/user/partner)
 - restaurants 허브: `restaurant_prices`, `restaurant_contacts`, `restaurant_menus`, `restaurant_tags`, `restaurant_operating_hours` (1:1 or 1:N)
-- Alembic 마이그레이션: `whoareryu/alembic/versions/`
+- Alembic 마이그레이션: `fastapi/alembic/versions/`
 
 ---
 

@@ -104,9 +104,9 @@ Violating any of the rules above (SOLID, architecture layers) is a blocker — s
 | 내용 범위 | 저장 경로 |
 |-----------|-----------|
 | 프로젝트 전체에 해당하는 공통 문서 | `_docs/` |
-| 백엔드(FastAPI + 헥사고날) 전용 문서 | `whoareryu/_docs/` |
+| 백엔드(FastAPI + 헥사고날) 전용 문서 | `fastapi/_docs/` |
 | 프론트엔드(Next.js + React) 전용 문서 | `www/_docs/` |
-| 모바일(Flutter) 전용 문서 | `taper/_docs/` |
+| 모바일(Flutter) 전용 문서 | `flutter/_docs/` |
 
 - 범위가 모호할 때는 더 좁은 폴더를 선택한다. 여러 영역에 걸치면 `_docs/`에 둔다.
 - 각 `_docs/` 폴더에는 해당 영역의 아키텍처 결정 기록(ADR), 설계 노트, 가이드, 용어 정의 등을 넣는다.

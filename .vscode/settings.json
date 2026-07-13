@@ -1,10 +1,10 @@
 {
   "python.analysis.extraPaths": [
-    "${workspaceFolder}/backend",
-    "./whoareryu/apps"
+    "${workspaceFolder}/fastapi",
+    "./fastapi/apps"
   ],
   "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/backend"
+    "${workspaceFolder}/fastapi"
   ],
   "python-envs.defaultEnvManager": "ms-python.python:conda",
   "python-envs.defaultPackageManager": "ms-python.python:conda",
@@ -15,6 +15,6 @@
     "**/.metadata/**",
     "**/archetype-resources/**",
     "**/META-INF/maven/**",
-    "**/taper/**"
+    "**/flutter/**"
   ]
 }
