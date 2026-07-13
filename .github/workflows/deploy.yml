@@ -9,6 +9,10 @@ on:
       - "fastapi/**"
       - ".github/workflows/deploy.yml"
 
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
