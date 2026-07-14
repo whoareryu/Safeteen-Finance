@@ -53,6 +53,10 @@
 - `owner` (VARCHAR(10), Nullable)
 - `stadium_id` (VARCHAR(10), Foreign Key -> `stadium.stadium_id` 참조)
 
+#### 🌟 pgvector 기능 연동 요구사항 (RAG)
+구단 소개·연혁·플레이 스타일 기반의 임베딩을 저장할 벡터 컬럼을 `team` 테이블에 추가하세요.
+- `team_embedding` (Vector(1536), Nullable) *— player_embedding과 동일하게 OpenAI text-embedding-3-small 규격 1536 차원. 구단명·연고지·연혁 등을 합친 텍스트를 임베딩해 저장, RAG 검색 시 팀 단위 시맨틱 검색에 사용.*
+
 ### 3. `schedule` 테이블 (경기 일정)
 - `sche_date` (VARCHAR(10), Primary Key)
 - `stadium_id` (VARCHAR(10), Primary Key, Foreign Key -> `stadium.stadium_id` 참조)

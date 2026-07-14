@@ -39,7 +39,7 @@ class CareGuideInteractor(CareGuideUseCase):
     async def generate(self, command: CareGuideCommand) -> CareGuideResult:
         diagnosis = await self._diagnosis_repository.get(command.diagnosis_id)
 
-        system = await self._build_system(diagnosis.detected_species, diagnosis.symptom_label)
+        system = await self._build_system(diagnosis.detected_species)
         user_prompt = (
             f"품종: {diagnosis.detected_species}, 증상: {diagnosis.symptom_label} "
             f"(확신도 {diagnosis.symptom_confidence:.0%})"
@@ -65,20 +65,21 @@ class CareGuideInteractor(CareGuideUseCase):
             prescription_text=saved.prescription_text,
         )
 
-    async def _build_system(self, species: str, symptom: str) -> str:
+    async def _build_system(self, species: str) -> str:
         try:
             graph = await self._sommelier.query(
                 GraphQueryDto(
                     cypher=(
-                        "MATCH (s:Species {name: $species})-[:HAS_SYMPTOM]->(d:Disease {name: $symptom}) "
-                        "RETURN s.idealHumidity AS humidity, s.idealTemp AS temp, "
-                        "s.wateringIntervalDays AS interval, d.description AS description"
+                        "MATCH (s:Species) "
+                        "WHERE toLower(s.name) CONTAINS toLower($species) "
+                        "OR toLower($species) CONTAINS toLower(s.name) "
+                        "RETURN s LIMIT 1"
                     ),
-                    params={"species": species, "symptom": symptom},
+                    params={"species": species},
                 )
             )
-            if graph.records:
-                facts = graph.records[0]
+            facts = graph.records[0].get("s") if graph.records else None
+            if facts:
                 return f"{_BASE_SYSTEM}\n\n온톨로지 참고 사실:\n{facts}"
         except Exception:
             logger.warning("Sommelier 지식 그래프 조회 실패 — 기본 프롬프트로 진행")

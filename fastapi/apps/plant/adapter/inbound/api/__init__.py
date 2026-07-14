@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from plant.adapter.inbound.api.v1.care_guide_router import care_guide_router
 from plant.adapter.inbound.api.v1.diagnosis_router import diagnosis_router
+from plant.adapter.inbound.api.v1.knowledge_sync_router import knowledge_sync_router
 from plant.adapter.inbound.api.v1.notification_router import notification_router
 from plant.adapter.inbound.api.v1.weather_router import weather_router
 
@@ -10,6 +11,7 @@ plant_router.include_router(diagnosis_router)
 plant_router.include_router(care_guide_router)
 plant_router.include_router(weather_router)
 plant_router.include_router(notification_router)
+plant_router.include_router(knowledge_sync_router)
 
 __all__ = [
     "plant_router",
@@ -17,4 +19,5 @@ __all__ = [
     "care_guide_router",
     "weather_router",
     "notification_router",
+    "knowledge_sync_router",
 ]
