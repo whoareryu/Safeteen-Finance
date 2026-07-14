@@ -14,5 +14,18 @@ class PlantRepository(ABC):
         pass
 
     @abstractmethod
+    async def register(self, entity: PlantEntity) -> PlantEntity:
+        """마이플랜트 명시적 등록 — 중복 체크 없이 항상 새로 생성."""
+        pass
+
+    @abstractmethod
+    async def list_by_owner(self, owner_user_id: int | None) -> list[PlantEntity]:
+        pass
+
+    @abstractmethod
     async def get(self, plant_id: int) -> PlantEntity:
+        pass
+
+    @abstractmethod
+    async def update(self, entity: PlantEntity) -> PlantEntity:
         pass

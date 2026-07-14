@@ -11,6 +11,10 @@ def to_entity(orm: PlantORM) -> PlantEntity:
         nickname=orm.nickname,
         species_name=orm.species_name,
         region=orm.region,
+        growth_stage=orm.growth_stage,
+        points=orm.points,
+        streak_count=orm.streak_count,
+        last_checkin_date=orm.last_checkin_date,
         created_at=orm.created_at,
     )
 
@@ -21,4 +25,8 @@ def to_orm(entity: PlantEntity) -> PlantORM:
         nickname=entity.nickname,
         species_name=entity.species_name,
         region=entity.region,
+        growth_stage=entity.growth_stage,
+        points=entity.points,
+        streak_count=entity.streak_count,
+        last_checkin_date=entity.last_checkin_date,
     )

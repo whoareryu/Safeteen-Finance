@@ -207,7 +207,7 @@ export default function GeminiChat({
 
         <div
           className={cn(
-            "mt-0.5 flex shrink-0 items-center justify-between gap-2 border-t pt-2.5",
+            "mt-0.5 flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t pt-2.5",
             isApple ? "border-border" : "border-white/[0.08]"
           )}
         >
@@ -262,14 +262,14 @@ export default function GeminiChat({
               title="준비 중"
             >
               <SlidersHorizontal className="size-4" strokeWidth={1.75} />
-              <span>도구</span>
+              <span className="hidden sm:inline">도구</span>
             </button>
           </div>
 
           <div className="flex items-center gap-0.5">
             <span
               className={cn(
-                "rounded-full border px-3 py-1.5 text-sm",
+                "rounded-full border px-2 py-1.5 text-xs sm:px-3 sm:text-sm",
                 isApple
                   ? "border-border bg-card text-foreground"
                   : "border-white/15 bg-white/[0.06] text-[#e8eaed]"

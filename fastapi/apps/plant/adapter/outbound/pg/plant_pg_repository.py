@@ -40,8 +40,34 @@ class PlantPgRepository(PlantRepository):
         await self.session.flush()
         return to_entity(orm)
 
+    async def register(self, entity: PlantEntity) -> PlantEntity:
+        orm = to_orm(entity)
+        self.session.add(orm)
+        await self.session.flush()
+        return to_entity(orm)
+
+    async def list_by_owner(self, owner_user_id: int | None) -> list[PlantEntity]:
+        stmt = (
+            select(PlantORM)
+            .where(PlantORM.owner_user_id == owner_user_id)
+            .order_by(PlantORM.created_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return [to_entity(orm) for orm in result.scalars().all()]
+
     async def get(self, plant_id: int) -> PlantEntity:
         orm = await self.session.get(PlantORM, plant_id)
         if orm is None:
             raise ValueError(f"Plant {plant_id} not found")
+        return to_entity(orm)
+
+    async def update(self, entity: PlantEntity) -> PlantEntity:
+        orm = await self.session.get(PlantORM, entity.id)
+        if orm is None:
+            raise ValueError(f"Plant {entity.id} not found")
+        orm.growth_stage = entity.growth_stage
+        orm.points = entity.points
+        orm.streak_count = entity.streak_count
+        orm.last_checkin_date = entity.last_checkin_date
+        await self.session.flush()
         return to_entity(orm)

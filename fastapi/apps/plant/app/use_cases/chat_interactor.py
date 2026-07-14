@@ -14,10 +14,10 @@ from plant.app.ports.output.plant_knowledge_repository import PlantKnowledgeRepo
 logger = logging.getLogger(__name__)
 
 _BASE_SYSTEM = (
-    "당신은 반려식물을 돌보는 사용자를 돕는 다정한 식물 전문가입니다. "
-    "아래 참고 지식을 우선 활용하되, 없으면 일반 지식으로 답하세요. 한국어로 답하세요."
+    "당신은 반려식물을 돌보는 사용자를 돕는 다정한 식물 전문가입니다. 한국어로 답하세요."
 )
 _RAG_TOP_K = 3
+_GROUNDED_TEMPERATURE = 0.2  # RAG 사실을 지어내지 않고 그대로 인용하도록 낮은 온도 사용
 
 
 class ChatInteractor(ChatUseCase):
@@ -59,7 +59,8 @@ class ChatInteractor(ChatUseCase):
         messages = [{"role": "system", "content": system}] + [
             {"role": m.role, "content": m.content} for m in command.messages
         ]
-        reply = await self._llm.chat(messages)
+        temperature = _GROUNDED_TEMPERATURE if matches else None
+        reply = await self._llm.chat(messages, temperature=temperature)
         logger.info(
             "[plant-chat] 5/5 LLM 응답 완료 (model=%s, len=%d)",
             self._llm_model_name,
@@ -89,7 +90,13 @@ class ChatInteractor(ChatUseCase):
         parts = [_BASE_SYSTEM]
         if matches:
             knowledge_text = "\n".join(f"- {m.name}: {m.description}" for m in matches)
-            parts.append(f"\n참고 지식 (RAG):\n{knowledge_text}")
+            parts.append(
+                "\n[검색된 참고 지식]\n"
+                f"{knowledge_text}\n"
+                "위 참고 지식에 질문과 관련된 항목이 있다면, 반드시 그 설명(색깔·증상·관리법 등 구체적 사실)을 "
+                "그대로 인용해서 답변에 반영하세요. 참고 지식과 다른 내용을 지어내지 마세요. "
+                "참고 지식에 관련 항목이 없을 때만 일반 지식으로 답하세요."
+            )
         if graph_fact:
-            parts.append(f"\n온톨로지 참고 사실:\n{graph_fact}")
+            parts.append(f"\n[온톨로지 참고 사실]\n{graph_fact}")
         return "\n".join(parts)

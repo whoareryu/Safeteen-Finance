@@ -13,8 +13,9 @@ class T1MidFakerOrchestrator:
         self._model = model
         self._client = ollama.AsyncClient()
 
-    async def chat(self, messages: list[dict]) -> str:
-        response = await self._client.chat(model=self._model, messages=messages)
+    async def chat(self, messages: list[dict], temperature: float | None = None) -> str:
+        options = {"temperature": temperature} if temperature is not None else None
+        response = await self._client.chat(model=self._model, messages=messages, options=options)
         return response.message.content
 
     async def generate(self, prompt: str) -> str:

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { CalendarCheck, Leaf, Sparkles } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
-import WeatherWidget from "@/components/weather-widget";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { uploadPlantPhoto } from "@/lib/plant-api";
 
@@ -62,9 +61,6 @@ export default function Home() {
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <div className="saessak-glass-card rounded-full px-2 py-1 shadow-sm">
-              <WeatherWidget />
-            </div>
             <Link
               href="/plant/care-calendar"
               className="saessak-glass-card inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:shadow-md"

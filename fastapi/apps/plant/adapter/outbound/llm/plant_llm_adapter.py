@@ -8,8 +8,8 @@ class PlantLlmAdapter(LlmPort):
     def __init__(self, model: str = "exaone3.5:2.4b") -> None:
         self._llm = T1MidFakerOrchestrator(model=model)
 
-    async def chat(self, messages: list[dict]) -> str:
-        return await self._llm.chat(messages)
+    async def chat(self, messages: list[dict], temperature: float | None = None) -> str:
+        return await self._llm.chat(messages, temperature=temperature)
 
     async def generate(self, prompt: str) -> str:
         return await self._llm.generate(prompt)
