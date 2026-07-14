@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from apps.database import Base
 
+TEAM_EMBEDDING_DIM = 1536
+
 
 class Team(Base):
-    """구단 — stadium 참조, player.team_id 의 참조 대상."""
+    """구단 — stadium 참조, player.team_id 의 참조 대상. RAG 시맨틱 검색용 team_embedding 보유."""
 
     __tablename__ = "team"
 
@@ -28,4 +31,7 @@ class Team(Base):
     owner: Mapped[str | None] = mapped_column(String(10), nullable=True)
     stadium_id: Mapped[str | None] = mapped_column(
         ForeignKey("stadium.stadium_id"), nullable=True
+    )
+    team_embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(TEAM_EMBEDDING_DIM), nullable=True
     )
