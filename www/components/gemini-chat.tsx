@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Camera,
   Mic,
   Plus,
   SendHorizontal,
@@ -24,22 +25,29 @@ type GeminiChatProps = {
   /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
   apiPath?: string;
   inputPlaceholder?: string;
+  /** 기본 exaone3.5:7.8b — 플랜트 채팅은 exaone3.5:2.4b */
+  model?: string;
+  /** 제공 시에만 첨부(+)/카메라 버튼이 활성화됨. 선택한 이미지를 받아 채팅창에 표시할 텍스트를 반환 */
+  onImageAttach?: (file: File) => Promise<string>;
 };
 
 export default function GeminiChat({
   variant = "dark",
   apiPath = "/api/chat",
   inputPlaceholder = "ExaOne에게 물어보기",
+  model = EXAONE_MODEL,
+  onImageAttach,
 }: GeminiChatProps) {
   const isApple = variant === "apple";
   const neonShield = isApple ? "neon-hit-shield" : "";
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const model = EXAONE_MODEL;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const scrollBottom = useCallback(() => {
     const el = listRef.current;
@@ -120,6 +128,24 @@ export default function GeminiChat({
     }
   };
 
+  const handleImagePicked = useCallback(
+    async (file: File | null) => {
+      if (!file || !onImageAttach || loading) return;
+      setError(null);
+      setMessages((prev) => [...prev, { id: id(), role: "user", content: `📷 ${file.name}` }]);
+      setLoading(true);
+      try {
+        const resultText = await onImageAttach(file);
+        setMessages((prev) => [...prev, { id: id(), role: "assistant", content: resultText }]);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "이미지 분석에 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [onImageAttach, loading]
+  );
+
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -186,14 +212,49 @@ export default function GeminiChat({
           )}
         >
           <div className="flex items-center gap-0.5">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                void handleImagePicked(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                void handleImagePicked(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
+            />
             <button
               type="button"
               className={iconBtn}
-              aria-label="첨부 (준비 중)"
-              title="준비 중"
+              aria-label={onImageAttach ? "사진 첨부" : "첨부 (준비 중)"}
+              title={onImageAttach ? "사진 첨부" : "준비 중"}
+              disabled={!onImageAttach || loading}
+              onClick={() => fileInputRef.current?.click()}
             >
               <Plus className="size-5" strokeWidth={1.75} />
             </button>
+            {onImageAttach && (
+              <button
+                type="button"
+                className={iconBtn}
+                aria-label="카메라로 촬영"
+                title="카메라로 촬영"
+                disabled={loading}
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <Camera className="size-5" strokeWidth={1.75} />
+              </button>
+            )}
             <button
               type="button"
               className={toolBtn}

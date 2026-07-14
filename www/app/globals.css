@@ -8,27 +8,27 @@
   --site-header-height: 5.75rem;
   /* LESSON 서브바 포함 높이 */
   --site-header-height-lesson: 8.25rem;
-  /* 눈 피로 완화 — 순백 대신 따뜻한 종이 톤 */
-  --background: oklch(0.965 0.012 95);
-  --foreground: oklch(0.24 0.02 260);
-  --card: oklch(0.988 0.007 95);
-  --card-foreground: oklch(0.24 0.02 260);
-  --popover: oklch(0.988 0.007 95);
-  --popover-foreground: oklch(0.24 0.02 260);
-  /* Netflix 레드 액센트 */
-  --primary: oklch(0.55 0.21 27);
+  /* 새싹 — 따뜻한 종이 톤 배경 + 세이지 그린 */
+  --background: oklch(0.975 0.01 120);
+  --foreground: oklch(0.22 0.02 150);
+  --card: oklch(0.99 0.006 120);
+  --card-foreground: oklch(0.22 0.02 150);
+  --popover: oklch(0.99 0.006 120);
+  --popover-foreground: oklch(0.22 0.02 150);
+  /* 새싹 세이지 그린 액센트 */
+  --primary: oklch(0.58 0.13 145);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.94 0.014 95);
-  --secondary-foreground: oklch(0.28 0.02 260);
-  --muted: oklch(0.945 0.012 95);
-  --muted-foreground: oklch(0.46 0.02 260);
-  --accent: oklch(0.94 0.014 95);
-  --accent-foreground: oklch(0.28 0.02 260);
-  --destructive: oklch(0.55 0.22 27);
+  --secondary: oklch(0.94 0.025 145);
+  --secondary-foreground: oklch(0.28 0.03 150);
+  --muted: oklch(0.95 0.015 120);
+  --muted-foreground: oklch(0.46 0.02 150);
+  --accent: oklch(0.92 0.035 145);
+  --accent-foreground: oklch(0.28 0.03 150);
+  --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.86 0.018 92);
-  --input: oklch(0.978 0.01 95);
-  --ring: oklch(0.55 0.21 27);
+  --border: oklch(0.87 0.025 135);
+  --input: oklch(0.98 0.008 120);
+  --ring: oklch(0.58 0.13 145);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -46,26 +46,26 @@
 }
 
 .dark {
-  --background: oklch(0.09 0 0);
-  --foreground: oklch(0.94 0 0);
-  --card: oklch(0.12 0 0);
-  --card-foreground: oklch(0.94 0 0);
-  --popover: oklch(0.12 0 0);
-  --popover-foreground: oklch(0.94 0 0);
-  /* Netflix 레드 액센트 (다크) */
-  --primary: oklch(0.62 0.22 27);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.16 0 0);
-  --secondary-foreground: oklch(0.94 0 0);
-  --muted: oklch(0.16 0 0);
-  --muted-foreground: oklch(0.67 0.01 265);
-  --accent: oklch(0.16 0 0);
-  --accent-foreground: oklch(0.94 0 0);
-  --destructive: oklch(0.55 0.22 27);
+  --background: oklch(0.1 0.012 150);
+  --foreground: oklch(0.94 0.008 120);
+  --card: oklch(0.13 0.014 150);
+  --card-foreground: oklch(0.94 0.008 120);
+  --popover: oklch(0.13 0.014 150);
+  --popover-foreground: oklch(0.94 0.008 120);
+  /* 새싹 세이지 그린 액센트 (다크) */
+  --primary: oklch(0.68 0.15 145);
+  --primary-foreground: oklch(0.12 0.02 150);
+  --secondary: oklch(0.18 0.018 150);
+  --secondary-foreground: oklch(0.94 0.008 120);
+  --muted: oklch(0.18 0.018 150);
+  --muted-foreground: oklch(0.67 0.02 140);
+  --accent: oklch(0.2 0.03 145);
+  --accent-foreground: oklch(0.94 0.008 120);
+  --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.22 0.01 265);
-  --input: oklch(0.16 0 0);
-  --ring: oklch(0.62 0.22 27);
+  --border: oklch(0.24 0.02 145);
+  --input: oklch(0.18 0.018 150);
+  --ring: oklch(0.68 0.15 145);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -79,6 +79,47 @@
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.28 0.02 260);
   --sidebar-ring: oklch(0.65 0.18 280);
+}
+
+/* LESSON(/portfolio 이하) — 새싹 리브랜딩 대상 아님. 기존 Netflix 레드 테마 그대로 보존 */
+.lesson-theme {
+  --background: oklch(0.965 0.012 95);
+  --foreground: oklch(0.24 0.02 260);
+  --card: oklch(0.988 0.007 95);
+  --card-foreground: oklch(0.24 0.02 260);
+  --popover: oklch(0.988 0.007 95);
+  --popover-foreground: oklch(0.24 0.02 260);
+  --primary: oklch(0.55 0.21 27);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.94 0.014 95);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.945 0.012 95);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.94 0.014 95);
+  --accent-foreground: oklch(0.28 0.02 260);
+  --border: oklch(0.86 0.018 92);
+  --input: oklch(0.978 0.01 95);
+  --ring: oklch(0.55 0.21 27);
+}
+
+.dark .lesson-theme {
+  --background: oklch(0.09 0 0);
+  --foreground: oklch(0.94 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.94 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.94 0 0);
+  --primary: oklch(0.62 0.22 27);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.16 0 0);
+  --secondary-foreground: oklch(0.94 0 0);
+  --muted: oklch(0.16 0 0);
+  --muted-foreground: oklch(0.67 0.01 265);
+  --accent: oklch(0.16 0 0);
+  --accent-foreground: oklch(0.94 0 0);
+  --border: oklch(0.22 0.01 265);
+  --input: oklch(0.16 0 0);
+  --ring: oklch(0.62 0.22 27);
 }
 
 @theme inline {

@@ -13,7 +13,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: '방구석 플랜트 매니저 | AI 반려식물 케어 가이드',
+  title: '새싹 | AI 반려식물 케어 가이드',
   description:
     '잎사귀 사진 한 장으로 품종과 상태를 진단하고, 날씨에 맞춘 물주기 알림과 케어 처방을 받는 반려식물 케어 에이전트',
   generator: 'v0.app',

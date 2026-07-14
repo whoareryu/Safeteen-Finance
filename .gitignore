@@ -1,3 +1,9 @@
 .env
 .vercel
 .env*
+
+# ML 모델 아티팩트 (Ollama 모델은 리포 밖 ~/.ollama 에 저장되어 해당 없음)
+*.pt
+*.onnx
+*.gguf
+fastapi/runs/

@@ -36,7 +36,7 @@ export default function Header() {
               href="/"
               className="shrink-0 text-lg font-semibold tracking-tight text-[#1d1d1f] hover:opacity-80 md:text-xl"
             >
-              방구석 플랜트 매니저
+              새싹
             </Link>
           </div>
 
