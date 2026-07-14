@@ -7,6 +7,7 @@ from ontology.app.ports.input.yolo_use_case import YoloUseCase
 
 from plant.app.dtos.register_plant_dto import RegisterPlantCommand, RegisterPlantResult
 from plant.app.ports.input.register_plant_use_case import RegisterPlantUseCase
+from plant.app.ports.output.badge_repository import BadgeRepository
 from plant.app.ports.output.llm_port import LlmPort
 from plant.app.ports.output.plant_repository import PlantRepository
 from plant.app.use_cases.diagnosis_interactor import _UNKNOWN_LABEL, _parse_label
@@ -23,10 +24,12 @@ class RegisterPlantInteractor(RegisterPlantUseCase):
     def __init__(
         self,
         plant_repository: PlantRepository,
+        badge_repository: BadgeRepository,
         llm: LlmPort,
         yolo: YoloUseCase,
     ) -> None:
         self._plant_repository = plant_repository
+        self._badge_repository = badge_repository
         self._llm = llm
         self._yolo = yolo
 
@@ -54,6 +57,7 @@ class RegisterPlantInteractor(RegisterPlantUseCase):
                 region=command.region,
             )
         )
+        await self._badge_repository.award_if_missing(saved.id, "first_register")  # type: ignore[arg-type]
         return RegisterPlantResult(
             id=saved.id,  # type: ignore[arg-type]
             nickname=saved.nickname,

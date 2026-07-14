@@ -29,3 +29,7 @@ class PlantRepository(ABC):
     @abstractmethod
     async def update(self, entity: PlantEntity) -> PlantEntity:
         pass
+
+    @abstractmethod
+    async def list_top_by_points(self, limit: int) -> list[PlantEntity]:
+        pass

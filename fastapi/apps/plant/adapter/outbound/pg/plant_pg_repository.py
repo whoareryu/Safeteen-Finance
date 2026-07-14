@@ -55,6 +55,11 @@ class PlantPgRepository(PlantRepository):
         result = await self.session.execute(stmt)
         return [to_entity(orm) for orm in result.scalars().all()]
 
+    async def list_top_by_points(self, limit: int) -> list[PlantEntity]:
+        stmt = select(PlantORM).order_by(PlantORM.points.desc()).limit(limit)
+        result = await self.session.execute(stmt)
+        return [to_entity(orm) for orm in result.scalars().all()]
+
     async def get(self, plant_id: int) -> PlantEntity:
         orm = await self.session.get(PlantORM, plant_id)
         if orm is None:

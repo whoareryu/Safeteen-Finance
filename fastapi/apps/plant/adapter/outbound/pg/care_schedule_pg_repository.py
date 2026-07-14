@@ -30,6 +30,12 @@ class CareSchedulePgRepository(CareScheduleRepository):
         result = await self.session.execute(query)
         return [to_entity(orm) for orm in result.scalars().all()]
 
+    async def get_by_plant(self, plant_id: int) -> CareScheduleEntity | None:
+        query = select(CareScheduleORM).where(CareScheduleORM.plant_id == plant_id)
+        result = await self.session.execute(query)
+        orm = result.scalar_one_or_none()
+        return to_entity(orm) if orm is not None else None
+
     async def save(self, entity: CareScheduleEntity) -> CareScheduleEntity:
         orm = to_orm(entity)
         self.session.add(orm)

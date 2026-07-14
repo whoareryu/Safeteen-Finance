@@ -12,6 +12,10 @@ class CareScheduleRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_by_plant(self, plant_id: int) -> CareScheduleEntity | None:
+        pass
+
+    @abstractmethod
     async def save(self, entity: CareScheduleEntity) -> CareScheduleEntity:
         pass
 

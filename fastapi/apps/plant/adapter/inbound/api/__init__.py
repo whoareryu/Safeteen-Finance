@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
+from plant.adapter.inbound.api.v1.badge_router import badge_router
 from plant.adapter.inbound.api.v1.care_guide_router import care_guide_router
 from plant.adapter.inbound.api.v1.chat_router import chat_router
+from plant.adapter.inbound.api.v1.checkin_router import checkin_router
 from plant.adapter.inbound.api.v1.diagnosis_router import diagnosis_router
 from plant.adapter.inbound.api.v1.knowledge_sync_router import knowledge_sync_router
 from plant.adapter.inbound.api.v1.my_plants_router import my_plants_router
@@ -13,6 +15,8 @@ plant_router.include_router(diagnosis_router)
 plant_router.include_router(care_guide_router)
 plant_router.include_router(chat_router)
 plant_router.include_router(my_plants_router)
+plant_router.include_router(checkin_router)
+plant_router.include_router(badge_router)
 plant_router.include_router(weather_router)
 plant_router.include_router(notification_router)
 plant_router.include_router(knowledge_sync_router)
@@ -23,6 +27,8 @@ __all__ = [
     "care_guide_router",
     "chat_router",
     "my_plants_router",
+    "checkin_router",
+    "badge_router",
     "weather_router",
     "notification_router",
     "knowledge_sync_router",

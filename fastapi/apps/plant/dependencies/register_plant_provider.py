@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.database import get_db
 
 from plant.adapter.outbound.llm.plant_llm_adapter import PlantLlmAdapter
+from plant.adapter.outbound.pg.badge_pg_repository import BadgePgRepository
 from plant.adapter.outbound.pg.plant_pg_repository import PlantPgRepository
 from plant.app.ports.input.register_plant_use_case import RegisterPlantUseCase
 from plant.app.ports.output.plant_repository import PlantRepository
@@ -22,6 +23,7 @@ def get_plant_repository(db: AsyncSession = Depends(get_db)) -> PlantRepository:
 def get_register_plant_use_case(db: AsyncSession = Depends(get_db)) -> RegisterPlantUseCase:
     return RegisterPlantInteractor(
         plant_repository=PlantPgRepository(session=db),
+        badge_repository=BadgePgRepository(session=db),
         llm=_LLM,
         yolo=_get_species_yolo_use_case(),
     )
