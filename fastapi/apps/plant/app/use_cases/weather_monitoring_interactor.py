@@ -3,6 +3,7 @@ from __future__ import annotations
 from plant.app.dtos.weather_dto import WeatherIngestCommand, WeatherSnapshotResult
 from plant.app.ports.input.notification_use_case import NotificationUseCase
 from plant.app.ports.input.weather_monitoring_use_case import WeatherMonitoringUseCase
+from plant.app.ports.output.weather_api_gateway import WeatherApiGateway
 from plant.app.ports.output.weather_snapshot_repository import WeatherSnapshotRepository
 from plant.domain.entities.weather_snapshot_entity import WeatherSnapshotEntity
 
@@ -19,9 +20,11 @@ class WeatherMonitoringInteractor(WeatherMonitoringUseCase):
         self,
         repository: WeatherSnapshotRepository,
         notification: NotificationUseCase,
+        weather_api: WeatherApiGateway,
     ) -> None:
         self._repository = repository
         self._notification = notification
+        self._weather_api = weather_api
 
     async def ingest(self, command: WeatherIngestCommand) -> WeatherSnapshotResult:
         is_dry_day = _is_dry_day(command.humidity_pct)
@@ -42,10 +45,16 @@ class WeatherMonitoringInteractor(WeatherMonitoringUseCase):
         return self._to_result(snapshot)
 
     async def get_current(self, region: str) -> WeatherSnapshotResult:
-        snapshot = await self._repository.find_latest(region)
-        if snapshot is None:
-            raise ValueError(f"{region} 지역의 날씨 데이터가 없습니다")
-        return self._to_result(snapshot)
+        """실시간으로 외부 날씨 API를 조회해 최신 스냅샷으로 저장하고 반환한다."""
+        live = await self._weather_api.fetch_current(region)
+        return await self.ingest(
+            WeatherIngestCommand(
+                region=live.region,
+                temp_c=live.temp_c,
+                humidity_pct=live.humidity_pct,
+                sunlight_desc=live.sunlight_desc,
+            )
+        )
 
     @staticmethod
     def _to_result(snapshot: WeatherSnapshotEntity) -> WeatherSnapshotResult:

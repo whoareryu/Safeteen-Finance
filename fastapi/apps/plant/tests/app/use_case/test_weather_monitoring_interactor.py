@@ -33,10 +33,17 @@ class _FakeNotificationUseCase:
         return []
 
 
+class _FakeWeatherApiGateway:
+    async def fetch_current(self, region: str):
+        raise NotImplementedError
+
+
 async def test_ingest_marks_dry_day_and_dispatches_notification():
     notification = _FakeNotificationUseCase()
     interactor = WeatherMonitoringInteractor(
-        repository=_FakeWeatherSnapshotRepository(), notification=notification
+        repository=_FakeWeatherSnapshotRepository(),
+        notification=notification,
+        weather_api=_FakeWeatherApiGateway(),
     )
 
     result = await interactor.ingest(
@@ -50,7 +57,9 @@ async def test_ingest_marks_dry_day_and_dispatches_notification():
 async def test_ingest_humid_day_does_not_dispatch_notification():
     notification = _FakeNotificationUseCase()
     interactor = WeatherMonitoringInteractor(
-        repository=_FakeWeatherSnapshotRepository(), notification=notification
+        repository=_FakeWeatherSnapshotRepository(),
+        notification=notification,
+        weather_api=_FakeWeatherApiGateway(),
     )
 
     result = await interactor.ingest(
