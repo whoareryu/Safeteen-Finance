@@ -1,8 +1,12 @@
 # EXAONE-3.5-2.4B-Instruct QLoRA 파인튜닝 전용 환경.
 # fastapi/requirements.txt(서빙용)와 완전히 분리 — Docker 빌드 컨텍스트(./fastapi) 밖이라
 # 프로덕션 이미지에는 절대 포함되지 않는다. 원격 PC(RTX 3050, CUDA) 전용 venv에서만 설치.
+#
+# torch는 여기 포함하지 않는다 — 기본 PyPI 인덱스는 최신 CUDA(13.x)를 번들해서
+# 드라이버(CUDA 12.6)와 안 맞을 수 있다. README의 안내대로 먼저
+# `pip install torch --index-url https://download.pytorch.org/whl/cu126`로
+# 드라이버에 맞는 버전을 설치한 뒤, 이 파일을 설치한다.
 
-torch==2.5.1
 transformers>=4.46.0
 peft>=0.13.0
 bitsandbytes>=0.44.0

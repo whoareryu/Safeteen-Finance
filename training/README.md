@@ -15,7 +15,21 @@
 cd ~/projects/cloud.whoareryu/training
 python3 -m venv .venv
 source .venv/bin/activate
+
+# torch는 드라이버(CUDA 12.6)에 맞는 빌드를 먼저 명시적으로 설치한다.
+# 기본 PyPI 인덱스로 설치하면 최신 CUDA(13.x) 번들이 딸려와서
+# "driver too old" 에러가 난다. 드라이버 버전은 nvidia-smi로 확인.
+pip install torch --index-url https://download.pytorch.org/whl/cu126
+
 pip install -r requirements.txt
+```
+
+`/tmp`가 작은 tmpfs(WSL 기본 3.9GB)라 큰 wheel(torch 등) 다운로드 중
+"No space left on device"가 날 수 있다. 그럴 땐 임시 디렉터리를 큰 디스크로 돌린다:
+
+```bash
+mkdir -p .pip-tmp
+TMPDIR=./.pip-tmp pip install ...
 ```
 
 ## 2. 원본(비양자화) 베이스 모델 받기
