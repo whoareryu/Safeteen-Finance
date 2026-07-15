@@ -1,0 +1,13 @@
+# EXAONE-3.5-2.4B-Instruct QLoRA 파인튜닝 전용 환경.
+# fastapi/requirements.txt(서빙용)와 완전히 분리 — Docker 빌드 컨텍스트(./fastapi) 밖이라
+# 프로덕션 이미지에는 절대 포함되지 않는다. 원격 PC(RTX 3050, CUDA) 전용 venv에서만 설치.
+
+torch==2.5.1
+transformers>=4.46.0
+peft>=0.13.0
+bitsandbytes>=0.44.0
+accelerate>=1.0.0
+trl>=0.11.0
+datasets>=3.0.0
+huggingface_hub>=0.25.0
+sentencepiece

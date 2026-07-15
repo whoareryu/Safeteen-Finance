@@ -10,3 +10,10 @@ fastapi/runs/
 # 실제 Ollama 모델 데이터(~/.ollama 또는 원격의 /usr/share/ollama/.ollama)를 가리키는
 # 심볼릭 링크 — 탐색기에서 보기 편하라고 만든 바로가기라 git 추적 대상 아님
 ollama-models
+
+# QLoRA 학습 환경 (training/) — 코드만 커밋, venv·모델·데이터·결과물은 제외
+training/.venv/
+training/models/
+training/outputs/
+training/data/
+**/__pycache__/
