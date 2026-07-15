@@ -17,3 +17,4 @@ training/models/
 training/outputs/
 training/data/
 **/__pycache__/
+training/.pip-tmp/
