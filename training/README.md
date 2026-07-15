@@ -11,20 +11,47 @@
 
 ## 1. 원격 PC에 학습 전용 venv 만들기
 
+원격 PC는 Ubuntu 26.04(WSL2)라 시스템 기본 Python이 3.14인데, 이 버전은 ML
+생태계 wheel(구버전 `tokenizers`, CUDA 맞춤 `torch` 등)이 아직 부족해 설치가
+깨진다. `uv`로 Python 3.11(prebuilt, 컴파일/sudo 불필요)을 따로 설치해 그걸로
+venv를 만든다.
+
 ```bash
 cd ~/projects/cloud.whoareryu/training
-python3 -m venv .venv
+uv python install 3.11
+~/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11 -m venv .venv
 source .venv/bin/activate
+
+# torch는 드라이버(CUDA 12.6)에 맞는 빌드를 먼저 명시적으로 설치한다.
+# 기본 PyPI 인덱스로 설치하면 최신 CUDA(13.x) 번들이 딸려와서
+# "driver too old" 에러가 난다. 드라이버 버전은 nvidia-smi로 확인.
+pip install torch --index-url https://download.pytorch.org/whl/cu126
+
 pip install -r requirements.txt
+```
+
+`/tmp`가 작은 tmpfs(WSL 기본 3.9GB)라 큰 wheel(torch 등) 다운로드 중
+"No space left on device"가 날 수 있다. 그럴 땐 임시 디렉터리를 큰 디스크로 돌린다:
+
+```bash
+mkdir -p .pip-tmp
+TMPDIR=./.pip-tmp pip install ...
+```
+
+torch의 일부 연산(예: RoPE)은 최초 실행 시 Triton 커널을 즉석 컴파일하는데, C
+컴파일러가 없으면 `Failed to find C compiler`로 죽는다. 없다면 설치한다:
+
+```bash
+sudo apt install -y build-essential
 ```
 
 ## 2. 원본(비양자화) 베이스 모델 받기
 
 QLoRA는 학습 시점에 bitsandbytes로 4bit 양자화하므로, **AWQ 등 사전 양자화된 버전이 아닌
-원본 체크포인트**가 필요하다.
+원본 체크포인트**가 필요하다. (`huggingface-cli`는 deprecated — `hf` CLI를 쓴다.)
 
 ```bash
-huggingface-cli download LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct \
+hf download LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct \
   --local-dir ./models/EXAONE-3.5-2.4B-Instruct
 ```
 
@@ -57,3 +84,21 @@ python train_qlora.py \
   git으로 관리하지 않는다).
 - 학습된 어댑터를 실제 서빙(Ollama)에 반영하려면 별도로 병합(`merge_and_unload`) 후
   Ollama Modelfile로 재패키징하는 과정이 필요 — 아직 이 단계는 구현 안 됨.
+- **버전 조합**: `transformers>=5.0,<6.0` + `peft==0.13.2` + `trl>=1.0,<2.0`.
+  EXAONE 저장소의 `trust_remote_code` 커스텀 코드(`modeling_exaone.py`)가
+  `configuration_exaone.py`의 `RopeParameters` 등 v5 전용 심볼을 쓰도록
+  업데이트되어 있어 transformers 4.x로는 아예 로드가 안 된다(README의
+  "v4.43 이상" 안내는 stale). peft는 0.13.x가 아니면 `get_peft_model()` 단계에서
+  `get_input_embeddings` 관련 하드 에러가 난다.
+- **`train_qlora.py`에 박혀 있는 호환 셔밈 2개**: EXAONE의 trust_remote_code가
+  일부 transformers 내부 API를 구버전 시그니처로 호출해서(모델 리포 쪽 코드가
+  살아있는 채로 계속 업데이트되며 API가 어긋난 것), 스크립트 안에서 직접
+  보정한다.
+  1. `create_causal_mask()` 호출을 `input_embeds=`(단수)로 하는데 실제
+     파라미터명은 `inputs_embeds=`(복수)이고 `cache_position=` 인자는 아예
+     없음 — 감싸서 이름 변환 + 미지원 kwarg 제거.
+  2. `ExaoneForCausalLM`의 백본 속성명이 `self.transformer`인데 transformers
+     5.x의 `get_input_embeddings()` 자동탐지는 `self.model`만 찾아서
+     `NotImplementedError`가 나고, 이 때문에 `get_output_embeddings()`도
+     `None`을 반환해 trl이 `lm_head.weight`에서 죽음 — 인스턴스에
+     `model.transformer.wte` / `model.lm_head`를 직접 바인딩해서 우회.
