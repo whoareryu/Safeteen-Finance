@@ -2,16 +2,22 @@
 # fastapi/requirements.txt(서빙용)와 완전히 분리 — Docker 빌드 컨텍스트(./fastapi) 밖이라
 # 프로덕션 이미지에는 절대 포함되지 않는다. 원격 PC(RTX 3050, CUDA) 전용 venv에서만 설치.
 #
-# torch는 여기 포함하지 않는다 — 기본 PyPI 인덱스는 최신 CUDA(13.x)를 번들해서
-# 드라이버(CUDA 12.6)와 안 맞을 수 있다. README의 안내대로 먼저
-# `pip install torch --index-url https://download.pytorch.org/whl/cu126`로
-# 드라이버에 맞는 버전을 설치한 뒤, 이 파일을 설치한다.
-
-transformers>=4.46.0
-peft>=0.13.0
+# torch는 여기 포함하지 않는다 — README 안내대로 드라이버(CUDA 12.6)에 맞는 cu126
+# 인덱스로 먼저 설치한다.
+#
+# transformers>=5.0 필수: EXAONE 저장소의 configuration_exaone.py가 v5 전용 심볼
+# (RopeParameters)을 쓰도록 업데이트되어 있어 4.x로는 아예 로드가 안 된다
+# (README에 적힌 "v4.43 이상" 안내는 이제 stale). 대신 transformers v5는
+# PreTrainedModel.get_input_embeddings()를 서브클래스가 명시적으로 구현해야
+# 하는데 EXAONE 커스텀 코드가 아직 이걸 안 해서, peft가 최신 버전이면
+# get_peft_model() 단계에서 하드 에러가 난다. peft를 0.13.x로 낮추면 같은
+# 상황을 경고로만 처리하고 정상 진행됨 (LoRA는 원래 임베딩층을 안 건드리므로
+# 실질적 영향 없음).
+transformers>=5.0,<6.0
+peft==0.13.2
 bitsandbytes>=0.44.0
 accelerate>=1.0.0
-trl>=0.11.0
+trl>=1.0.0,<2.0.0
 datasets>=3.0.0
 huggingface_hub>=0.25.0
 sentencepiece

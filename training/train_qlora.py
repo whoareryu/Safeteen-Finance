@@ -12,12 +12,32 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 
 import torch
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, masking_utils
 from trl import SFTConfig, SFTTrainer
+
+# EXAONE의 trust_remote_code 커스텀 코드(modeling_exaone.py)가 create_causal_mask를
+# 구버전 개발판 시그니처(input_embeds=, cache_position= 포함)로 호출하는데, 설치된
+# transformers의 실제 시그니처는 inputs_embeds=이고 cache_position 인자 자체가 없다.
+# modeling_exaone.py가 `from transformers.masking_utils import create_causal_mask`로
+# 모델 로딩 시점에 이름을 가져오므로, from_pretrained 호출 전에 여기서 옛 키워드를
+# 지금 시그니처에 맞게 정리해 받아주도록 감싼다.
+_original_create_causal_mask = masking_utils.create_causal_mask
+_valid_params = set(inspect.signature(_original_create_causal_mask).parameters)
+
+
+def _create_causal_mask_compat(*args, **kwargs):
+    if "input_embeds" in kwargs:
+        kwargs["inputs_embeds"] = kwargs.pop("input_embeds")
+    kwargs = {k: v for k, v in kwargs.items() if k in _valid_params}
+    return _original_create_causal_mask(*args, **kwargs)
+
+
+masking_utils.create_causal_mask = _create_causal_mask_compat
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,6 +75,13 @@ def main() -> None:
         device_map="auto",
         trust_remote_code=True,
     )
+    # transformers 5.x의 get_input_embeddings 기본 자동탐지는 백본 속성명이
+    # "model"인 경우만 처리하는데, EXAONE은 "transformer"를 쓴다(_tied_weights_keys
+    # 참고). 자동탐지가 실패해 get_output_embeddings()도 덩달아 None을 반환하고,
+    # trl의 SFTTrainer가 그 결과로 lm_head.weight에 접근하다 죽는다. 실제 속성
+    # (transformer.wte, lm_head)에 맞춰 인스턴스에 직접 바인딩한다.
+    model.get_input_embeddings = lambda: model.transformer.wte
+    model.get_output_embeddings = lambda: model.lm_head
     model = prepare_model_for_kbit_training(model)
 
     lora_config = LoraConfig(
@@ -63,9 +90,14 @@ def main() -> None:
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM",
-        # EXAONE은 커스텀 아키텍처(modeling_exaone.py)라 모듈명이 LLaMA 계열과
-        # 다를 수 있어 이름을 하드코딩하지 않고 전체 Linear 레이어를 대상으로 삼는다.
-        target_modules="all-linear",
+        # EXAONE은 LLaMA 계열과 동일한 모듈명을 쓴다(q_proj/k_proj/v_proj/o_proj +
+        # gate_proj/up_proj/down_proj). "all-linear"를 쓰면 tie_word_embeddings=True라
+        # 입력 임베딩과 묶여 있는 lm_head까지 어댑터 대상에 들어가 병합 시 문제가 될 수
+        # 있어, lm_head를 뺀 어텐션·MLP 프로젝션 레이어만 명시적으로 지정한다.
+        target_modules=[
+            "q_proj", "k_proj", "v_proj", "o_proj",
+            "gate_proj", "up_proj", "down_proj",
+        ],
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
@@ -81,7 +113,7 @@ def main() -> None:
         bf16=True,
         logging_steps=10,
         save_strategy="epoch",
-        max_seq_length=args.max_seq_len,
+        max_length=args.max_seq_len,
         dataset_text_field="text",
         report_to="none",
     )
