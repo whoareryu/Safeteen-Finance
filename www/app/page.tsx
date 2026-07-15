@@ -46,16 +46,25 @@ async function diagnoseFromChat(file: File): Promise<string> {
 export default function Home() {
   return (
     <main className="home-main min-h-[calc(100dvh-var(--site-header-height))]">
-      <section className="saessak-hero-bg relative overflow-hidden px-6 pb-16 pt-14 text-center sm:pt-20">
-        <div className="mx-auto max-w-2xl">
-          <div className="saessak-glass-card mx-auto inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-primary shadow-sm">
+      <section className="saessak-photo-hero relative overflow-hidden px-6 pb-16 pt-14 text-center sm:pt-24">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1755504980103-374cf009b201?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="saessak-photo-scrim absolute inset-0" aria-hidden />
+
+        <div className="relative mx-auto max-w-2xl">
+          <div className="saessak-glass-card mx-auto inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium text-white shadow-sm">
             <Leaf className="h-4 w-4" aria-hidden />
             새싹
           </div>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             새싹과 함께하는 반려식물 케어
           </h1>
-          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/85 sm:text-base">
             궁금한 걸 물어보거나 잎사귀 사진을 올려보세요. 품종·증상 진단부터 날씨 기반 물주기
             알림까지, AI 에이전트가 초보 식집사를 도와드려요.
           </p>
@@ -63,15 +72,17 @@ export default function Home() {
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/plant/care-calendar"
-              className="saessak-glass-card inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:shadow-md"
+              className="saessak-glass-card inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-md"
             >
-              <CalendarCheck className="h-4 w-4 text-primary" aria-hidden />
+              <CalendarCheck className="h-4 w-4" aria-hidden />
               내 식물 케어 일정 보기
             </Link>
           </div>
         </div>
+      </section>
 
-        <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-3">
+      <section className="saessak-hero-bg px-6 py-10">
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
           {FEATURES.map(({ href, Icon, title, description }) => (
             <Link key={href} href={href}>
               <Card className="h-full border-border/70 bg-card/90 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">

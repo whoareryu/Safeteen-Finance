@@ -545,3 +545,34 @@ header.site-header--light #weather-container.weather-error {
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
 }
+
+/* 새싹 — 실제 식물 사진을 쓰는 히어로 배너 (홈/서브페이지 공용) */
+.saessak-photo-hero {
+  min-height: 22rem;
+}
+
+@media (min-width: 640px) {
+  .saessak-photo-hero {
+    min-height: 26rem;
+  }
+}
+
+/* 서브페이지용 짧은 배너 변형 */
+.saessak-photo-hero--banner {
+  min-height: 12rem;
+}
+
+@media (min-width: 640px) {
+  .saessak-photo-hero--banner {
+    min-height: 14rem;
+  }
+}
+
+.saessak-photo-scrim {
+  background: linear-gradient(
+    180deg,
+    oklch(0.15 0.03 150 / 0.55) 0%,
+    oklch(0.15 0.03 150 / 0.35) 45%,
+    oklch(0.15 0.03 150 / 0.75) 100%
+  );
+}

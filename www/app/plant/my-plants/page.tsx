@@ -69,14 +69,29 @@ export default function MyPlantsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-foreground">마이플랜트</h1>
-        <Link href="/plant/leaderboard" className="text-sm font-medium text-primary underline underline-offset-4">
-          랭킹 보기 →
-        </Link>
-      </div>
-      <p className="mt-2 text-sm text-muted-foreground">
+    <div>
+      <section className="saessak-photo-hero saessak-photo-hero--banner relative flex items-end overflow-hidden px-6 pb-8 pt-14">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1750341005643-e79d6ec30979?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="saessak-photo-scrim absolute inset-0" aria-hidden />
+        <div className="relative mx-auto flex w-full max-w-2xl items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white sm:text-3xl">마이플랜트</h1>
+            <p className="mt-1 text-sm text-white/85">내 식물을 캐릭터처럼 키워보세요.</p>
+          </div>
+          <Link href="/plant/leaderboard" className="saessak-glass-card rounded-full px-3 py-1.5 text-xs font-medium text-white">
+            랭킹 보기 →
+          </Link>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-2xl px-6 py-10">
+      <p className="text-sm text-muted-foreground">
         내 반려식물을 등록하고, 매일 사진으로 출석체크하며 식물집사 포인트를 모아보세요.
       </p>
 
@@ -194,6 +209,7 @@ export default function MyPlantsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
