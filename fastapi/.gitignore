@@ -102,6 +102,14 @@ apps/restaurant/data/raw/
 bus.jpg
 runs/
 
+# --- CatBoost 학습 시 자동 생성되는 로컬 산출물 ---
+catboost_info/
+titanic_correlation.png
+
+# --- HuggingFace 로컬 모델 캐시 (대용량) ---
+models/
+/Qwen--Qwen2.5-1.5B-Instruct/
+
 # 얼굴 인식 학습용 원본 이미지 (인물 사진 — git 미포함)
 apps/ontology/resources/yolo_train/train/
 apps/ontology/resources/yolo_train/val/

@@ -80,16 +80,6 @@ class ExampleEntity(IntIdPrimaryKeyMixin, Base):
 id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, sort_order=-1000)
 ```
 
-### 프로젝트 내 적용 예
-
-| 테이블 | 모델 | PK |
-|--------|------|-----|
-| `users` | `apps.auth.user_model.User` | `IntIdPrimaryKeyMixin` 상속 |
-| `restaurants` | `apps.gourmet.app.models.restaurant.Restaurant` | 동일 |
-| `daily_picks` | `apps.gourmet.app.models.daily_pick.DailyPick` | 동일 |
-| `search_query_logs` | `apps.gourmet.app.models.search_query_log.SearchQueryLog` | 동일 |
-| `restaurant_view_stats` | `apps.gourmet.app.models.restaurant_view_stat.RestaurantViewStat` | 동일 |
-
 새 테이블도 위와 **동일한 한 줄 PK** 로 시작합니다.
 
 ---
