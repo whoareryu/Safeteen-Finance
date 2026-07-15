@@ -25,6 +25,18 @@ _ROUTING_PROMPT = """너는 입력된 질문의 의도를 파악하는 똑똑한
 [예시]
 질문: "회사 인프라 서버 사양이 어떻게 돼?"
 답변: {"destination": "exaone_rag", "entities": ["인프라 서버", "사양"]}
+
+질문: "사과잎에 생긴 검은 반점이 무슨 병인지 알려줘"
+답변: {"destination": "exaone_rag", "entities": ["사과잎", "검은 반점"]}
+
+질문: "우리 식물 지식 DB에 Apple Scab Leaf 정보 있어?"
+답변: {"destination": "exaone_rag", "entities": ["Apple Scab Leaf"]}
+
+질문: "새로운 식물 하나 등록해줘"
+답변: {"destination": "crud", "entities": ["식물 등록"]}
+
+질문: "오늘 점심 메뉴 뭐가 좋을까?"
+답변: {"destination": "gemini", "entities": []}
 """
 
 

@@ -2,20 +2,18 @@ from __future__ import annotations
 
 import json
 
-from ontology.app.dtos.lens_dto import LensQueryDto
 from ontology.app.dtos.semantic_routing_dto import (
     SemanticRoutingQueryDto,
     SemanticRoutingResultDto,
 )
 from ontology.app.dtos.sommelier_dto import GraphQueryDto
-from ontology.app.ports.input.lens_search_use_case import LensUseCase
 from ontology.app.ports.input.semantic_routing_use_case import SemanticRoutingUseCase
 from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.output.intent_classification_gateway import IntentClassificationGateway
+from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 
 _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
-_DEFAULT_COLLECTION = "knowledge"
 
 _CHAT_PROMPT = "너는 친절한 사내 챗봇이야. 가볍게 대답해줘."
 
@@ -34,12 +32,12 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
         llm: T1MidFakerOrchestrator,
         intent_gateway: IntentClassificationGateway,
         sommelier: SommelierUseCase,
-        lens: LensUseCase,
+        plant_knowledge: PlantKnowledgeSearchPort,
     ) -> None:
         self._llm = llm
         self._intent_gateway = intent_gateway
         self._sommelier = sommelier
-        self._lens = lens
+        self._plant_knowledge = plant_knowledge
 
     async def route(self, dto: SemanticRoutingQueryDto) -> SemanticRoutingResultDto:
         intent = await self._intent_gateway.classify(dto.question)
@@ -77,5 +75,4 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
             result = await self._sommelier.query(GraphQueryDto(cypher=cypher, params={"keyword": keyword[:20]}))
             return result.records
 
-        result = await self._lens.search(LensQueryDto(query=keyword, collection=_DEFAULT_COLLECTION))
-        return result.hits
+        return await self._plant_knowledge.search(keyword)
