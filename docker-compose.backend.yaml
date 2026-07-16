@@ -7,6 +7,14 @@ services:
     container_name: whoareryu-backend
     ports:
       - "8000:8000"
+    volumes:
+      # 크롤러/스크래퍼 JSONL 산출물 — 이미지에 구워지지 않는 실행 시 산출물이라
+      # 호스트(로컬 Mac 또는 원격 PC, 실행한 쪽 디스크)에 남도록 바인드 마운트한다.
+      # apps/ontology/resources 전체가 아니라 이 두 폴더만 마운트 — 그렇지 않으면
+      # 같은 resources/ 아래 이미지에 구워진 apps/plant/resources/plant_yolo.pt 같은
+      # 파일이 가려질 위험이 있다.
+      - ./fastapi/apps/ontology/resources/crawled:/whoareryu/apps/ontology/resources/crawled
+      - ./fastapi/apps/ontology/resources/scraped:/whoareryu/apps/ontology/resources/scraped
     env_file:
       - ./fastapi/.env
     environment:
