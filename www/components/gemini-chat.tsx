@@ -14,7 +14,7 @@ type Role = "user" | "assistant";
 
 type Msg = { id: string; role: Role; content: string };
 
-const EXAONE_MODEL = "exaone3.5:7.8b";
+const DEFAULT_MODEL = "qwen2.5:1.5b-instruct";
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -25,7 +25,7 @@ type GeminiChatProps = {
   /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
   apiPath?: string;
   inputPlaceholder?: string;
-  /** 기본 exaone3.5:7.8b — 플랜트 채팅은 exaone3.5:2.4b */
+  /** 기본 qwen2.5:1.5b-instruct */
   model?: string;
   /** 제공 시에만 첨부(+)/카메라 버튼이 활성화됨. 선택한 이미지를 받아 채팅창에 표시할 텍스트를 반환 */
   onImageAttach?: (file: File) => Promise<string>;
@@ -34,8 +34,8 @@ type GeminiChatProps = {
 export default function GeminiChat({
   variant = "dark",
   apiPath = "/api/chat",
-  inputPlaceholder = "ExaOne에게 물어보기",
-  model = EXAONE_MODEL,
+  inputPlaceholder = "무엇이든 물어보세요",
+  model = DEFAULT_MODEL,
   onImageAttach,
 }: GeminiChatProps) {
   const isApple = variant === "apple";
@@ -101,7 +101,7 @@ export default function GeminiChat({
             : typeof data.error === "string"
               ? data.error
               : res.status === 502
-                ? "백엔드 또는 ExaOne 연결에 실패했습니다. backend 서버를 확인하세요."
+                ? "백엔드 또는 AI 모델 연결에 실패했습니다. backend 서버를 확인하세요."
                 : "요청에 실패했습니다.");
         setError(msg);
         return;
@@ -267,17 +267,6 @@ export default function GeminiChat({
           </div>
 
           <div className="flex items-center gap-0.5">
-            <span
-              className={cn(
-                "rounded-full border px-2 py-1.5 text-xs sm:px-3 sm:text-sm",
-                isApple
-                  ? "border-border bg-card text-foreground"
-                  : "border-white/15 bg-white/[0.06] text-[#e8eaed]"
-              )}
-            >
-              ExaOne 3.5
-            </span>
-
             <button
               type="button"
               className={cn(iconBtn, !isApple && "opacity-60")}
@@ -361,7 +350,7 @@ export default function GeminiChat({
           isApple ? "text-muted-foreground" : "text-[#8e918f]"
         )}
       >
-        ExaOne은 AI이며 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.
+        AI는 인물 등에 관한 정보 제공 시 실수를 할 수 있습니다.
       </p>
     </div>
   );

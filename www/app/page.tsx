@@ -46,7 +46,7 @@ async function diagnoseFromChat(file: File): Promise<string> {
 export default function Home() {
   return (
     <main className="home-main min-h-[calc(100dvh-var(--site-header-height))]">
-      <section className="saessak-photo-hero relative overflow-hidden px-6 pb-28 pt-14 text-center sm:pb-36 sm:pt-20">
+      <section className="saessak-photo-hero relative overflow-hidden px-6 pb-16 pt-14 text-center sm:pb-20 sm:pt-20">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://images.unsplash.com/photo-1755504980103-374cf009b201?w=1600&q=80&auto=format&fit=crop"
@@ -81,8 +81,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 히어로 아래로 겹치게 끌어올린 유리 패널 — 채팅을 화면 중앙부의 주인공으로 배치 */}
-      <section className="home-content-layer relative z-10 mx-auto -mt-16 max-w-2xl px-6 sm:-mt-20">
+      {/* 히어로와 겹치지 않게, 화면 중앙부에 채팅을 배치 */}
+      <section className="home-content-layer relative z-10 mx-auto max-w-2xl px-6 pt-8 sm:pt-10">
         <div className="saessak-glass-panel rounded-3xl p-4 sm:p-6">
           <h2 className="text-center text-base font-semibold text-foreground sm:text-lg">
             새싹에게 물어보세요
@@ -101,7 +101,7 @@ export default function Home() {
             <GeminiChat
               variant="apple"
               apiPath="/api/plant/chat"
-              model="exaone3.5:2.4b"
+              model="qwen2.5:1.5b-instruct"
               inputPlaceholder="새싹이에게 물어보기"
               onImageAttach={diagnoseFromChat}
             />
