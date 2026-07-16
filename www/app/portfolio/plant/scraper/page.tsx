@@ -1,3 +1,63 @@
+"use client";
+
+import { useState } from "react";
+import { runScrapeOnce, type ScrapeRunResult } from "@/lib/crawler-api";
+
+function ScraperRunner() {
+  const [running, setRunning] = useState(false);
+  const [results, setResults] = useState<ScrapeRunResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const onRun = async () => {
+    setRunning(true);
+    setError(null);
+    setResults([]);
+    try {
+      // 큐가 빌 때까지 하나씩 처리 (CLI의 `scrape --loop`와 동일한 동작)
+      for (;;) {
+        const result = await runScrapeOnce();
+        if (!result.ran) break;
+        setResults((prev) => [...prev, result]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "스크래핑 요청에 실패했습니다.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-black/[0.08] bg-white p-5">
+      <p className="text-sm text-[#3a3a3c]">
+        크롤러가 큐에 쌓아둔 URL을 하나씩 꺼내 본문을 추출하고, 키워드가 포함된 페이지만 JSONL로 저장합니다.
+      </p>
+      <button
+        type="button"
+        onClick={() => void onRun()}
+        disabled={running}
+        className="w-full rounded-lg bg-[#1d1d1f] py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
+      >
+        {running ? "큐 처리 중…" : "지금 큐 처리하기"}
+      </button>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {results.length > 0 && (
+        <ul className="space-y-1.5 text-sm text-[#1d1d1f]">
+          {results.map((r, i) => (
+            <li key={i} className="rounded-lg bg-black/[0.03] px-3 py-2">
+              {r.matched ? `저장됨 → ${r.saved_path}` : "스킵 (키워드 불일치)"} · {r.url}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!running && results.length === 0 && (
+        <p className="text-sm text-[#6e6e73]">아직 실행 전이거나 큐가 비어 있습니다.</p>
+      )}
+    </div>
+  );
+}
+
 export default function PlantScraperPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-10">
@@ -10,6 +70,8 @@ export default function PlantScraperPage() {
           대상 URL을 하나씩 꺼내 본문을 추출하고, QLoRA 학습용 JSONL 데이터셋으로 로컬에 적재하는 Spoke입니다.
         </p>
       </header>
+
+      <ScraperRunner />
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-[#1d1d1f]">동작 흐름</h2>

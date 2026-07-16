@@ -4,10 +4,12 @@ from plant.adapter.inbound.api.v1.badge_router import badge_router
 from plant.adapter.inbound.api.v1.care_guide_router import care_guide_router
 from plant.adapter.inbound.api.v1.chat_router import chat_router
 from plant.adapter.inbound.api.v1.checkin_router import checkin_router
+from plant.adapter.inbound.api.v1.crawler_router import crawler_router
 from plant.adapter.inbound.api.v1.diagnosis_router import diagnosis_router
 from plant.adapter.inbound.api.v1.knowledge_sync_router import knowledge_sync_router
 from plant.adapter.inbound.api.v1.my_plants_router import my_plants_router
 from plant.adapter.inbound.api.v1.notification_router import notification_router
+from plant.adapter.inbound.api.v1.scraper_router import scraper_router
 from plant.adapter.inbound.api.v1.weather_router import weather_router
 
 plant_router = APIRouter(prefix="/plant", tags=["plant"])
@@ -20,6 +22,8 @@ plant_router.include_router(badge_router)
 plant_router.include_router(weather_router)
 plant_router.include_router(notification_router)
 plant_router.include_router(knowledge_sync_router)
+plant_router.include_router(crawler_router)
+plant_router.include_router(scraper_router)
 
 __all__ = [
     "plant_router",
@@ -32,4 +36,6 @@ __all__ = [
     "weather_router",
     "notification_router",
     "knowledge_sync_router",
+    "crawler_router",
+    "scraper_router",
 ]

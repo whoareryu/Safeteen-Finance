@@ -1,3 +1,84 @@
+"use client";
+
+import { useState } from "react";
+import { seedCrawl, type CrawlSeedResult } from "@/lib/crawler-api";
+
+function CrawlerForm() {
+  const [seedUrl, setSeedUrl] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [depth, setDepth] = useState(2);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<CrawlSeedResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      setResult(await seedCrawl({ seedUrl, keyword, depth }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "크롤링 요청에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border border-black/[0.08] bg-white p-5">
+      <div>
+        <label className="text-sm font-medium text-[#1d1d1f]">시드 URL</label>
+        <input
+          value={seedUrl}
+          onChange={(e) => setSeedUrl(e.target.value)}
+          required
+          type="url"
+          placeholder="https://example-plant-forum.com"
+          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-[#1d1d1f]">키워드</label>
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          required
+          placeholder="몬스테라"
+          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-[#1d1d1f]">탐색 깊이 (depth)</label>
+        <input
+          type="number"
+          min={0}
+          max={5}
+          value={depth}
+          onChange={(e) => setDepth(Number(e.target.value))}
+          className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-lg bg-[#1d1d1f] py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
+      >
+        {loading ? "크롤링 중…" : "크롤링 시작"}
+      </button>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {result && (
+        <div className="space-y-1 rounded-xl bg-black/[0.03] p-3 text-sm text-[#1d1d1f]">
+          <p>방문한 페이지: {result.pages_visited}개</p>
+          <p>큐에 쌓인 URL: {result.urls_queued}개 ({result.keyword})</p>
+        </div>
+      )}
+    </form>
+  );
+}
+
 export default function PlantCrawlerPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-10">
@@ -10,6 +91,8 @@ export default function PlantCrawlerPage() {
           Redis 큐(<code className="rounded bg-black/[0.04] px-1 py-0.5">plant:target_urls</code>)에 적재하는 Spoke입니다.
         </p>
       </header>
+
+      <CrawlerForm />
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-[#1d1d1f]">Star Topology — Redis Hub</h2>
