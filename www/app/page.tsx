@@ -5,6 +5,7 @@ import { CalendarCheck, Leaf, Sparkles } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { uploadPlantPhoto } from "@/lib/plant-api";
+import { translateSpecies, translateSymptom } from "@/lib/plant-labels";
 
 const DEFAULT_REGION = "서울";
 
@@ -36,8 +37,8 @@ async function diagnoseFromChat(file: File): Promise<string> {
   const speciesPct = (diagnosis.species_confidence * 100).toFixed(0);
   const symptomPct = (diagnosis.symptom_confidence * 100).toFixed(0);
   return [
-    `🌱 진단 결과: ${diagnosis.detected_species} (신뢰도 ${speciesPct}%)`,
-    `증상: ${diagnosis.symptom_label} (신뢰도 ${symptomPct}%)`,
+    `🌱 진단 결과: ${translateSpecies(diagnosis.detected_species)} (신뢰도 ${speciesPct}%)`,
+    `증상: ${translateSymptom(diagnosis.symptom_label)} (신뢰도 ${symptomPct}%)`,
     "",
     "케어 방법이 궁금하면 이어서 물어보세요!",
   ].join("\n");

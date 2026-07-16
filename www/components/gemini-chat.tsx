@@ -6,6 +6,7 @@ import {
   Plus,
   SendHorizontal,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,8 @@ import { cn } from "@/lib/utils";
 type Role = "user" | "assistant";
 
 type Msg = { id: string; role: Role; content: string };
+
+type AttachedImage = { file: File; previewUrl: string };
 
 const DEFAULT_MODEL = "qwen2.5:1.5b-instruct";
 
@@ -44,6 +47,7 @@ export default function GeminiChat({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachedImage, setAttachedImage] = useState<AttachedImage | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,22 +62,9 @@ export default function GeminiChat({
     scrollBottom();
   }, [messages, loading, scrollBottom]);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
-    if (!text || loading) return;
-
-    setError(null);
-    setInput("");
-    const userMsg: Msg = { id: id(), role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
-
-    const history: { role: Role; content: string }[] = [
-      ...messages.map((m) => ({ role: m.role, content: m.content })),
-      { role: "user", content: text },
-    ];
-
-    try {
+  const askChat = useCallback(
+    async (historyBase: { role: Role; content: string }[], text: string) => {
+      const history = [...historyBase, { role: "user" as const, content: text }];
       const res = await fetch(apiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,23 +94,63 @@ export default function GeminiChat({
               : res.status === 502
                 ? "백엔드 또는 AI 모델 연결에 실패했습니다. backend 서버를 확인하세요."
                 : "요청에 실패했습니다.");
-        setError(msg);
-        return;
+        throw new Error(msg);
       }
       if (!data.text) {
-        setError("응답이 비어 있습니다.");
-        return;
+        throw new Error("응답이 비어 있습니다.");
       }
-      setMessages((prev) => [
-        ...prev,
-        { id: id(), role: "assistant", content: data.text! },
-      ]);
-    } catch {
-      setError("네트워크 오류가 발생했습니다.");
+      return data.text;
+    },
+    [apiPath, model]
+  );
+
+  const removeAttachedImage = useCallback(() => {
+    setAttachedImage((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return null;
+    });
+  }, []);
+
+  const send = useCallback(async () => {
+    const text = input.trim();
+    const image = attachedImage;
+    if ((!text && !image) || loading) return;
+
+    setError(null);
+    setInput("");
+    setAttachedImage(null);
+    setLoading(true);
+
+    const userLabel = image
+      ? text
+        ? `📷 ${image.file.name}\n${text}`
+        : `📷 ${image.file.name}`
+      : text;
+    setMessages((prev) => [...prev, { id: id(), role: "user", content: userLabel }]);
+
+    const historyBase = messages.map((m) => ({ role: m.role, content: m.content }));
+
+    try {
+      let diagnosisText: string | null = null;
+      if (image && onImageAttach) {
+        diagnosisText = await onImageAttach(image.file);
+        if (!text) {
+          // 사진만 보낸 경우: 진단 결과를 그대로 답변으로 보여준다
+          setMessages((prev) => [...prev, { id: id(), role: "assistant", content: diagnosisText! }]);
+          return;
+        }
+      }
+
+      const askText = diagnosisText ? `${diagnosisText}\n\n${text}` : text;
+      const replyText = await askChat(historyBase, askText);
+      setMessages((prev) => [...prev, { id: id(), role: "assistant", content: replyText }]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "요청에 실패했습니다.");
     } finally {
       setLoading(false);
+      if (image) URL.revokeObjectURL(image.previewUrl);
     }
-  }, [apiPath, input, loading, messages, model]);
+  }, [askChat, attachedImage, input, loading, messages, onImageAttach]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -128,23 +159,14 @@ export default function GeminiChat({
     }
   };
 
-  const handleImagePicked = useCallback(
-    async (file: File | null) => {
-      if (!file || !onImageAttach || loading) return;
-      setError(null);
-      setMessages((prev) => [...prev, { id: id(), role: "user", content: `📷 ${file.name}` }]);
-      setLoading(true);
-      try {
-        const resultText = await onImageAttach(file);
-        setMessages((prev) => [...prev, { id: id(), role: "assistant", content: resultText }]);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "이미지 분석에 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [onImageAttach, loading]
-  );
+  const handleImagePicked = useCallback((file: File | null) => {
+    if (!file) return;
+    setError(null);
+    setAttachedImage((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return { file, previewUrl: URL.createObjectURL(file) };
+    });
+  }, []);
 
   useEffect(() => {
     const ta = textareaRef.current;
@@ -154,7 +176,7 @@ export default function GeminiChat({
   }, [input]);
 
   const hasThread = messages.length > 0 || loading;
-  const canSend = input.trim().length > 0 && !loading;
+  const canSend = (input.trim().length > 0 || !!attachedImage) && !loading;
 
   const iconBtn = isApple
     ? "rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -175,6 +197,36 @@ export default function GeminiChat({
             : "border border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3] shadow-xl"
         )}
       >
+        {attachedImage && (
+          <div className="relative mb-4 mt-1 inline-block w-fit">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={attachedImage.previewUrl}
+              alt="첨부한 사진 미리보기"
+              className="h-32 w-32 rounded-2xl object-cover"
+            />
+            <button
+              type="button"
+              onClick={removeAttachedImage}
+              aria-label="첨부 사진 삭제"
+              title="첨부 사진 삭제"
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-background shadow-md transition hover:bg-foreground"
+            >
+              <X className="size-3.5" strokeWidth={2.5} />
+            </button>
+            <span
+              className={cn(
+                "absolute -bottom-2 left-2 max-w-[85%] truncate rounded-full border px-2.5 py-1 text-[11px] shadow-sm",
+                isApple
+                  ? "border-border bg-card text-foreground"
+                  : "border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3]"
+              )}
+            >
+              {attachedImage.file.name}
+            </span>
+          </div>
+        )}
+
         <div className="flex min-h-[84px] flex-1 flex-col justify-center py-1">
           <textarea
             ref={textareaRef}

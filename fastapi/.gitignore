@@ -98,6 +98,9 @@ apps/restaurant/data/raw/
 
 # --- YOLO 등 실행 시 자동 다운로드되는 모델 가중치·샘플 ---
 *.pt
+# plant_yolo.pt는 자동 다운로드가 아니라 직접 학습한 진단 모델(5MB 남짓)이라
+# 배포 이미지에 포함되어야 한다 — 제외 대상에서 예외 처리.
+!apps/plant/resources/plant_yolo.pt
 *.cache
 bus.jpg
 runs/
@@ -117,3 +120,8 @@ apps/ontology/resources/yolo_train/val/
 # 식물 진단 학습용 원본 이미지 (PlantDoc 데이터셋 — git 미포함)
 apps/plant/resources/yolo_train/train/
 apps/plant/resources/yolo_train/val/
+
+# 크롤러/스크래퍼 실행 산출물 (JSONL — git 미포함)
+apps/ontology/resources/crawled/*.jsonl
+apps/ontology/resources/scraped/*.jsonl
+apps/plant/resources/scraped/*.jsonl

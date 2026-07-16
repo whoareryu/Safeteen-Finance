@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { generateCareGuide, type DiagnosisResult } from "@/lib/plant-api";
+import { translateSpecies, translateSymptom } from "@/lib/plant-labels";
 
 export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: DiagnosisResult }) {
   const [loading, setLoading] = useState(false);
@@ -32,10 +33,10 @@ export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: Dia
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">
-          {diagnosis.detected_species}
+          {translateSpecies(diagnosis.detected_species)}
         </span>
         <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-          {diagnosis.symptom_label}
+          {translateSymptom(diagnosis.symptom_label)}
         </span>
       </div>
 
