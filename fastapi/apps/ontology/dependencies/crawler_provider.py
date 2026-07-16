@@ -1,0 +1,29 @@
+from __future__ import annotations
+
+import os
+from functools import lru_cache
+from pathlib import Path
+
+from redis.asyncio import Redis
+
+from ontology.adapter.outbound.filesystem.crawl_result_sink import JsonlCrawlResultSink
+from ontology.adapter.outbound.http.web_fetcher_gateway import HttpxWebFetcherGateway
+from ontology.adapter.outbound.redis.crawl_target_queue_repository import (
+    RedisCrawlTargetQueueRepository,
+)
+from ontology.app.use_cases.crawler_interactor import CrawlerInteractor
+
+_RESULTS_DIR = Path(__file__).resolve().parents[1] / "resources" / "crawled"
+
+
+@lru_cache(maxsize=1)
+def _redis_client() -> Redis:
+    return Redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+
+
+def get_crawler_use_case() -> CrawlerInteractor:
+    return CrawlerInteractor(
+        queue=RedisCrawlTargetQueueRepository(client=_redis_client()),
+        fetcher=HttpxWebFetcherGateway(),
+        sink=JsonlCrawlResultSink(base_dir=_RESULTS_DIR),
+    )

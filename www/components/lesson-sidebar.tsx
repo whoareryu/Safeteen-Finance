@@ -26,6 +26,14 @@ const TOPICS: LessonTopic[] = [
       { href: "/portfolio/vision/object-detection", label: "2. 객체 탐지" },
     ],
   },
+  {
+    id: "plant",
+    label: "식물 지식 수집",
+    items: [
+      { href: "/portfolio/plant/scraper", label: "1. 스크래퍼" },
+      { href: "/portfolio/plant/crawler", label: "2. 크롤러" },
+    ],
+  },
 ];
 
 export default function LessonSidebar() {
