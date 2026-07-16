@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 
+from ontology.app.dtos.gemini_dto import GeminiQueryDto
 from ontology.app.dtos.semantic_routing_dto import (
     SemanticRoutingQueryDto,
     SemanticRoutingResultDto,
 )
 from ontology.app.dtos.sommelier_dto import GraphQueryDto
+from ontology.app.ports.input.gemini_use_case import GeminiUseCase
 from ontology.app.ports.input.semantic_routing_use_case import SemanticRoutingUseCase
 from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.output.intent_classification_gateway import IntentClassificationGateway
@@ -14,8 +16,6 @@ from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledge
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 
 _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
-
-_CHAT_PROMPT = "너는 친절한 사내 챗봇이야. 가볍게 대답해줘."
 
 _RAG_PROMPT_TEMPLATE = """너는 사내 온톨로지 지식에만 기반하여 사실을 전달하는 AI 비서야.
 반드시 제공된 [Context] 내의 정보만 사실에 입각해서 정직하게 답변해줘.
@@ -33,11 +33,13 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
         intent_gateway: IntentClassificationGateway,
         sommelier: SommelierUseCase,
         plant_knowledge: PlantKnowledgeSearchPort,
+        gemini: GeminiUseCase,
     ) -> None:
         self._llm = llm
         self._intent_gateway = intent_gateway
         self._sommelier = sommelier
         self._plant_knowledge = plant_knowledge
+        self._gemini = gemini
 
     async def route(self, dto: SemanticRoutingQueryDto) -> SemanticRoutingResultDto:
         intent = await self._intent_gateway.classify(dto.question)
@@ -48,11 +50,8 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
             return SemanticRoutingResultDto(answer=answer, destination=destination, entities=entities)
 
         if destination == "gemini":
-            answer = await self._llm.chat([
-                {"role": "system", "content": _CHAT_PROMPT},
-                {"role": "user", "content": dto.question},
-            ])
-            return SemanticRoutingResultDto(answer=answer, destination=destination, entities=entities)
+            result = await self._gemini.ask(GeminiQueryDto(question=dto.question))
+            return SemanticRoutingResultDto(answer=result.answer, destination=destination, entities=entities)
 
         answer = await self._answer_with_ontology(dto.question, entities)
         return SemanticRoutingResultDto(answer=answer, destination="exaone_rag", entities=entities)
