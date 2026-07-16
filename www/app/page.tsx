@@ -81,51 +81,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 히어로와 겹치지 않게, 화면 중앙부에 채팅을 배치 */}
-      <section className="home-content-layer relative z-10 mx-auto max-w-2xl px-6 pt-8 sm:pt-10">
-        <div className="saessak-glass-panel rounded-3xl p-4 sm:p-6">
-          <h2 className="text-center text-base font-semibold text-foreground sm:text-lg">
-            새싹에게 물어보세요
-          </h2>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            {SUGGESTIONS.map((s) => (
-              <span
-                key={s}
-                className="rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs text-muted-foreground"
-              >
-                {s}
-              </span>
+      {/* 히어로 아래부터는 하나의 그라데이션 배경을 공유 — 채팅 유리 패널 뒤부터
+          기능 카드 섹션까지 끊기지 않고 이어진다 */}
+      <div className="saessak-hero-bg">
+        {/* 히어로와 겹치지 않게, 화면 중앙부에 채팅을 배치 */}
+        <section className="home-content-layer relative z-10 mx-auto max-w-2xl px-6 pt-8 sm:pt-10">
+          <div className="saessak-glass-panel rounded-3xl p-4 sm:p-6">
+            <h2 className="text-center text-base font-semibold text-foreground sm:text-lg">
+              새싹에게 물어보세요
+            </h2>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {SUGGESTIONS.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs text-muted-foreground"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4">
+              <GeminiChat
+                variant="apple"
+                apiPath="/api/plant/chat"
+                model="qwen2.5:1.5b-instruct"
+                inputPlaceholder="새싹이에게 물어보기"
+                onImageAttach={diagnoseFromChat}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="px-6 pb-28 pt-12">
+          <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
+            {FEATURES.map(({ href, Icon, title, description }) => (
+              <Link key={href} href={href}>
+                <Card className="saessak-card h-full border-0 transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <CardContent className="flex flex-col items-center gap-2 text-center">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-primary">
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <CardTitle className="text-base">{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-          <div className="mt-4">
-            <GeminiChat
-              variant="apple"
-              apiPath="/api/plant/chat"
-              model="qwen2.5:1.5b-instruct"
-              inputPlaceholder="새싹이에게 물어보기"
-              onImageAttach={diagnoseFromChat}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="saessak-hero-bg px-6 pb-28 pt-12">
-        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
-          {FEATURES.map(({ href, Icon, title, description }) => (
-            <Link key={href} href={href}>
-              <Card className="saessak-card h-full border-0 transition hover:-translate-y-0.5 hover:shadow-lg">
-                <CardContent className="flex flex-col items-center gap-2 text-center">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-primary">
-                    <Icon className="h-5 w-5" aria-hidden />
-                  </span>
-                  <CardTitle className="text-base">{title}</CardTitle>
-                  <CardDescription>{description}</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
