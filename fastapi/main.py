@@ -114,8 +114,12 @@ register_dispatch_factory(
 )
 
 # ── Composition root: plant 전용 YOLO/이미지 저장소를 ontology 허브 어댑터로 주입 ──
-from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
+from fastapi.staticfiles import StaticFiles
+
 from ontology.app.use_cases.yolo_interactor import YoloInteractor
+from plant.adapter.outbound.filesystem.local_image_storage_adapter import (
+    LocalImageStorageAdapter,
+)
 from plant.adapter.outbound.resource_adapters.plant_yolo_dataset_adapter import (
     PlantYoloDatasetAdapter,
 )
@@ -133,12 +137,20 @@ register_species_yolo_factory(
         model=PlantYoloModelAdapter(os.getenv("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")),
     )
 )
+# PLANT_S3_BUCKET(AWS API 미발급, 보류 중)이 준비되기 전까지는 로컬 디스크에 저장한다.
+# 발급 후에는 S3ImageStorageGateway(bucket=os.getenv("PLANT_S3_BUCKET", ""), ...)로 교체.
+_plant_diagnosis_media_dir = _backend_root / "apps/plant/resources/diagnosis_uploads"
 register_image_storage_factory(
-    lambda: S3ImageStorageGateway(
-        bucket=os.getenv("PLANT_S3_BUCKET", os.getenv("S3_BUCKET", "")),
-        region=os.getenv("AWS_REGION", "ap-northeast-2"),
-        prefix="plant",
+    lambda: LocalImageStorageAdapter(
+        base_dir=_plant_diagnosis_media_dir,
+        public_base_url=os.getenv("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
+        url_prefix="media/plant",
     )
+)
+app.mount(
+    "/media/plant",
+    StaticFiles(directory=str(_plant_diagnosis_media_dir), check_dir=False),
+    name="plant-diagnosis-media",
 )
 # ─────────────────────────────────────────────────────────────────────────
 

@@ -15,6 +15,8 @@ services:
       # 파일이 가려질 위험이 있다.
       - ./fastapi/apps/ontology/resources/crawled:/whoareryu/apps/ontology/resources/crawled
       - ./fastapi/apps/ontology/resources/scraped:/whoareryu/apps/ontology/resources/scraped
+      # 식물 진단 업로드 사진 — PLANT_S3_BUCKET(AWS API 미발급) 발급 전까지 로컬 디스크에 임시 저장.
+      - ./fastapi/apps/plant/resources/diagnosis_uploads:/whoareryu/apps/plant/resources/diagnosis_uploads
     env_file:
       - ./fastapi/.env
     environment:

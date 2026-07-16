@@ -125,3 +125,6 @@ apps/plant/resources/yolo_train/val/
 apps/ontology/resources/crawled/*.jsonl
 apps/ontology/resources/scraped/*.jsonl
 apps/plant/resources/scraped/*.jsonl
+
+# 식물 진단 업로드 사진 (S3 발급 전 임시 로컬 저장 — git 미포함)
+apps/plant/resources/diagnosis_uploads/
