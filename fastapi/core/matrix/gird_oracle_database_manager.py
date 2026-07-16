@@ -73,6 +73,7 @@ def import_models() -> None:
         # Chef
         "chef.adapter.outbound.orm.address_orm",
         "chef.adapter.outbound.orm.receiver_orm",
+        "community.adapter.outbound.orm.telegram_message_orm",
         # Soccer
         "soccer.adapter.outbound.orm.stadium_orm",
         "soccer.adapter.outbound.orm.team_orm",

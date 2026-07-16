@@ -17,3 +17,7 @@ class TelegramHistoryItem(BaseModel):
 
 class TelegramHistoryResponse(BaseModel):
     items: list[TelegramHistoryItem]
+
+
+class TelegramSendRequest(BaseModel):
+    text: str = Field(..., min_length=1)
