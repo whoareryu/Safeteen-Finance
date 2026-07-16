@@ -135,32 +135,32 @@ export default function TitanicAnalysisChat() {
   };
 
   return (
-    <div className="min-w-0 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm">
+    <div className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#86868b]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             TITANIC · ANALYSIS CHAT
           </p>
           {summary ? (
-            <p className="mt-1 text-xs text-[#6e6e73]">
+            <p className="mt-1 text-xs text-muted-foreground">
               {summary.total}명 · 생존률 {pct(summary.survivalRate)}
             </p>
           ) : (
-            <p className="mt-1 text-xs text-[#6e6e73]">
+            <p className="mt-1 text-xs text-muted-foreground">
               CSV가 없으면 답변할 수 없습니다.
             </p>
           )}
         </div>
       </div>
 
-      <div className="max-h-[360px] space-y-3 overflow-auto rounded-xl bg-[#fbfbfd] p-3">
+      <div className="max-h-[360px] space-y-3 overflow-auto rounded-xl bg-muted/40 p-3">
         {messages.map((m, i) => (
           <div
             key={i}
             className={
               m.role === "user"
-                ? "ml-auto w-fit max-w-[90%] rounded-2xl bg-black/[0.06] px-3 py-2 text-sm text-[#1d1d1f]"
-                : "mr-auto w-fit max-w-[90%] whitespace-pre-wrap rounded-2xl bg-white px-3 py-2 text-sm text-[#1d1d1f]/90 shadow-sm ring-1 ring-black/[0.06]"
+                ? "ml-auto w-fit max-w-[90%] rounded-2xl bg-muted px-3 py-2 text-sm text-foreground"
+                : "mr-auto w-fit max-w-[90%] whitespace-pre-wrap rounded-2xl bg-card px-3 py-2 text-sm text-foreground/90 shadow-sm ring-1 ring-border"
             }
           >
             {m.content}
@@ -176,12 +176,12 @@ export default function TitanicAnalysisChat() {
             if (e.key === "Enter") send();
           }}
           placeholder="예: 성별 생존률 알려줘"
-          className="min-w-0 flex-1 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+          className="min-w-0 flex-1 rounded-xl border border-border bg-input text-foreground px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/30"
         />
         <button
           type="button"
           onClick={send}
-          className="shrink-0 self-end whitespace-nowrap rounded-xl bg-black px-3 py-2 text-xs font-medium text-white hover:bg-black/90 sm:self-auto"
+          className="shrink-0 self-end whitespace-nowrap rounded-xl bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 sm:self-auto"
         >
           전송
         </button>
@@ -198,7 +198,7 @@ export default function TitanicAnalysisChat() {
             key={q}
             type="button"
             onClick={() => setInput(q)}
-            className="rounded-full bg-black/[0.04] px-3 py-1.5 text-xs text-[#1d1d1f]/80 hover:bg-black/[0.06]"
+            className="rounded-full bg-muted px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/70"
           >
             {q}
           </button>

@@ -1,6 +1,6 @@
 export default function VisionPage() {
   return (
-    <div className="min-h-[calc(100dvh-var(--site-header-height))] bg-[#fbfbfd]">
+    <div className="min-h-[calc(100dvh-var(--site-header-height))] bg-background">
       <section className="relative flex min-h-[36vh] flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#0c1929] via-[#1e3a5f] to-[#0a1628] px-6 py-14 text-center text-white md:py-16">
         <div
           className="pointer-events-none absolute inset-0 opacity-50"

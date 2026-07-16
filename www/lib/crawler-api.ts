@@ -4,6 +4,7 @@ export interface CrawlSeedResult {
   depth: number;
   pages_visited: number;
   urls_queued: number;
+  saved_path?: string;
 }
 
 export interface ScrapeRunResult {

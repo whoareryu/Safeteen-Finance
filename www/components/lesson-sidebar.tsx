@@ -38,17 +38,17 @@ export default function LessonSidebar() {
   const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <aside className="relative z-20 hidden w-[260px] shrink-0 overflow-hidden border-r border-black/[0.06] bg-[#fbfbfd] md:block">
+    <aside className="relative z-20 hidden w-[260px] shrink-0 overflow-hidden border-r border-border bg-background md:block">
       <div className="sticky top-[var(--site-header-height)] max-h-[calc(100dvh-var(--site-header-height))] overflow-y-auto p-4">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#6e6e73]">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           LESSON
         </p>
 
         <Accordion type="single" collapsible defaultValue="titanic">
           {TOPICS.map((topic) => (
             <AccordionItem key={topic.id} value={topic.id} className="border-0">
-              <AccordionTrigger className="rounded-md px-2 py-2 text-sm hover:bg-black/[0.04] hover:no-underline [&>svg]:text-[#86868b]">
-                <span className="font-medium text-[#1d1d1f]">{topic.label}</span>
+              <AccordionTrigger className="rounded-md px-2 py-2 text-sm hover:bg-muted hover:no-underline [&>svg]:text-muted-foreground">
+                <span className="font-medium text-foreground">{topic.label}</span>
               </AccordionTrigger>
               <AccordionContent className="pb-0">
                 <nav className="mt-1 space-y-1">
@@ -57,8 +57,8 @@ export default function LessonSidebar() {
                       key={it.href}
                       href={it.href}
                       className={cn(
-                        "block whitespace-nowrap rounded-md px-2 py-2 text-sm text-[#1d1d1f]/80 hover:bg-black/[0.04]",
-                        active(it.href) && "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                        "block whitespace-nowrap rounded-md px-2 py-2 text-sm text-foreground/80 hover:bg-muted",
+                        active(it.href) && "bg-muted font-medium text-foreground"
                       )}
                     >
                       {it.label}

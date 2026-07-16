@@ -29,6 +29,11 @@ const TOPICS: LessonTopic[] = [
       { href: "/portfolio/vision/object-detection", label: "2. 객체 탐지" },
     ],
   },
+  {
+    id: "plant",
+    label: "식물 지식 수집",
+    items: [{ href: "/portfolio/plant/crawler", label: "크롤러/스크래퍼" }],
+  },
 ];
 
 export default function LessonMobileDrawer() {
@@ -48,22 +53,22 @@ export default function LessonMobileDrawer() {
         <SheetTrigger asChild>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-[#1d1d1f]/85 hover:bg-black/[0.04]"
+            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-foreground/85 hover:bg-muted"
             aria-label="LESSON 메뉴 열기"
           >
             <Menu className="h-4 w-4" aria-hidden />
             {currentLabel}
           </button>
         </SheetTrigger>
-        <SheetContent side="left" className="bg-[#fbfbfd] p-0">
-          <SheetHeader className="border-b border-black/[0.06]">
+        <SheetContent side="left" className="bg-background p-0">
+          <SheetHeader className="border-b border-border">
             <SheetTitle className="text-sm tracking-[0.18em]">LESSON</SheetTitle>
           </SheetHeader>
 
           <div className="p-4">
             {TOPICS.map((topic) => (
               <div key={topic.id} className="mb-4 last:mb-0">
-                <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-[#6e6e73]">
+                <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-muted-foreground">
                   {topic.label}
                 </p>
                 <nav className="space-y-1">
@@ -75,8 +80,8 @@ export default function LessonMobileDrawer() {
                         href={it.href}
                         onClick={() => setOpen(false)}
                         className={cn(
-                          "block rounded-md px-2 py-2 text-sm text-[#1d1d1f]/80 hover:bg-black/[0.04]",
-                          active && "bg-black/[0.06] font-medium text-[#1d1d1f]"
+                          "block rounded-md px-2 py-2 text-sm text-foreground/80 hover:bg-muted",
+                          active && "bg-muted font-medium text-foreground"
                         )}
                       >
                         {it.label}

@@ -62,24 +62,24 @@ export default function SmithChatPage() {
   return (
     <div className="flex h-[calc(100dvh-var(--site-header-height)-4rem)] flex-col gap-4">
       <header className="pt-1">
-        <h1 className="text-2xl font-semibold leading-snug tracking-tight text-[#1d1d1f]">
+        <h1 className="text-2xl font-semibold leading-snug tracking-tight text-foreground">
           3. 스미스 선장과 대화
         </h1>
-        <p className="mt-2 text-sm text-[#6e6e73]">
+        <p className="mt-2 text-sm text-muted-foreground">
           타이타닉의 선장 에드워드 존 스미스와 대화해 보세요.
         </p>
       </header>
 
       {/* 채팅 영역 */}
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         {/* 헤더 */}
-        <div className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1e3a5f] text-lg font-bold text-white select-none">
             S
           </div>
           <div>
-            <p className="text-sm font-medium text-[#1d1d1f]">Captain Edward J. Smith</p>
-            <p className="text-xs text-[#86868b]">RMS Titanic · 1912</p>
+            <p className="text-sm font-medium text-foreground">Captain Edward J. Smith</p>
+            <p className="text-xs text-muted-foreground">RMS Titanic · 1912</p>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ export default function SmithChatPage() {
                 className={cn(
                   "max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                   m.role === "user"
-                    ? "rounded-br-sm bg-black/[0.06] text-[#1d1d1f]"
+                    ? "rounded-br-sm bg-muted text-foreground"
                     : "rounded-bl-sm bg-[#1e3a5f] text-white shadow-sm"
                 )}
               >
@@ -126,7 +126,7 @@ export default function SmithChatPage() {
         </div>
 
         {/* 추천 질문 */}
-        <div className="flex flex-wrap gap-2 border-t border-black/[0.06] px-4 py-2">
+        <div className="flex flex-wrap gap-2 border-t border-border px-4 py-2">
           {[
             "타이타닉은 어떤 배인가요?",
             "빙산과 충돌한 날 무슨 일이 있었나요?",
@@ -137,7 +137,7 @@ export default function SmithChatPage() {
               key={q}
               type="button"
               onClick={() => setInput(q)}
-              className="rounded-full bg-black/[0.04] px-3 py-1 text-xs text-[#1d1d1f]/70 hover:bg-black/[0.07] transition"
+              className="rounded-full bg-muted px-3 py-1 text-xs text-foreground/70 hover:bg-muted/70 transition"
             >
               {q}
             </button>
@@ -145,7 +145,7 @@ export default function SmithChatPage() {
         </div>
 
         {/* 입력창 */}
-        <div className="flex items-end gap-2 border-t border-black/[0.06] px-4 py-3">
+        <div className="flex items-end gap-2 border-t border-border px-4 py-3">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -158,7 +158,7 @@ export default function SmithChatPage() {
               }
             }}
             placeholder="스미스 선장에게 질문하기…"
-            className="min-w-0 flex-1 resize-none rounded-xl border border-black/10 bg-[#fbfbfd] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+            className="min-w-0 flex-1 resize-none rounded-xl border border-border bg-input text-foreground placeholder:text-muted-foreground px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
           />
           <button
             type="button"

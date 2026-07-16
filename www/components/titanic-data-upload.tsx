@@ -189,14 +189,14 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
     <div className="titanic-data-upload w-full max-w-none">
       {showHeading ? (
         <>
-          <h2 className="text-xl font-semibold text-[#1d1d1f]">1. 데이터 수집</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#6e6e73]">
+          <h2 className="text-xl font-semibold text-foreground">1. 데이터 수집</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Kaggle Titanic CSV를 브라우저(로컬)에 저장합니다. 새 파일을 올리면 기존 데이터는
             교체됩니다.
           </p>
         </>
       ) : (
-        <p className="text-sm leading-relaxed text-[#6e6e73]">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Kaggle Titanic CSV를 브라우저(로컬)에 저장합니다. 새 파일을 올리면 기존 데이터는
           교체됩니다.
         </p>
@@ -219,14 +219,14 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
           "mt-6 flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 transition",
           dragOver
             ? "border-[#0071e3] bg-[#0071e3]/5"
-            : "border-black/15 bg-white hover:border-black/25 hover:bg-[#f5f5f7]"
+            : "border-border bg-card hover:border-primary/40 hover:bg-muted/50"
         )}
       >
-        <Upload className="h-10 w-10 text-[#86868b]" aria-hidden />
-        <p className="mt-3 text-center text-sm font-medium text-[#1d1d1f]">
+        <Upload className="h-10 w-10 text-muted-foreground" aria-hidden />
+        <p className="mt-3 text-center text-sm font-medium text-foreground">
           CSV를 여기에 끌어다 놓거나 클릭해 선택
         </p>
-        <p className="mt-1 text-center text-xs text-[#86868b]">
+        <p className="mt-1 text-center text-xs text-muted-foreground">
           PassengerId, Survived, Pclass, Name, Gender, Age … (Kaggle 형식)
         </p>
         <input
@@ -239,9 +239,9 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
       </div>
 
       {file ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-black/[0.08] bg-white px-4 py-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
           <FileSpreadsheet className="h-5 w-5 shrink-0 text-[#0071e3]" aria-hidden />
-          <span className="min-w-0 flex-1 truncate text-sm text-[#1d1d1f]">
+          <span className="min-w-0 flex-1 truncate text-sm text-foreground">
             {file.name} ({(file.size / 1024).toFixed(1)} KB)
           </span>
           <button
