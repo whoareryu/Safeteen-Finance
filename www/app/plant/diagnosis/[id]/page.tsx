@@ -28,13 +28,13 @@ export default function PlantDiagnosisDetailPage() {
   }, [params.id]);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
       {error ? (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</p>
       ) : diagnosis ? (
         <PlantDiagnosisResultCard diagnosis={diagnosis} />
       ) : (
-        <p className="text-sm text-[#86868b]">불러오는 중…</p>
+        <p className="text-sm text-muted-foreground">불러오는 중…</p>
       )}
     </div>
   );

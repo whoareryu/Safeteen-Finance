@@ -90,12 +90,12 @@ export default function MyPlantsPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
       <p className="text-sm text-muted-foreground">
         내 반려식물을 등록하고, 매일 사진으로 출석체크하며 식물집사 포인트를 모아보세요.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="saessak-card mt-6 p-5">
         <h2 className="text-sm font-semibold text-foreground">새 식물 등록</h2>
 
         <label className="mt-3 block text-sm font-medium text-foreground">
@@ -188,7 +188,7 @@ export default function MyPlantsPage() {
             <Link
               key={p.id}
               href={`/plant/my-plants/${p.id}`}
-              className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="saessak-card block p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="flex items-center justify-between">
                 <span className="text-2xl" aria-hidden>

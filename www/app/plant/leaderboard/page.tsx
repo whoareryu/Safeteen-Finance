@@ -22,7 +22,7 @@ export default function LeaderboardPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
       <h1 className="text-2xl font-semibold text-foreground">식물집사 랭킹</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         포인트가 높은 순서로 식물집사들을 보여줘요.
@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
           {entries.map((e) => (
             <div
               key={e.plant_id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm"
+              className="saessak-card flex items-center gap-3 px-4 py-3"
             >
               <span className="w-8 shrink-0 text-center text-lg font-semibold text-foreground">
                 {RANK_MEDAL[e.rank] ?? e.rank}

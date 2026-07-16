@@ -546,6 +546,34 @@ header.site-header--light #weather-container.weather-error {
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
 }
 
+/* 새싹 — 히어로 위에 떠 있는 큰 유리 패널(채팅 등 실제 콘텐츠를 담는 컨테이너).
+   글자 가독성이 필요해 saessak-glass-card보다 불투명도를 높였다. */
+.saessak-glass-panel {
+  background: color-mix(in oklch, var(--card) 94%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 150 / 0.06),
+    0 16px 40px -12px oklch(0.2 0.05 150 / 0.22);
+}
+
+.dark .saessak-glass-panel {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.3),
+    0 16px 40px -12px oklch(0 0 0 / 0.5);
+}
+
+/* 새싹 — 콘텐츠 카드(진단 결과, 케어 일정 등)의 프리미엄 기본형 */
+.saessak-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 150 / 0.04),
+    0 8px 24px -8px oklch(0.2 0.05 150 / 0.12);
+}
+
 /* 새싹 — 실제 식물 사진을 쓰는 히어로 배너 (홈/서브페이지 공용) */
 .saessak-photo-hero {
   min-height: 22rem;

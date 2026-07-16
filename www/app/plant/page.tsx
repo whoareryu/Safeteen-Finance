@@ -19,7 +19,7 @@ export default function PlantPage() {
           </p>
         </div>
       </section>
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
         <PlantPhotoUpload />
       </div>
     </div>

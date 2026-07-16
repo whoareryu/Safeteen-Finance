@@ -14,8 +14,8 @@ function PlantCareCalendarContent() {
 
 export default function PlantCareCalendarPage() {
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <Suspense fallback={<p className="text-sm text-[#86868b]">불러오는 중…</p>}>
+    <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
+      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중…</p>}>
         <PlantCareCalendarContent />
       </Suspense>
     </div>

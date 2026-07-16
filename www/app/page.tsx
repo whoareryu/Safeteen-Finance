@@ -46,7 +46,7 @@ async function diagnoseFromChat(file: File): Promise<string> {
 export default function Home() {
   return (
     <main className="home-main min-h-[calc(100dvh-var(--site-header-height))]">
-      <section className="saessak-photo-hero relative overflow-hidden px-6 pb-16 pt-14 text-center sm:pt-24">
+      <section className="saessak-photo-hero relative overflow-hidden px-6 pb-28 pt-14 text-center sm:pb-36 sm:pt-20">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://images.unsplash.com/photo-1755504980103-374cf009b201?w=1600&q=80&auto=format&fit=crop"
@@ -81,11 +81,39 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="saessak-hero-bg px-6 py-10">
+      {/* 히어로 아래로 겹치게 끌어올린 유리 패널 — 채팅을 화면 중앙부의 주인공으로 배치 */}
+      <section className="home-content-layer relative z-10 mx-auto -mt-16 max-w-2xl px-6 sm:-mt-20">
+        <div className="saessak-glass-panel rounded-3xl p-4 sm:p-6">
+          <h2 className="text-center text-base font-semibold text-foreground sm:text-lg">
+            새싹에게 물어보세요
+          </h2>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {SUGGESTIONS.map((s) => (
+              <span
+                key={s}
+                className="rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs text-muted-foreground"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+          <div className="mt-4">
+            <GeminiChat
+              variant="apple"
+              apiPath="/api/plant/chat"
+              model="exaone3.5:2.4b"
+              inputPlaceholder="새싹이에게 물어보기"
+              onImageAttach={diagnoseFromChat}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="saessak-hero-bg px-6 pb-28 pt-12">
         <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
           {FEATURES.map(({ href, Icon, title, description }) => (
             <Link key={href} href={href}>
-              <Card className="h-full border-border/70 bg-card/90 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="saessak-card h-full border-0 transition hover:-translate-y-0.5 hover:shadow-lg">
                 <CardContent className="flex flex-col items-center gap-2 text-center">
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-primary">
                     <Icon className="h-5 w-5" aria-hidden />
@@ -96,29 +124,6 @@ export default function Home() {
               </Card>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section className="home-content-layer mx-auto max-w-2xl px-6 pb-16 pt-4">
-        <h2 className="text-center text-lg font-semibold text-foreground">새싹에게 물어보세요</h2>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {SUGGESTIONS.map((s) => (
-            <span
-              key={s}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-        <div className="mt-6">
-          <GeminiChat
-            variant="apple"
-            apiPath="/api/plant/chat"
-            model="exaone3.5:2.4b"
-            inputPlaceholder="새싹이에게 물어보기"
-            onImageAttach={diagnoseFromChat}
-          />
         </div>
       </section>
     </main>

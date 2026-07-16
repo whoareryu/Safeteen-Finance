@@ -90,8 +90,8 @@ export default function MyPlantDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+    <div className="mx-auto max-w-2xl px-6 pb-28 pt-10">
+      <div className="saessak-card p-6 text-center">
         <span className="text-5xl" aria-hidden>
           {STAGE_EMOJI[plant.growth_stage] ?? "🌱"}
         </span>
@@ -128,7 +128,7 @@ export default function MyPlantDetailPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-center shadow-sm">
+      <div className="saessak-card mt-6 p-5 text-center">
         <h2 className="text-sm font-semibold text-foreground">오늘의 출석체크</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           오늘 식물 사진을 찍어서 올리면 건강도에 따라 포인트를 받아요.
@@ -208,7 +208,7 @@ export default function MyPlantDetailPage() {
           {history.map((h) => (
             <div
               key={h.id}
-              className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-2.5 text-sm"
+              className="saessak-card flex items-center justify-between px-4 py-2.5 text-sm"
             >
               <span className="text-muted-foreground">{h.checkin_date}</span>
               <span className="text-foreground">건강도 {h.health_score}</span>
