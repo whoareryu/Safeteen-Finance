@@ -48,6 +48,8 @@ export default function GeminiChat({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachedImage, setAttachedImage] = useState<AttachedImage | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -168,6 +170,53 @@ export default function GeminiChat({
     });
   }, []);
 
+  const onDragEnter = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!onImageAttach) return;
+      e.preventDefault();
+      dragCounter.current += 1;
+      setIsDragging(true);
+    },
+    [onImageAttach]
+  );
+
+  const onDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!onImageAttach) return;
+      e.preventDefault();
+    },
+    [onImageAttach]
+  );
+
+  const onDragLeave = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!onImageAttach) return;
+      e.preventDefault();
+      dragCounter.current -= 1;
+      if (dragCounter.current <= 0) {
+        dragCounter.current = 0;
+        setIsDragging(false);
+      }
+    },
+    [onImageAttach]
+  );
+
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!onImageAttach) return;
+      e.preventDefault();
+      dragCounter.current = 0;
+      setIsDragging(false);
+      const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
+      if (!file) {
+        setError("이미지 파일만 첨부할 수 있습니다.");
+        return;
+      }
+      handleImagePicked(file);
+    },
+    [onImageAttach, handleImagePicked]
+  );
+
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -189,14 +238,30 @@ export default function GeminiChat({
   return (
     <div className="mx-auto w-full max-w-xl">
       <div
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
         className={cn(
-          "gemini-chat-shell flex min-h-[136px] w-full min-w-0 flex-col rounded-[28px] px-4 pb-2.5 pt-3 md:min-h-[152px]",
+          "gemini-chat-shell relative flex min-h-[136px] w-full min-w-0 flex-col rounded-[28px] px-4 pb-2.5 pt-3 md:min-h-[152px]",
           neonShield,
           isApple
             ? "border border-border bg-card text-foreground shadow-sm"
-            : "border border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3] shadow-xl"
+            : "border border-white/[0.12] bg-[#1e1f20] text-[#e3e3e3] shadow-xl",
+          isDragging && (isApple ? "border-primary ring-2 ring-primary/40" : "border-[#8ab4f8] ring-2 ring-[#8ab4f8]/40")
         )}
       >
+        {isDragging && (
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[28px] text-sm font-medium",
+              isApple ? "bg-primary/10 text-primary" : "bg-[#8ab4f8]/10 text-[#8ab4f8]"
+            )}
+          >
+            여기에 사진을 놓아 첨부하세요
+          </div>
+        )}
+
         {attachedImage && (
           <div className="relative mb-4 mt-1 inline-block w-fit">
             {/* eslint-disable-next-line @next/next/no-img-element */}
