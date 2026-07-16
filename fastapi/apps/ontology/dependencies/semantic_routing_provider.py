@@ -21,7 +21,7 @@ from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 # "gemini" 분기는 로컬 모델이 아니라 실제 Gemini API(GeminiInteractor)로 답한다.
 _QWEN_MODEL = "qwen2.5:1.5b-instruct"
 
-# exaone_rag 분기의 실제 지식 소스는 plant 스포크의 pgvector(plant_knowledge)다.
+# qwen_rag 분기의 실제 지식 소스는 plant 스포크의 pgvector(plant_knowledge)다.
 # 허브(ontology)가 스포크(plant)를 직접 import할 수 없으므로, composition
 # root(main.py)가 register_plant_knowledge_factory()로 구현체를 주입한다.
 _plant_knowledge_factory: Callable[[AsyncSession], PlantKnowledgeSearchPort] | None = None

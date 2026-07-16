@@ -9,5 +9,5 @@ class SemanticRoutingQueryDto:
 @dataclass
 class SemanticRoutingResultDto:
     answer: str
-    destination: str  # "crud" | "exaone_rag" | "gemini"
+    destination: str  # "crud" | "qwen_rag" | "gemini"
     entities: list[str] = field(default_factory=list)
