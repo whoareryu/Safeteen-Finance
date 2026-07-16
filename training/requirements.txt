@@ -1,18 +1,15 @@
-# EXAONE-3.5-2.4B-Instruct QLoRA 파인튜닝 전용 환경.
+# Qwen3-4B-Instruct QLoRA 파인튜닝 전용 환경.
 # fastapi/requirements.txt(서빙용)와 완전히 분리 — Docker 빌드 컨텍스트(./fastapi) 밖이라
 # 프로덕션 이미지에는 절대 포함되지 않는다. 원격 PC(RTX 3050, CUDA) 전용 venv에서만 설치.
 #
 # torch는 여기 포함하지 않는다 — README 안내대로 드라이버(CUDA 12.6)에 맞는 cu126
 # 인덱스로 먼저 설치한다.
 #
-# transformers>=5.0 필수: EXAONE 저장소의 configuration_exaone.py가 v5 전용 심볼
-# (RopeParameters)을 쓰도록 업데이트되어 있어 4.x로는 아예 로드가 안 된다
-# (README에 적힌 "v4.43 이상" 안내는 이제 stale). 대신 transformers v5는
-# PreTrainedModel.get_input_embeddings()를 서브클래스가 명시적으로 구현해야
-# 하는데 EXAONE 커스텀 코드가 아직 이걸 안 해서, peft가 최신 버전이면
-# get_peft_model() 단계에서 하드 에러가 난다. peft를 0.13.x로 낮추면 같은
-# 상황을 경고로만 처리하고 정상 진행됨 (LoRA는 원래 임베딩층을 안 건드리므로
-# 실질적 영향 없음).
+# 아래 버전 조합은 이전에 시험했던 EXAONE 모델(trust_remote_code 커스텀 코드가
+# transformers v5 전용 심볼을 요구) 기준으로 고정된 것이다. peft를 0.13.x로
+# 낮춘 이유도 당시 EXAONE의 get_input_embeddings 미구현 문제를 경고로만 넘기기
+# 위함이었다 — Qwen3 등 네이티브 아키텍처 모델은 이 문제가 없어 더 낮은 조합도
+# 되지만, 이미 검증된 조합이라 그대로 둔다.
 transformers>=5.0,<6.0
 peft==0.13.2
 bitsandbytes>=0.44.0
