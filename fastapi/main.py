@@ -142,6 +142,28 @@ register_image_storage_factory(
 )
 # ─────────────────────────────────────────────────────────────────────────
 
+# ── Composition root: plant 전용 pgvector(plant_knowledge)를 ontology 시맨틱
+#    라우터의 exaone_rag 지식 소스로 주입 ──────────────────────────────────
+from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
+from ontology.dependencies.semantic_routing_provider import register_plant_knowledge_factory
+from plant.adapter.outbound.llm.plant_embedding_adapter import PlantEmbeddingAdapter
+from plant.adapter.outbound.pg.plant_knowledge_pg_repository import PlantKnowledgePgRepository
+
+
+class _PlantKnowledgeSearchAdapter(PlantKnowledgeSearchPort):
+    def __init__(self, session: AsyncSession) -> None:
+        self._repository = PlantKnowledgePgRepository(session=session)
+        self._embedding = PlantEmbeddingAdapter()
+
+    async def search(self, query: str, limit: int = 3) -> list[dict]:
+        vector = await self._embedding.embed(query)
+        matches = await self._repository.find_similar(vector, limit=limit)
+        return [{"name": m.name, "description": m.description} for m in matches]
+
+
+register_plant_knowledge_factory(lambda session: _PlantKnowledgeSearchAdapter(session))
+# ─────────────────────────────────────────────────────────────────────────
+
 app.include_router(ontology_router, prefix="/api")
 app.include_router(titanic_router, prefix="/api")
 app.include_router(silicon_valley_router, prefix="/api")
