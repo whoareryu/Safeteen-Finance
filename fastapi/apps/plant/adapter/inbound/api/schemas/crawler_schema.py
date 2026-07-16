@@ -14,3 +14,4 @@ class CrawlSeedResponse(BaseModel):
     depth: int
     pages_visited: int
     urls_queued: int
+    saved_path: str | None = None

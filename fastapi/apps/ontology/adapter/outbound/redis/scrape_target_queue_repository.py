@@ -20,3 +20,8 @@ class RedisScrapeTargetQueueRepository(ScrapeTargetQueuePort):
             return None
         payload = json.loads(raw)
         return ScrapeTargetDto(url=payload["url"], keyword=payload["keyword"])
+
+    async def push(self, target: ScrapeTargetDto) -> None:
+        await self._client.rpush(
+            QUEUE_KEY, json.dumps({"url": target.url, "keyword": target.keyword}, ensure_ascii=False)
+        )

@@ -20,3 +20,8 @@ class RedisCrawlTargetQueueRepository(CrawlTargetQueuePort):
             return None
         payload = json.loads(raw)
         return CrawlTargetDto(url=payload["url"], keyword=payload["keyword"])
+
+    async def push(self, target: CrawlTargetDto) -> None:
+        await self._client.rpush(
+            QUEUE_KEY, json.dumps({"url": target.url, "keyword": target.keyword}, ensure_ascii=False)
+        )
