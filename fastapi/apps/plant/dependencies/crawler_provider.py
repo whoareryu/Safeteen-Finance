@@ -7,8 +7,10 @@ from redis.asyncio import Redis
 
 from plant.adapter.outbound.html.bs4_html_parser import Bs4HtmlParser
 from plant.adapter.outbound.http.requests_web_fetcher import RequestsWebFetcher
+from plant.adapter.outbound.llm.crawl_command_interpreter import QwenCrawlCommandInterpreter
 from plant.adapter.outbound.redis.crawl_queue_repository import RedisCrawlQueueRepository
 from plant.app.ports.input.crawler_use_case import CrawlerUseCase
+from plant.app.ports.output.crawl_command_interpreter_port import CrawlCommandInterpreterPort
 from plant.app.use_cases.crawler_interactor import CrawlerInteractor
 
 
@@ -23,3 +25,7 @@ def get_crawler_use_case() -> CrawlerUseCase:
         fetcher=RequestsWebFetcher(),
         parser=Bs4HtmlParser(),
     )
+
+
+def get_crawl_command_interpreter() -> CrawlCommandInterpreterPort:
+    return QwenCrawlCommandInterpreter()

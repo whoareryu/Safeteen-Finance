@@ -1,6 +1,7 @@
 export interface CrawlSeedResult {
   seed_url: string;
   keyword: string;
+  depth: number;
   pages_visited: number;
   urls_queued: number;
 }
@@ -22,20 +23,20 @@ async function parseOrThrow<T>(res: Response): Promise<T> {
   return data;
 }
 
-export async function seedCrawl(params: {
-  seedUrl: string;
-  keyword: string;
-  depth: number;
-}): Promise<CrawlSeedResult> {
+export async function seedCrawl(params: { seedUrl: string; command: string }): Promise<CrawlSeedResult> {
   const res = await fetch("/api/plant/crawler/seed", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ seed_url: params.seedUrl, keyword: params.keyword, depth: params.depth }),
+    body: JSON.stringify({ seed_url: params.seedUrl, command: params.command }),
   });
   return parseOrThrow<CrawlSeedResult>(res);
 }
 
-export async function runScrapeOnce(): Promise<ScrapeRunResult> {
-  const res = await fetch("/api/plant/scraper/run", { method: "POST" });
+export async function scrapeUrl(params: { seedUrl: string; command: string }): Promise<ScrapeRunResult> {
+  const res = await fetch("/api/plant/scraper/run-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ seed_url: params.seedUrl, command: params.command }),
+  });
   return parseOrThrow<ScrapeRunResult>(res);
 }

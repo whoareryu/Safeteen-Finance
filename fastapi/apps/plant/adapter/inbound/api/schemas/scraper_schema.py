@@ -9,3 +9,8 @@ class ScrapeRunResponse(BaseModel):
     keyword: str | None = None
     matched: bool | None = None
     saved_path: str | None = None
+
+
+class ScrapeUrlRequest(BaseModel):
+    seed_url: str
+    command: str

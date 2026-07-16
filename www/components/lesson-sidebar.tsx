@@ -29,10 +29,7 @@ const TOPICS: LessonTopic[] = [
   {
     id: "plant",
     label: "식물 지식 수집",
-    items: [
-      { href: "/portfolio/plant/scraper", label: "1. 스크래퍼" },
-      { href: "/portfolio/plant/crawler", label: "2. 크롤러" },
-    ],
+    items: [{ href: "/portfolio/plant/crawler", label: "크롤러/스크래퍼" }],
   },
 ];
 

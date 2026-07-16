@@ -27,16 +27,17 @@ class ScraperInteractor(ScraperUseCase):
         target = await self._queue.pop()
         if target is None:
             return None
+        return await self._fetch_and_save(target.url, target.keyword)
 
-        html = await asyncio.to_thread(self._fetcher.fetch, target.url)
-        content = await asyncio.to_thread(
-            self._parser.extract_content, html, target.url, target.keyword
-        )
+    async def scrape_url(self, url: str, keyword: str) -> ScrapeResult:
+        return await self._fetch_and_save(url, keyword)
+
+    async def _fetch_and_save(self, url: str, keyword: str) -> ScrapeResult:
+        html = await asyncio.to_thread(self._fetcher.fetch, url)
+        content = await asyncio.to_thread(self._parser.extract_content, html, url, keyword)
 
         if content is None:
-            return ScrapeResult(url=target.url, keyword=target.keyword, matched=False)
+            return ScrapeResult(url=url, keyword=keyword, matched=False)
 
         saved_path = await asyncio.to_thread(self._storage.save, content)
-        return ScrapeResult(
-            url=target.url, keyword=target.keyword, matched=True, saved_path=saved_path
-        )
+        return ScrapeResult(url=url, keyword=keyword, matched=True, saved_path=saved_path)

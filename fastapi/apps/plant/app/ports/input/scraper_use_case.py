@@ -11,3 +11,8 @@ class ScraperUseCase(ABC):
     @abstractmethod
     async def scrape_next(self) -> ScrapeResult | None:
         pass
+
+    @abstractmethod
+    async def scrape_url(self, url: str, keyword: str) -> ScrapeResult:
+        """큐를 거치지 않고, 지정한 URL 하나를 즉시 페치·추출·저장한다."""
+        pass
