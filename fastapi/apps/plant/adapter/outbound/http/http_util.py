@@ -44,3 +44,20 @@ def http_get_text(
         return e.code, e.read().decode("utf-8", errors="replace")
     except urllib.error.URLError as e:
         return 0, str(e.reason)
+
+
+def http_get_bytes(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    timeout: float = 12.0,
+) -> tuple[int, bytes, str]:
+    """이미지 등 바이너리 응답용 — (status, body, content_type)을 반환한다."""
+    req = urllib.request.Request(url, headers=headers or {}, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status, resp.read(), resp.headers.get_content_type()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read(), ""
+    except urllib.error.URLError:
+        return 0, b"", ""
