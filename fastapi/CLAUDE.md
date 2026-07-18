@@ -11,7 +11,7 @@ FastAPI 백엔드 프로젝트 규약. 루트 규칙은 [../CLAUDE.md](../CLAUDE
 | 진입점 | `fastapi/main.py` → `uvicorn main:app` |
 | PYTHONPATH | `fastapi/`, `fastapi/apps/` (`main.py`에서 `sys.path` 등록) |
 | 환경변수 | `fastapi/.env` (`DATABASE_URL`, `GEMINI_API_KEY` 등) |
-| DB 모듈 | `core.matrix.gird_oracle_database_manager` (async, Neon PostgreSQL) |
+| DB 모듈 | `core.matrix.gird_oracle_database_manager` (async, PostgreSQL/pgvector) |
 | DB re-export | `core.database`, `apps.database` (동일 심볼 재익스포트) |
 | Docker | `docker-compose.yaml` — `app-network` 브리지, backend:8000 |
 

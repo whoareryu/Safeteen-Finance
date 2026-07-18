@@ -1,4 +1,4 @@
-"""Neon/PostgreSQL — ``users``, ``alembic_version`` 제외 테이블 삭제.
+"""PostgreSQL — ``users``, ``alembic_version`` 제외 테이블 삭제.
 
 사용 (backend 루트에서):
   python scripts/drop_tables_except_users.py

@@ -1,4 +1,4 @@
-﻿"""Neon PostgreSQL 연결·세션·FastAPI DI (async only)."""
+﻿"""PostgreSQL 연결·세션·FastAPI DI (async only)."""
 
 from __future__ import annotations
 
@@ -148,7 +148,7 @@ def init_engine() -> None:
             autoflush=False,
         )
         DATABASE_INIT_ERROR = None
-        logger.info("Neon PostgreSQL 비동기 엔진 초기화 완료")
+        logger.info("PostgreSQL 비동기 엔진 초기화 완료")
     except Exception as e:
         engine = None
         async_session_maker = None
@@ -191,7 +191,7 @@ async def ensure_tables() -> None:
     from core.matrix.grid_neo_theone_base import Base as DomainBase
     async with engine.begin() as conn:
         await conn.run_sync(DomainBase.metadata.create_all)
-    logger.info("Neon DB 테이블 확인 완료 (async create_all)")
+    logger.info("DB 테이블 확인 완료 (async create_all)")
 
 
 async def init_db() -> None:

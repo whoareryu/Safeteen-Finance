@@ -9,7 +9,7 @@ Titanic 앱 전용 규약. 상위 규칙은 [[fastapi/CLAUDE\|백엔드 CLAUDE.m
 Titanic 생존자 데이터를 기반으로 한 ML 파이프라인 앱.  
 백엔드 헥사고날 아키텍처의 **레퍼런스 구현** — 새 앱 추가 시 이 구조를 복제한다.
 
-- DB: **async** `AsyncSession` + `get_db` (Neon PostgreSQL)
+- DB: **async** `AsyncSession` + `get_db` (PostgreSQL/pgvector)
 - prefix: `/titanic`
 - import 루트: `titanic.*`
 
