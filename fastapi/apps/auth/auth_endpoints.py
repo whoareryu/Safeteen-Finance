@@ -54,6 +54,7 @@ class SignupRequest(BaseModel):
     password_confirm: str
     email: str
     nickname: str
+    region: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -71,6 +72,7 @@ class UserResponse(BaseModel):
     nickname: str
     email: str
     role: str
+    region: str | None = None
 
 
 class GoogleLoginResponse(UserResponse):
@@ -84,6 +86,7 @@ def _user_response(user: User) -> UserResponse:
         nickname=user.nickname,
         email=user.email,
         role=user.role.value if isinstance(user.role, UserRole) else str(user.role),
+        region=user.region,
     )
 
 
@@ -174,6 +177,7 @@ def register(body: SignupRequest, db: Session = Depends(get_sync_db)) -> UserRes
         nickname=nick,
         password_hash=_hash_password(body.password),
         role=UserRole.user,
+        region=body.region.strip() if body.region and body.region.strip() else None,
         created_at=datetime.now(timezone.utc),
     )
     db.add(user)

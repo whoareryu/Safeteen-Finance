@@ -6,6 +6,7 @@ export type AuthUser = {
   nickname: string;
   email: string;
   role: UserRole;
+  region?: string | null;
 };
 
 export function isAdmin(user: AuthUser | null | undefined): boolean {
@@ -114,6 +115,7 @@ export async function signup(payload: {
   password_confirm: string;
   email: string;
   nickname: string;
+  region?: string;
 }): Promise<AuthUser> {
   const res = await authFetch("/api/signup", {
     method: "POST",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Lock, User, Mail, Eye, EyeOff, AtSign } from "lucide-react";
+import { X, Lock, User, Mail, Eye, EyeOff, AtSign, MapPin } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import { checkNicknameAvailable, checkUsernameAvailable } from "@/lib/auth";
 import { useAuth } from "./auth-provider";
@@ -21,6 +21,7 @@ type AuthModalState = {
   passwordConfirm: string;
   email: string;
   nickname: string;
+  region: string;
   showPassword: boolean;
   showPasswordConfirm: boolean;
   error: string | null;
@@ -42,6 +43,7 @@ function createInitialState(view: ModalView): AuthModalState {
     passwordConfirm: "",
     email: "",
     nickname: "",
+    region: "",
     showPassword: false,
     showPasswordConfirm: false,
     error: null,
@@ -88,6 +90,7 @@ export default function AuthModal({
     passwordConfirm,
     email,
     nickname,
+    region,
     showPassword,
     showPasswordConfirm,
     error,
@@ -239,6 +242,7 @@ export default function AuthModal({
       password_confirm: string;
       email: string;
       nickname: string;
+      region: string;
     };
 
     const id = formProps.username.trim();
@@ -272,12 +276,14 @@ export default function AuthModal({
       });
       if (!nickResult.available) return;
 
+      const region = formProps.region.trim();
       await signup({
         username: id,
         password: formProps.password,
         password_confirm: formProps.password_confirm,
         email: mail,
         nickname: nick,
+        region: region.length > 0 ? region : undefined,
       });
       resetAndClose();
     } catch (err) {
@@ -583,6 +589,25 @@ export default function AuthModal({
                 {nicknameAvailable === true && nicknameHint ? (
                   <p className="mt-1 text-xs text-emerald-500">{nicknameHint}</p>
                 ) : null}
+              </div>
+
+              <div>
+                <FieldLabel>지역 (선택)</FieldLabel>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    name="region"
+                    autoComplete="address-level2"
+                    placeholder="예: 서울"
+                    value={region}
+                    onChange={handleFieldChange}
+                    className={`${inputClass} pl-10`}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  잎사귀 진단·날씨 알림에 사용돼요. 나중에 입력해도 괜찮아요.
+                </p>
               </div>
 
               {error ? (

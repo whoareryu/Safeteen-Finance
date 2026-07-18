@@ -17,6 +17,7 @@ class User(IntIdPrimaryKeyMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     nickname: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    region: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     role: Mapped[UserRole] = mapped_column(
         Enum("admin", "user", "partner", name="user_role", create_constraint=False),
         default=UserRole.user,

@@ -35,6 +35,7 @@ type AuthContextValue = {
     password_confirm: string;
     email: string;
     nickname: string;
+    region?: string;
   }) => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => void;

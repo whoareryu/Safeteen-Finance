@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadPlantPhoto } from "@/lib/plant-api";
+import { useAuth } from "@/components/auth-provider";
+
+const DEFAULT_REGION = "서울";
 
 type UploadResult = {
   ok: boolean;
@@ -13,11 +16,12 @@ type UploadResult = {
 
 export default function PlantPhotoUpload() {
   const router = useRouter();
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [region, setRegion] = useState("서울");
+  const region = user?.region?.trim() || DEFAULT_REGION;
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
 
@@ -62,17 +66,6 @@ export default function PlantPhotoUpload() {
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         잎사귀 사진을 업로드하면 품종과 증상을 진단하고 케어 처방을 안내해 드려요.
       </p>
-
-      <label className="mt-4 block text-sm font-medium text-foreground">
-        지역
-        <input
-          type="text"
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          placeholder="예: 서울"
-          className="mt-1 block w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </label>
 
       <div
         role="button"
