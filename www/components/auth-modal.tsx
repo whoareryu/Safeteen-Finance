@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { X, Lock, User, Mail, Eye, EyeOff, AtSign, MapPin } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-import { checkNicknameAvailable, checkUsernameAvailable } from "@/lib/auth";
+import {
+  checkNicknameAvailable,
+  checkUsernameAvailable,
+  WR_AUTH_COMPLETE_MESSAGE,
+} from "@/lib/auth";
 import { useAuth } from "./auth-provider";
 
 type ModalView = "login" | "signup";
@@ -73,7 +77,7 @@ export default function AuthModal({
   onClose,
   initialView = "login",
 }: AuthModalProps) {
-  const { login, signup, googleLogin } = useAuth();
+  const { login, signup, googleLogin, refreshSession } = useAuth();
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const [state, setState] = useState<AuthModalState>(() =>
     createInitialState(initialView)
@@ -162,6 +166,25 @@ export default function AuthModal({
 
   const openSignup = () => patch({ view: "signup", error: null });
   const openLogin = () => patch({ view: "login", error: null });
+
+  const openSocialPopup = (provider: "naver" | "kakao") => {
+    const popup = window.open(
+      `/api/auth/${provider}/login`,
+      "wr_oauth_popup",
+      "width=480,height=720"
+    );
+    if (!popup) {
+      patch({ error: "팝업이 차단되었습니다. 브라우저의 팝업 차단을 해제해 주세요." });
+      return;
+    }
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== WR_AUTH_COMPLETE_MESSAGE) return;
+      window.removeEventListener("message", handleMessage);
+      refreshSession().then(resetAndClose);
+    };
+    window.addEventListener("message", handleMessage);
+  };
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -419,22 +442,26 @@ export default function AuthModal({
                     useOneTap={false}
                     use_fedcm_for_button
                     itp_support
+                    size="large"
+                    width="384"
                     text="signin_with"
                   />
                 </div>
                 <div className="mt-2 flex flex-col gap-2">
-                  <a
-                    href="/api/auth/naver/login"
+                  <button
+                    type="button"
+                    onClick={() => openSocialPopup("naver")}
                     className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white"
                   >
                     네이버로 로그인
-                  </a>
-                  <a
-                    href="/api/auth/kakao/login"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openSocialPopup("kakao")}
                     className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black"
                   >
                     카카오로 로그인
-                  </a>
+                  </button>
                 </div>
               </>
             )}
@@ -684,22 +711,26 @@ export default function AuthModal({
                     useOneTap={false}
                     use_fedcm_for_button
                     itp_support
+                    size="large"
+                    width="384"
                     text="signup_with"
                   />
                 </div>
                 <div className="mt-2 flex flex-col gap-2">
-                  <a
-                    href="/api/auth/naver/login"
+                  <button
+                    type="button"
+                    onClick={() => openSocialPopup("naver")}
                     className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white"
                   >
                     네이버로 시작하기
-                  </a>
-                  <a
-                    href="/api/auth/kakao/login"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openSocialPopup("kakao")}
                     className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black"
                   >
                     카카오로 시작하기
-                  </a>
+                  </button>
                 </div>
               </>
             )}

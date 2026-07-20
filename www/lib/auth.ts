@@ -13,6 +13,9 @@ export function isAdmin(user: AuthUser | null | undefined): boolean {
   return user?.role === "admin";
 }
 
+/** Naver·Kakao 팝업 로그인 완료 시 팝업→부모 창으로 postMessage할 때 쓰는 타입 문자열. */
+export const WR_AUTH_COMPLETE_MESSAGE = "wr-auth-complete";
+
 export type AvailabilityResult = {
   available: boolean;
   message: string;

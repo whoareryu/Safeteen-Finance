@@ -42,6 +42,8 @@ type AuthContextValue = {
   }) => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
+  /** Naver·Kakao 팝업 로그인 완료 후 세션을 다시 읽어 상태를 갱신한다. */
+  refreshSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,20 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isOwner, setIsOwner] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    // httpOnly wr_session 쿠키(JWT+Redis)가 진짜 소스 — localStorage는 새로고침 사이
-    // 깜빡임을 줄이기 위한 화면용 캐시일 뿐이라 세션으로 항상 덮어쓴다.
-    setUser(loadStoredUser());
-    (async () => {
-      const sessionUser = await fetchSession();
-      saveStoredUser(sessionUser);
-      setUser(sessionUser);
-      setReady(true);
-      if (sessionUser) {
-        checkOwner().then(setIsOwner);
-      }
-    })();
+  // httpOnly wr_session 쿠키(JWT+Redis)가 진짜 소스 — localStorage는 새로고침 사이
+  // 깜빡임을 줄이기 위한 화면용 캐시일 뿐이라 세션으로 항상 덮어쓴다.
+  const refreshSession = useCallback(async () => {
+    const sessionUser = await fetchSession();
+    saveStoredUser(sessionUser);
+    setUser(sessionUser);
+    setIsOwner(sessionUser ? await checkOwner() : false);
   }, []);
+
+  useEffect(() => {
+    setUser(loadStoredUser());
+    refreshSession().then(() => setReady(true));
+  }, [refreshSession]);
 
   const login = useCallback(async (username: string, password: string) => {
     const u = await apiLogin(username, password);
@@ -120,8 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, isOwner, login, signup, googleLogin, logout }),
-    [user, ready, isOwner, login, signup, googleLogin, logout]
+    () => ({ user, ready, isOwner, login, signup, googleLogin, logout, refreshSession }),
+    [user, ready, isOwner, login, signup, googleLogin, logout, refreshSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -42,7 +42,9 @@ async def _login_or_redirect_to_consent(
 
     user.last_login_at = datetime.now(timezone.utc)
     db.flush()
-    redirect = RedirectResponse(_FRONTEND_URL)
+    # 로그인 버튼이 팝업 창으로 여는 흐름이라, 팝업이 부모 창에 알리고 스스로 닫는
+    # 페이지로 보낸다 (www/app/auth/popup-complete).
+    redirect = RedirectResponse(f"{_FRONTEND_URL}/auth/popup-complete")
     await _start_session(redirect, user, session_store)
     return redirect
 

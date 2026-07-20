@@ -84,7 +84,7 @@ from apps.auth.owner_session import is_valid_owner_token  # noqa: E402
 @app.middleware("http")
 async def _google_browser_gate(request: Request, call_next):
     if request.url.path in GATED_PATHS and not is_valid_owner_token(
-        request.cookies.get("wr_owner_session")
+        request.cookies.get("wr_docs_gate")
     ):
         next_qs = urlencode({"next": request.url.path})
         return RedirectResponse(f"/auth/google/browser-login?{next_qs}")

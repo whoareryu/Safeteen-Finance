@@ -94,12 +94,14 @@ async def browser_callback(
 
     resp = RedirectResponse(target)
     resp.delete_cookie("wr_oauth_state")
+    # 이 게이트 전용 — 짧게만 유지해서 재방문할 때마다 다시 Google 로그인을 타게 한다.
+    # (채팅 등 다른 owner 전용 기능이 쓰는 wr_owner_session의 30일 쿠키와는 별개.)
     resp.set_cookie(
-        "wr_owner_session",
+        "wr_docs_gate",
         owner_token,
         httponly=True,
         secure=True,
         samesite="lax",
-        max_age=60 * 60 * 24 * 30,
+        max_age=60,
     )
     return resp

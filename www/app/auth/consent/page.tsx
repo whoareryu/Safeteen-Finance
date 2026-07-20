@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { completeConsent } from "@/lib/auth";
+import { completeConsent, WR_AUTH_COMPLETE_MESSAGE } from "@/lib/auth";
 
 function ConsentForm() {
   const searchParams = useSearchParams();
@@ -29,7 +29,12 @@ function ConsentForm() {
     setError(null);
     try {
       await completeConsent(token, true);
-      window.location.href = "/";
+      if (window.opener) {
+        window.opener.postMessage({ type: WR_AUTH_COMPLETE_MESSAGE }, window.location.origin);
+        window.close();
+      } else {
+        window.location.href = "/";
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "동의 처리에 실패했습니다.");
       setSubmitting(false);
