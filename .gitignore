@@ -20,3 +20,6 @@ training/.pip-tmp/
 
 # 베이스 모델 원본(수 GB) — repo 루트, ollama-models와 같은 급의 폴더. git 추적 대상 아님
 models/
+
+# a2a-mcp — 패키지별 독립 uv venv, 코드만 커밋
+a2a-mcp/**/.venv/
