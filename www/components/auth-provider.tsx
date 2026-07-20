@@ -18,6 +18,8 @@ import {
   signup as apiSignup,
   googleLogin as apiGoogleLogin,
   checkOwner,
+  fetchSession,
+  logoutSession,
   type AuthUser,
   type UserRole,
 } from "@/lib/auth";
@@ -36,6 +38,7 @@ type AuthContextValue = {
     email: string;
     nickname: string;
     region?: string;
+    agree_terms: boolean;
   }) => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
@@ -50,12 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const stored = loadStoredUser();
-    setUser(stored);
-    setReady(true);
-    if (stored) {
-      checkOwner().then(setIsOwner);
-    }
+    // httpOnly wr_session 쿠키(JWT+Redis)가 진짜 소스 — localStorage는 새로고침 사이
+    // 깜빡임을 줄이기 위한 화면용 캐시일 뿐이라 세션으로 항상 덮어쓴다.
+    setUser(loadStoredUser());
+    (async () => {
+      const sessionUser = await fetchSession();
+      saveStoredUser(sessionUser);
+      setUser(sessionUser);
+      setReady(true);
+      if (sessionUser) {
+        checkOwner().then(setIsOwner);
+      }
+    })();
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -71,6 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password_confirm: string;
       email: string;
       nickname: string;
+      region?: string;
+      agree_terms: boolean;
     }) => {
       const u = await apiSignup(payload);
       saveStoredUser(u);
@@ -82,24 +93,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const googleLogin = useCallback(
     async (credential: string) => {
-      const u = await apiGoogleLogin(credential);
-      saveStoredUser(u);
-      document.cookie = `wr_session=${u.id}; path=/; SameSite=Lax; max-age=2592000`;
-      if (u.owner_token) {
-        document.cookie = `wr_owner_session=${u.owner_token}; path=/; SameSite=Lax; max-age=2592000`;
-      } else {
-        document.cookie = "wr_owner_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      const result = await apiGoogleLogin(credential);
+      if (result.pending) {
+        // 신규 가입자 — 계정 생성 전 약관 동의 화면으로 이동.
+        const qs = new URLSearchParams({
+          token: result.consent_token,
+          email: result.email,
+          nickname: result.nickname,
+        });
+        window.location.href = `/auth/consent?${qs.toString()}`;
+        return;
       }
-      setUser(u);
-      setIsOwner(!!u.owner_token);
+      // 세션 쿠키(wr_session·wr_owner_session)는 백엔드가 httpOnly Set-Cookie로 내려준다.
+      saveStoredUser(result);
+      setUser(result);
+      setIsOwner(result.is_owner);
     },
     []
   );
 
   const logout = useCallback(() => {
+    logoutSession();
     saveStoredUser(null);
-    document.cookie = "wr_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    document.cookie = "wr_owner_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     setUser(null);
     setIsOwner(false);
   }, []);

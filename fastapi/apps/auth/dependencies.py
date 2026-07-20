@@ -1,25 +1,37 @@
 from __future__ import annotations
 
-from fastapi import Cookie, Header, HTTPException
+from fastapi import Cookie, Depends, Header, HTTPException
+from sqlalchemy.orm import Session
 
+from apps.auth.jwt_service import decode_token
 from apps.auth.owner_session import is_valid_owner_token
+from apps.auth.session_store import SessionStorePort, get_session_store
 from apps.auth.user_model import User
+from apps.database import get_sync_db
 
 
 async def get_current_user(
-    x_user_id: str | None = Header(default=None),
     wr_session: str | None = Cookie(default=None),
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_sync_db),
+    session_store: SessionStorePort = Depends(get_session_store),
 ) -> User:
-    # X-User-Id 헤더 우선, Cloudflare가 헤더를 차단할 경우 wr_session 쿠키 fallback
-    raw = x_user_id or wr_session
-    if raw is None:
+    token = wr_session
+    if not token and authorization and authorization.startswith("Bearer "):
+        token = authorization.removeprefix("Bearer ")
+    if not token:
         raise HTTPException(status_code=401, detail="인증이 필요합니다.")
-    try:
-        user_id = int(raw)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="X-User-Id는 정수여야 합니다.")
-    user = User()
-    user.__dict__["id"] = user_id
+
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="유효하지 않은 세션입니다.")
+
+    if not await session_store.exists(payload["jti"]):
+        raise HTTPException(status_code=401, detail="만료되었거나 로그아웃된 세션입니다.")
+
+    user = db.get(User, int(payload["sub"]))
+    if not user:
+        raise HTTPException(status_code=401, detail="사용자를 찾을 수 없습니다.")
     return user
 
 

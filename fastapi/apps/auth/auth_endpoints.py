@@ -8,15 +8,40 @@ import os
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Query
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from apps.auth.consent_flow import create_pending_signup
+from apps.auth.dependencies import get_current_user
+from apps.auth.jwt_service import TOKEN_TTL_SECONDS, decode_token, issue_token
 from apps.auth.owner_session import is_valid_owner_token, issue_owner_token
+from apps.auth.session_store import SessionStorePort, get_session_store
 from apps.auth.user_model import User
+from apps.auth.user_provisioning import find_existing_user
 from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
+
+
+async def _start_session(
+    response: Response, user: User, session_store: SessionStorePort
+) -> None:
+    """로그인 성공 시 JWT를 발급해 Redis에 세션으로 저장하고, httpOnly 쿠키로 내려준다."""
+    token, jti = issue_token(
+        user_id=user.id,
+        email=user.email,
+        role=user.role.value if isinstance(user.role, UserRole) else str(user.role),
+    )
+    await session_store.save(jti, user.id)
+    response.set_cookie(
+        "wr_session",
+        token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=TOKEN_TTL_SECONDS,
+    )
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -55,6 +80,7 @@ class SignupRequest(BaseModel):
     email: str
     nickname: str
     region: str | None = None
+    agree_terms: bool = False
 
 
 class LoginRequest(BaseModel):
@@ -76,7 +102,16 @@ class UserResponse(BaseModel):
 
 
 class GoogleLoginResponse(UserResponse):
-    owner_token: str | None = None
+    is_owner: bool = False
+
+
+class PendingConsentResponse(BaseModel):
+    """OAuth 신규 가입자 — 계정 생성 전 서비스 약관 동의가 먼저 필요하다."""
+
+    pending: bool = True
+    consent_token: str
+    email: str
+    nickname: str
 
 
 def _user_response(user: User) -> UserResponse:
@@ -143,17 +178,47 @@ def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# 세션 (JWT+Redis) — 새로고침 시 프론트가 로그인 상태를 복원할 때 사용
+# ---------------------------------------------------------------------------
+@auth_router.get("/session")
+def get_session(current_user: User = Depends(get_current_user)) -> UserResponse:
+    return _user_response(current_user)
+
+
+@auth_router.post("/logout")
+async def logout(
+    response: Response,
+    wr_session: str | None = Cookie(default=None),
+    session_store: SessionStorePort = Depends(get_session_store),
+) -> dict:
+    if wr_session:
+        payload = decode_token(wr_session)
+        if payload:
+            await session_store.revoke(payload["jti"])
+    response.delete_cookie("wr_session")
+    response.delete_cookie("wr_owner_session")
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
 # 회원가입
 # ---------------------------------------------------------------------------
 signup_router = APIRouter(tags=["auth"])
 
 
 @signup_router.post("/signup")
-def register(body: SignupRequest, db: Session = Depends(get_sync_db)) -> UserResponse:
+async def register(
+    body: SignupRequest,
+    response: Response,
+    db: Session = Depends(get_sync_db),
+    session_store: SessionStorePort = Depends(get_session_store),
+) -> UserResponse:
     if body.password != body.password_confirm:
         raise HTTPException(status_code=422, detail="비밀번호가 일치하지 않습니다.")
     if len(body.password) < 6:
         raise HTTPException(status_code=422, detail="비밀번호는 6자 이상이어야 합니다.")
+    if not body.agree_terms:
+        raise HTTPException(status_code=422, detail="이용약관 및 개인정보처리방침에 동의해야 합니다.")
 
     uname = body.username.strip()
     if db.execute(
@@ -179,10 +244,12 @@ def register(body: SignupRequest, db: Session = Depends(get_sync_db)) -> UserRes
         role=UserRole.user,
         region=body.region.strip() if body.region and body.region.strip() else None,
         created_at=datetime.now(timezone.utc),
+        policy_agreed_at=datetime.now(timezone.utc),
     )
     db.add(user)
     db.flush()
     db.refresh(user)
+    await _start_session(response, user, session_store)
     return _user_response(user)
 
 
@@ -193,7 +260,12 @@ login_router = APIRouter(tags=["auth"])
 
 
 @login_router.post("/login")
-def login(body: LoginRequest, db: Session = Depends(get_sync_db)) -> UserResponse:
+async def login(
+    body: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_sync_db),
+    session_store: SessionStorePort = Depends(get_session_store),
+) -> UserResponse:
     user = db.execute(
         select(User).where(func.lower(User.username) == body.username.strip().lower()).limit(1)
     ).scalar_one_or_none()
@@ -211,11 +283,17 @@ def login(body: LoginRequest, db: Session = Depends(get_sync_db)) -> UserRespons
 
     user.last_login_at = datetime.now(timezone.utc)
     db.flush()
+    await _start_session(response, user, session_store)
     return _user_response(user)
 # ---------------------------------------------------------------------------
-@auth_router.post("/google", response_model=GoogleLoginResponse)
-async def google_login(body: GoogleLoginRequest, db: Session = Depends(get_sync_db)) -> GoogleLoginResponse:
-    """Google ID 토큰 검증 후 사용자 생성(신규) 또는 로그인(기존)."""
+@auth_router.post("/google")
+async def google_login(
+    body: GoogleLoginRequest,
+    response: Response,
+    db: Session = Depends(get_sync_db),
+    session_store: SessionStorePort = Depends(get_session_store),
+) -> GoogleLoginResponse | PendingConsentResponse:
+    """Google ID 토큰 검증 후 로그인(기존) 또는 약관 동의 대기(신규)."""
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             "https://oauth2.googleapis.com/tokeninfo",
@@ -233,52 +311,29 @@ async def google_login(body: GoogleLoginRequest, db: Session = Depends(get_sync_
     if not google_sub or not email:
         raise HTTPException(status_code=401, detail="Google 계정 정보를 가져올 수 없습니다.")
 
-    # 기존 Google 계정 확인
-    user = db.execute(
-        select(User).where(User.password_hash == f"GOOGLE:{google_sub}").limit(1)
-    ).scalar_one_or_none()
-
+    user = find_existing_user(db, provider="GOOGLE", sub=google_sub, email=email)
     if user is None:
-        # 같은 이메일로 기존 가입 여부 확인
-        user = db.execute(
-            select(User).where(User.email == email).limit(1)
-        ).scalar_one_or_none()
-        if user is not None:
-            # 이메일이 같은 기존 계정을 Google 계정으로 연결
-            user.password_hash = f"GOOGLE:{google_sub}"
-            db.flush()
-        else:
-            # 신규 사용자 생성
-            base_username = email.split("@")[0][:30]
-            username = base_username
-            suffix = 1
-            while db.execute(
-                select(User).where(func.lower(User.username) == username.lower()).limit(1)
-            ).scalar_one_or_none():
-                username = f"{base_username}{suffix}"
-                suffix += 1
-
-            nickname = name[:32]
-            nick_check = nickname
-            suffix = 1
-            while db.execute(
-                select(User).where(func.lower(User.nickname) == nick_check.lower()).limit(1)
-            ).scalar_one_or_none():
-                nick_check = f"{nickname}{suffix}"
-                suffix += 1
-
-            user = User(
-                username=username,
-                email=email,
-                nickname=nick_check,
-                password_hash=f"GOOGLE:{google_sub}",
-                role=UserRole.user,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(user)
-            db.flush()
-            db.refresh(user)
+        # 신규 사용자 — 계정을 바로 만들지 않고 약관 동의부터 받는다.
+        token = await create_pending_signup(
+            provider="GOOGLE", sub=google_sub, email=email, name=name
+        )
+        return PendingConsentResponse(consent_token=token, email=email, nickname=name)
 
     user.last_login_at = datetime.now(timezone.utc)
     db.flush()
-    return GoogleLoginResponse(**_user_response(user).model_dump(), owner_token=issue_owner_token(email))
+    await _start_session(response, user, session_store)
+
+    owner_token = issue_owner_token(email)
+    if owner_token:
+        response.set_cookie(
+            "wr_owner_session",
+            owner_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=60 * 60 * 24 * 30,
+        )
+    else:
+        response.delete_cookie("wr_owner_session")
+
+    return GoogleLoginResponse(**_user_response(user).model_dump(), is_owner=owner_token is not None)

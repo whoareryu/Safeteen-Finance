@@ -116,6 +116,7 @@ export async function signup(payload: {
   email: string;
   nickname: string;
   region?: string;
+  agree_terms: boolean;
 }): Promise<AuthUser> {
   const res = await authFetch("/api/signup", {
     method: "POST",
@@ -136,16 +137,40 @@ export async function login(username: string, password: string): Promise<AuthUse
   return (await res.json()) as AuthUser;
 }
 
-export type GoogleLoginResult = AuthUser & { owner_token: string | null };
+export type GoogleLoginResult = AuthUser & { is_owner: boolean; pending?: false };
 
-export async function googleLogin(credential: string): Promise<GoogleLoginResult> {
+/** 계정이 아직 없는 신규 가입자 — 약관 동의(/auth/consent)를 먼저 거쳐야 한다. */
+export type PendingConsentResult = {
+  pending: true;
+  consent_token: string;
+  email: string;
+  nickname: string;
+};
+
+export async function googleLogin(
+  credential: string
+): Promise<GoogleLoginResult | PendingConsentResult> {
   const res = await authFetch("/api/auth/google", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ credential }),
   });
   if (!res.ok) throw new Error(await parseError(res));
-  return (await res.json()) as GoogleLoginResult;
+  return (await res.json()) as GoogleLoginResult | PendingConsentResult;
+}
+
+/** OAuth 신규 가입자가 약관 동의를 완료하면 계정을 생성하고 세션을 시작한다. */
+export async function completeConsent(
+  consentToken: string,
+  agreeTerms: boolean
+): Promise<AuthUser> {
+  const res = await authFetch("/api/auth/consent/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ consent_token: consentToken, agree_terms: agreeTerms }),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return (await res.json()) as AuthUser;
 }
 
 /** 소유자(owner) 전용 기능(이메일 발송·주소록·lesson 탭) 접근 가능 여부. */
@@ -158,4 +183,19 @@ export async function checkOwner(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** httpOnly wr_session 쿠키(JWT+Redis)로 현재 로그인 사용자를 복원한다. 세션 없으면 null. */
+export async function fetchSession(): Promise<AuthUser | null> {
+  try {
+    const res = await authFetch("/api/auth/session");
+    if (!res.ok) return null;
+    return (await res.json()) as AuthUser;
+  } catch {
+    return null;
+  }
+}
+
+export async function logoutSession(): Promise<void> {
+  await authFetch("/api/auth/logout", { method: "POST" });
 }

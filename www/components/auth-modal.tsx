@@ -244,6 +244,7 @@ export default function AuthModal({
       nickname: string;
       region: string;
     };
+    const agreeTerms = formData.get("agree_terms") === "on";
 
     const id = formProps.username.trim();
     const nick = formProps.nickname.trim();
@@ -251,6 +252,10 @@ export default function AuthModal({
 
     if (formProps.password !== formProps.password_confirm) {
       patch({ error: "비밀번호가 일치하지 않습니다." });
+      return;
+    }
+    if (!agreeTerms) {
+      patch({ error: "이용약관 및 개인정보처리방침에 동의해야 합니다." });
       return;
     }
 
@@ -284,6 +289,7 @@ export default function AuthModal({
         email: mail,
         nickname: nick,
         region: region.length > 0 ? region : undefined,
+        agree_terms: agreeTerms,
       });
       resetAndClose();
     } catch (err) {
@@ -415,6 +421,20 @@ export default function AuthModal({
                     itp_support
                     text="signin_with"
                   />
+                </div>
+                <div className="mt-2 flex flex-col gap-2">
+                  <a
+                    href="/api/auth/naver/login"
+                    className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white"
+                  >
+                    네이버로 로그인
+                  </a>
+                  <a
+                    href="/api/auth/kakao/login"
+                    className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black"
+                  >
+                    카카오로 로그인
+                  </a>
                 </div>
               </>
             )}
@@ -610,6 +630,20 @@ export default function AuthModal({
                 </p>
               </div>
 
+              <label className="flex cursor-pointer items-start gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" name="agree_terms" required className="mt-0.5 h-4 w-4" />
+                <span>
+                  <a href="/terms" target="_blank" className="underline">
+                    이용약관
+                  </a>{" "}
+                  및{" "}
+                  <a href="/privacy" target="_blank" className="underline">
+                    개인정보처리방침
+                  </a>
+                  에 동의합니다. (필수)
+                </span>
+              </label>
+
               {error ? (
                 <p className="text-sm text-destructive" role="alert">
                   {error}
@@ -652,6 +686,20 @@ export default function AuthModal({
                     itp_support
                     text="signup_with"
                   />
+                </div>
+                <div className="mt-2 flex flex-col gap-2">
+                  <a
+                    href="/api/auth/naver/login"
+                    className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white"
+                  >
+                    네이버로 시작하기
+                  </a>
+                  <a
+                    href="/api/auth/kakao/login"
+                    className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black"
+                  >
+                    카카오로 시작하기
+                  </a>
                 </div>
               </>
             )}

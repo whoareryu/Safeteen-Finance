@@ -36,6 +36,7 @@ mlx-lm==0.31.3
 transformers==5.12.1
 pgvector==0.4.2
 redis==8.0.1
+PyJWT==2.13.0
 beautifulsoup4==4.14.2
 lxml==6.0.2
 neo4j==6.2.0

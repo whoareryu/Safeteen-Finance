@@ -32,3 +32,7 @@ class User(IntIdPrimaryKeyMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    policy_agreed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

@@ -10,9 +10,12 @@ for _path in (_backend_root, _apps_root):
 
 import logging
 
+from urllib.parse import urlencode
+
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,6 +75,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── 브라우저 직접 접근 게이트: '/', '/docs', '/redoc', '/openapi.json'만 Google
+#    로그인(OWNER_EMAIL)으로 막는다. /api/* 등 www 프론트엔드 호출은 대상 아님. ──
+from apps.auth.browser_gate_router import GATED_PATHS, browser_gate_router  # noqa: E402
+from apps.auth.owner_session import is_valid_owner_token  # noqa: E402
+
+
+@app.middleware("http")
+async def _google_browser_gate(request: Request, call_next):
+    if request.url.path in GATED_PATHS and not is_valid_owner_token(
+        request.cookies.get("wr_owner_session")
+    ):
+        next_qs = urlencode({"next": request.url.path})
+        return RedirectResponse(f"/auth/google/browser-login?{next_qs}")
+    return await call_next(request)
+
+
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 from admin.adapter.inbound.api import silicon_valley_router
 from ontology.adapter.inbound.api import ontology_router
@@ -80,6 +99,8 @@ from community.adapter.inbound.api import chef_router
 from ontology.adapter.inbound.api.v1.vision_router import vision_router
 from plant.adapter.inbound.api import plant_router
 from apps.auth.auth_endpoints import auth_router, signup_router, login_router
+from apps.auth.consent_router import consent_router
+from apps.auth.social_login_router import social_login_router
 
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
 import os
@@ -203,6 +224,9 @@ app.include_router(plant_router, prefix="/api")
 app.include_router(auth_router)
 app.include_router(signup_router)
 app.include_router(login_router)
+app.include_router(browser_gate_router)
+app.include_router(social_login_router)
+app.include_router(consent_router)
 
 
 @app.get("/")
