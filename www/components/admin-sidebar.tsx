@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, User, X } from "lucide-react";
+import { LayoutDashboard, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard, exact: true },
   { href: "/admin/users", label: "사용자 관리", icon: Users },
-  { href: "/mypage", label: "내 정보", icon: User, exact: true },
 ];
 
 function NavLinks({ onClose }: { onClose?: () => void }) {
@@ -41,10 +40,7 @@ function NavLinks({ onClose }: { onClose?: () => void }) {
 
 export function AdminSidebarDesktop() {
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col bg-[#1d1d1f] md:flex">
-      <div className="flex h-14 items-center px-5">
-        <span className="text-sm font-semibold tracking-wide text-white">Admin</span>
-      </div>
+    <aside className="fixed bottom-0 left-0 top-[var(--site-header-height)] z-40 hidden w-56 flex-col bg-[#1d1d1f] md:flex">
       <div className="flex-1 overflow-y-auto">
         <NavLinks />
       </div>
@@ -64,13 +60,12 @@ export function AdminSidebarMobile({
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/50 md:hidden"
+        className="fixed bottom-0 left-0 right-0 top-[var(--site-header-height)] z-40 bg-black/50 md:hidden"
         onClick={onClose}
         aria-hidden
       />
-      <aside className="fixed inset-y-0 left-0 z-50 flex w-56 flex-col bg-[#1d1d1f] md:hidden">
-        <div className="flex h-14 items-center justify-between px-5">
-          <span className="text-sm font-semibold tracking-wide text-white">Admin</span>
+      <aside className="fixed bottom-0 left-0 top-[var(--site-header-height)] z-40 flex w-56 flex-col bg-[#1d1d1f] md:hidden">
+        <div className="flex h-14 items-center justify-end px-5">
           <button
             onClick={onClose}
             className="rounded p-1 text-white/60 hover:text-white"

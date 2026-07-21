@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Gamepad2, Home, Leaf, MessageCircle, Sprout } from "lucide-react";
+import {
+  CalendarCheck,
+  Gamepad2,
+  Home,
+  Leaf,
+  MessageCircle,
+  Sprout,
+  UserCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -12,6 +20,7 @@ const TABS = [
   { href: "/plant/care-calendar", label: "케어일정", Icon: CalendarCheck },
   { href: "/plant/tutorial", label: "식집사 튜토리얼", Icon: Gamepad2 },
   { href: "/social", label: "소셜", Icon: MessageCircle },
+  { href: "/mypage", label: "마이페이지", Icon: UserCircle },
 ] as const;
 
 /** 하단 탭바. 수업 영역(/portfolio)에선 숨김. */
