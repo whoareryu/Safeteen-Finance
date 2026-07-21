@@ -57,14 +57,6 @@ const nextConfig = {
         destination: `${backendUrl}/api/titanic/walter/myself`,
       },
       {
-        source: "/api/signup",
-        destination: `${backendUrl}/signup`,
-      },
-      {
-        source: "/api/login",
-        destination: `${backendUrl}/login`,
-      },
-      {
         source: "/api/auth/:path*",
         destination: `${backendUrl}/auth/:path*`,
       },

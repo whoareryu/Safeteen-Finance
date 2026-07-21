@@ -1,10 +1,6 @@
-"""인증 엔드포인트 (회원가입 · 로그인 · 중복확인 · Google OAuth)."""
+"""인증 엔드포인트 (Google OAuth · 닉네임 중복확인/수정 · 세션)."""
 from __future__ import annotations
 
-import base64
-import hashlib
-import hmac
-import os
 from datetime import datetime, timezone
 
 import httpx
@@ -47,47 +43,8 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 # ---------------------------------------------------------------------------
-# 비밀번호 해싱 (stdlib PBKDF2-SHA256, 100k 반복)
-# ---------------------------------------------------------------------------
-_ITERATIONS = 100_000
-_SALT_LEN = 32
-
-
-def _hash_password(password: str) -> str:
-    salt = os.urandom(_SALT_LEN)
-    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _ITERATIONS)
-    return base64.b64encode(salt + key).decode()
-
-
-def _verify_password(password: str, stored: str) -> bool:
-    try:
-        decoded = base64.b64decode(stored.encode())
-        salt = decoded[:_SALT_LEN]
-        key = decoded[_SALT_LEN:]
-        new_key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _ITERATIONS)
-        return hmac.compare_digest(key, new_key)
-    except Exception:
-        return False
-
-
-# ---------------------------------------------------------------------------
 # 스키마
 # ---------------------------------------------------------------------------
-class SignupRequest(BaseModel):
-    username: str
-    password: str
-    password_confirm: str
-    email: str
-    nickname: str
-    region: str | None = None
-    agree_terms: bool = False
-
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-
 class GoogleLoginRequest(BaseModel):
     credential: str  # Google ID token
 
@@ -114,6 +71,10 @@ class PendingConsentResponse(BaseModel):
     nickname: str
 
 
+class UpdateNicknameRequest(BaseModel):
+    nickname: str
+
+
 def _user_response(user: User) -> UserResponse:
     return UserResponse(
         id=user.id,
@@ -126,21 +87,8 @@ def _user_response(user: User) -> UserResponse:
 
 
 # ---------------------------------------------------------------------------
-# 중복 확인
+# 닉네임 중복확인·수정
 # ---------------------------------------------------------------------------
-@auth_router.get("/check-username")
-def check_username(
-    username: str = Query(..., min_length=3, max_length=32),
-    db: Session = Depends(get_sync_db),
-) -> dict:
-    exists = db.execute(
-        select(User).where(func.lower(User.username) == username.strip().lower()).limit(1)
-    ).scalar_one_or_none()
-    if exists:
-        return {"available": False, "message": "이미 사용 중인 아이디입니다."}
-    return {"available": True, "message": "사용 가능한 아이디입니다."}
-
-
 @auth_router.get("/check-nickname")
 def check_nickname(
     nickname: str = Query(..., min_length=1, max_length=64),
@@ -154,32 +102,35 @@ def check_nickname(
     return {"available": True, "message": "사용 가능한 닉네임입니다."}
 
 
-# ---------------------------------------------------------------------------
-# 내 정보
-# ---------------------------------------------------------------------------
-@auth_router.get("/me")
-def get_me(
-    x_user_id: int = Query(None, alias="user_id"),
+@auth_router.patch("/nickname", response_model=UserResponse)
+def update_nickname(
+    body: UpdateNicknameRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_sync_db),
 ) -> UserResponse:
-    from fastapi import Request  # noqa: F401 — unused, kept for DI reference
-    # X-User-Id는 proxy 레이어에서 query param으로 전달하거나 직접 사용
-    if x_user_id is None:
-        raise HTTPException(status_code=401, detail="로그인이 필요합니다.")
-    user = db.get(User, x_user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
-    return _user_response(user)
+    nick = body.nickname.strip()
+    if not nick:
+        raise HTTPException(status_code=422, detail="닉네임을 입력해 주세요.")
+    exists = db.execute(
+        select(User).where(
+            func.lower(User.nickname) == nick.lower(), User.id != current_user.id
+        )
+    ).scalar_one_or_none()
+    if exists:
+        raise HTTPException(status_code=409, detail="이미 사용 중인 닉네임입니다.")
+    current_user.nickname = nick
+    db.flush()
+    return _user_response(current_user)
 
 
+# ---------------------------------------------------------------------------
+# 내 정보 · 세션
+# ---------------------------------------------------------------------------
 @auth_router.get("/owner-check")
 def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
     return {"is_owner": is_valid_owner_token(wr_owner_session)}
 
 
-# ---------------------------------------------------------------------------
-# 세션 (JWT+Redis) — 새로고침 시 프론트가 로그인 상태를 복원할 때 사용
-# ---------------------------------------------------------------------------
 @auth_router.get("/session")
 def get_session(current_user: User = Depends(get_current_user)) -> UserResponse:
     return _user_response(current_user)
@@ -201,90 +152,7 @@ async def logout(
 
 
 # ---------------------------------------------------------------------------
-# 회원가입
-# ---------------------------------------------------------------------------
-signup_router = APIRouter(tags=["auth"])
-
-
-@signup_router.post("/signup")
-async def register(
-    body: SignupRequest,
-    response: Response,
-    db: Session = Depends(get_sync_db),
-    session_store: SessionStorePort = Depends(get_session_store),
-) -> UserResponse:
-    if body.password != body.password_confirm:
-        raise HTTPException(status_code=422, detail="비밀번호가 일치하지 않습니다.")
-    if len(body.password) < 6:
-        raise HTTPException(status_code=422, detail="비밀번호는 6자 이상이어야 합니다.")
-    if not body.agree_terms:
-        raise HTTPException(status_code=422, detail="이용약관 및 개인정보처리방침에 동의해야 합니다.")
-
-    uname = body.username.strip()
-    if db.execute(
-        select(User).where(func.lower(User.username) == uname.lower()).limit(1)
-    ).scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="이미 사용 중인 아이디입니다.")
-
-    email = body.email.strip().lower()
-    if db.execute(select(User).where(User.email == email).limit(1)).scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="이미 사용 중인 이메일입니다.")
-
-    nick = body.nickname.strip()
-    if db.execute(
-        select(User).where(func.lower(User.nickname) == nick.lower()).limit(1)
-    ).scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="이미 사용 중인 닉네임입니다.")
-
-    user = User(
-        username=uname,
-        email=email,
-        nickname=nick,
-        password_hash=_hash_password(body.password),
-        role=UserRole.user,
-        region=body.region.strip() if body.region and body.region.strip() else None,
-        created_at=datetime.now(timezone.utc),
-        policy_agreed_at=datetime.now(timezone.utc),
-    )
-    db.add(user)
-    db.flush()
-    db.refresh(user)
-    await _start_session(response, user, session_store)
-    return _user_response(user)
-
-
-# ---------------------------------------------------------------------------
-# 로그인
-# ---------------------------------------------------------------------------
-login_router = APIRouter(tags=["auth"])
-
-
-@login_router.post("/login")
-async def login(
-    body: LoginRequest,
-    response: Response,
-    db: Session = Depends(get_sync_db),
-    session_store: SessionStorePort = Depends(get_session_store),
-) -> UserResponse:
-    user = db.execute(
-        select(User).where(func.lower(User.username) == body.username.strip().lower()).limit(1)
-    ).scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
-
-    if user.password_hash.startswith("GOOGLE:"):
-        raise HTTPException(
-            status_code=401,
-            detail="이 계정은 Google로 가입되었습니다. Google 로그인을 이용해 주세요.",
-        )
-
-    if not _verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
-
-    user.last_login_at = datetime.now(timezone.utc)
-    db.flush()
-    await _start_session(response, user, session_store)
-    return _user_response(user)
+# Google 로그인
 # ---------------------------------------------------------------------------
 @auth_router.post("/google")
 async def google_login(
@@ -313,7 +181,7 @@ async def google_login(
 
     user = find_existing_user(db, provider="GOOGLE", sub=google_sub, email=email)
     if user is None:
-        # 신규 사용자 — 계정을 바로 만들지 않고 약관 동의부터 받는다.
+        # 신규 사용자 — 계정을 바로 만들지 않고 약관 동의·닉네임 설정부터 받는다.
         token = await create_pending_signup(
             provider="GOOGLE", sub=google_sub, email=email, name=name
         )

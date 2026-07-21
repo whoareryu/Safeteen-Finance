@@ -109,7 +109,7 @@ export default function TutorialPage() {
             로그인하고 시작하기
           </button>
         </div>
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} initialView="login" />
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </div>
     );
   }

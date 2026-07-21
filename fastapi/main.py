@@ -98,7 +98,7 @@ from community.adapter.inbound.api import chef_router
 
 from ontology.adapter.inbound.api.v1.vision_router import vision_router
 from plant.adapter.inbound.api import plant_router
-from apps.auth.auth_endpoints import auth_router, signup_router, login_router
+from apps.auth.auth_endpoints import auth_router
 from apps.auth.consent_router import consent_router
 from apps.auth.social_login_router import social_login_router
 
@@ -222,8 +222,6 @@ app.include_router(chef_router, prefix="/api")
 app.include_router(vision_router, prefix="/api")
 app.include_router(plant_router, prefix="/api")
 app.include_router(auth_router)
-app.include_router(signup_router)
-app.include_router(login_router)
 app.include_router(browser_gate_router)
 app.include_router(social_login_router)
 app.include_router(consent_router)

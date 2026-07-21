@@ -35,7 +35,8 @@ def find_existing_user(db: Session, *, provider: str, sub: str, email: str) -> U
     return None
 
 
-def create_oauth_user(db: Session, *, provider: str, sub: str, email: str, name: str) -> User:
+def create_oauth_user(db: Session, *, provider: str, sub: str, email: str, nickname: str) -> User:
+    """nickname은 호출 쪽(consent_router)에서 이미 중복확인을 거친 값이어야 한다."""
     base_username = email.split("@")[0][:30]
     username = base_username
     suffix = 1
@@ -45,19 +46,10 @@ def create_oauth_user(db: Session, *, provider: str, sub: str, email: str, name:
         username = f"{base_username}{suffix}"
         suffix += 1
 
-    nickname = name[:32] or base_username
-    nick_check = nickname
-    suffix = 1
-    while db.execute(
-        select(User).where(func.lower(User.nickname) == nick_check.lower()).limit(1)
-    ).scalar_one_or_none():
-        nick_check = f"{nickname}{suffix}"
-        suffix += 1
-
     user = User(
         username=username,
         email=email,
-        nickname=nick_check,
+        nickname=nickname,
         password_hash=_marker(provider, sub),
         role=UserRole.user,
         created_at=datetime.now(timezone.utc),

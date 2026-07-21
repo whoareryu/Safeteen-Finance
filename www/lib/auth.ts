@@ -38,20 +38,6 @@ export function loadStoredUser(): AuthUser | null {
   }
 }
 
-/** 로그인 사용자 API — ``X-User-Id`` (백엔드 ``GET /auth/me`` 등). */
-export function authHeaders(user: AuthUser | null): HeadersInit {
-  if (!user?.id) return {};
-  return { "X-User-Id": String(user.id) };
-}
-
-export async function fetchCurrentUser(userId: number): Promise<AuthUser | null> {
-  const res = await authFetch("/api/auth/me", {
-    headers: { "X-User-Id": String(userId) },
-  });
-  if (!res.ok) return null;
-  return (await res.json()) as AuthUser;
-}
-
 export function saveStoredUser(user: AuthUser | null) {
   if (typeof window === "undefined") return;
   if (user) {
@@ -90,17 +76,6 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-export async function checkUsernameAvailable(
-  username: string
-): Promise<AvailabilityResult> {
-  const res = await authFetch(
-    `/api/auth/check-username?username=${encodeURIComponent(username.trim())}`
-  );
-  if (!res.ok) throw new Error(await parseError(res));
-  const data = (await res.json()) as AvailabilityResult & { username?: string };
-  return { available: data.available, message: data.message };
-}
-
 export async function checkNicknameAvailable(
   nickname: string
 ): Promise<AvailabilityResult> {
@@ -112,29 +87,11 @@ export async function checkNicknameAvailable(
   return { available: data.available, message: data.message };
 }
 
-export async function signup(payload: {
-  username: string;
-  password: string;
-  password_confirm: string;
-  email: string;
-  nickname: string;
-  region?: string;
-  agree_terms: boolean;
-}): Promise<AuthUser> {
-  const res = await authFetch("/api/signup", {
-    method: "POST",
+export async function updateNickname(nickname: string): Promise<AuthUser> {
+  const res = await authFetch("/api/auth/nickname", {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(await parseError(res));
-  return (await res.json()) as AuthUser;
-}
-
-export async function login(username: string, password: string): Promise<AuthUser> {
-  const res = await authFetch("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ nickname }),
   });
   if (!res.ok) throw new Error(await parseError(res));
   return (await res.json()) as AuthUser;
@@ -162,15 +119,20 @@ export async function googleLogin(
   return (await res.json()) as GoogleLoginResult | PendingConsentResult;
 }
 
-/** OAuth 신규 가입자가 약관 동의를 완료하면 계정을 생성하고 세션을 시작한다. */
+/** OAuth 신규 가입자가 닉네임 설정·약관 동의를 완료하면 계정을 생성하고 세션을 시작한다. */
 export async function completeConsent(
   consentToken: string,
+  nickname: string,
   agreeTerms: boolean
 ): Promise<AuthUser> {
   const res = await authFetch("/api/auth/consent/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ consent_token: consentToken, agree_terms: agreeTerms }),
+    body: JSON.stringify({
+      consent_token: consentToken,
+      nickname,
+      agree_terms: agreeTerms,
+    }),
   });
   if (!res.ok) throw new Error(await parseError(res));
   return (await res.json()) as AuthUser;

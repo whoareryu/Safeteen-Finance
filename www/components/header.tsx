@@ -14,13 +14,9 @@ export default function Header() {
   const pathname = usePathname();
   const { user, ready, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authView, setAuthView] = useState<"login" | "signup">("login");
   const showWeather = pathname === "/";
 
-  const openLogin = () => {
-    setAuthView("login");
-    setShowAuthModal(true);
-  };
+  const openLogin = () => setShowAuthModal(true);
 
   const isPortfolioActive =
     pathname === "/portfolio" || pathname.startsWith("/portfolio/");
@@ -78,9 +74,12 @@ export default function Header() {
 
             {ready && user ? (
               <>
-                <span className="hidden max-w-[120px] shrink-0 truncate text-xs text-[#6e6e73] md:inline lg:max-w-none lg:text-sm">
+                <Link
+                  href="/mypage"
+                  className="hidden max-w-[120px] shrink-0 truncate text-xs text-[#6e6e73] hover:underline md:inline lg:max-w-none lg:text-sm"
+                >
                   {user.nickname}님
-                </span>
+                </Link>
                 <Link
                   href="/plant/care-calendar"
                   aria-label="내 식물"
@@ -117,11 +116,7 @@ export default function Header() {
 
       </header>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialView={authView}
-      />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   );
 }
