@@ -7,6 +7,7 @@ from apps.auth.jwt_service import decode_token
 from apps.auth.owner_session import is_valid_owner_token
 from apps.auth.session_store import SessionStorePort, get_session_store
 from apps.auth.user_model import User
+from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
 
 
@@ -39,3 +40,10 @@ async def require_owner(wr_owner_session: str | None = Cookie(default=None)) -> 
     """이메일 발송·주소록·lesson 탭처럼 소유자 본인만 써야 하는 기능의 게이트."""
     if not is_valid_owner_token(wr_owner_session):
         raise HTTPException(status_code=403, detail="본인 Google 계정으로 로그인해야 합니다.")
+
+
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """관리자 대시보드·사용자 관리 등 RBAC role=admin 전용 게이트."""
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="관리자 권한이 필요합니다.")
+    return current_user

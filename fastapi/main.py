@@ -98,6 +98,7 @@ from community.adapter.inbound.api import chef_router
 
 from ontology.adapter.inbound.api.v1.vision_router import vision_router
 from plant.adapter.inbound.api import plant_router
+from apps.auth.admin_router import admin_router
 from apps.auth.auth_endpoints import auth_router
 from apps.auth.consent_router import consent_router
 from apps.auth.social_login_router import social_login_router
@@ -225,6 +226,7 @@ app.include_router(auth_router)
 app.include_router(browser_gate_router)
 app.include_router(social_login_router)
 app.include_router(consent_router)
+app.include_router(admin_router)
 
 
 @app.get("/")

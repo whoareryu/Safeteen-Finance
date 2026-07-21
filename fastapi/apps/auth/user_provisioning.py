@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select
@@ -13,9 +14,19 @@ from sqlalchemy.orm import Session
 from apps.auth.user_model import User
 from apps.auth.user_role import UserRole
 
+_OWNER_EMAIL = os.environ["OWNER_EMAIL"].strip().lower()
+
 
 def _marker(provider: str, sub: str) -> str:
     return f"{provider}:{sub}"
+
+
+def _ensure_owner_is_admin(db: Session, user: User) -> User:
+    """OWNER_EMAIL 계정은 로그인 provider와 무관하게 항상 admin이어야 한다."""
+    if user.email == _OWNER_EMAIL and user.role != UserRole.admin:
+        user.role = UserRole.admin
+        db.flush()
+    return user
 
 
 def find_existing_user(db: Session, *, provider: str, sub: str, email: str) -> User | None:
@@ -24,14 +35,14 @@ def find_existing_user(db: Session, *, provider: str, sub: str, email: str) -> U
         select(User).where(User.password_hash == marker).limit(1)
     ).scalar_one_or_none()
     if user is not None:
-        return user
+        return _ensure_owner_is_admin(db, user)
 
     user = db.execute(select(User).where(User.email == email).limit(1)).scalar_one_or_none()
     if user is not None:
         # 이메일이 같은 기존 계정을 이 provider 계정으로 연결
         user.password_hash = marker
         db.flush()
-        return user
+        return _ensure_owner_is_admin(db, user)
     return None
 
 
@@ -51,7 +62,7 @@ def create_oauth_user(db: Session, *, provider: str, sub: str, email: str, nickn
         email=email,
         nickname=nickname,
         password_hash=_marker(provider, sub),
-        role=UserRole.user,
+        role=UserRole.admin if email == _OWNER_EMAIL else UserRole.user,
         created_at=datetime.now(timezone.utc),
     )
     db.add(user)

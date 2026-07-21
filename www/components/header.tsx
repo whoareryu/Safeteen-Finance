@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { LogIn, LogOut, UserCircle } from "lucide-react";
+import { LogIn, LogOut, ShieldCheck, UserCircle } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
 import WeatherWidget from "./weather-widget";
-import { useAuth } from "./auth-provider";
+import { isAdmin, useAuth } from "./auth-provider";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
@@ -91,6 +91,19 @@ export default function Header() {
                   <UserCircle className="h-3.5 w-3.5" aria-hidden />
                   <span className="hidden sm:inline">내 식물</span>
                 </Link>
+                {isAdmin(user) ? (
+                  <Link
+                    href="/admin"
+                    aria-label="관리자"
+                    className={cn(
+                      "apple-nav-link inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-2 py-1.5 text-xs text-[#1d1d1f]/85 shadow-sm transition hover:bg-black/[0.04] sm:px-3 md:text-sm",
+                      pathname.startsWith("/admin") && "border-black/20 bg-black/[0.06] font-medium text-[#1d1d1f]"
+                    )}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                    <span className="hidden sm:inline">관리자</span>
+                  </Link>
+                ) : null}
                 <button
                   type="button"
                   onClick={logout}
