@@ -14,7 +14,7 @@ from plant.app.ports.output.plant_checkin_repository import PlantCheckinReposito
 from plant.app.use_cases.checkin_interactor import CheckinInteractor
 from plant.dependencies.diagnosis_provider import (
     _get_image_storage_gateway,
-    _get_species_yolo_use_case,
+    _get_species_classifier,
 )
 
 
@@ -28,6 +28,6 @@ def get_checkin_use_case(db: AsyncSession = Depends(get_db)) -> CheckinUseCase:
         checkin_repository=PlantCheckinPgRepository(session=db),
         badge_repository=BadgePgRepository(session=db),
         care_schedule_repository=CareSchedulePgRepository(session=db),
-        yolo=_get_species_yolo_use_case(),
+        species_classifier=_get_species_classifier(),
         storage=_get_image_storage_gateway(),
     )

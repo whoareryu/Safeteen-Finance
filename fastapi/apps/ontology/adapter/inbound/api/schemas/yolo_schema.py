@@ -15,9 +15,3 @@ class YoloTrainResponse(BaseModel):
     epochs: int = Field(..., description="학습한 epoch 수")
     classes: list[str] = Field(..., description="인식 대상 인물(클래스) 목록")
     weights_path: str = Field(..., description="학습된 가중치(best.pt) 경로")
-
-
-class YoloPredictResponse(BaseModel):
-
-    name: str = Field(..., description="예측된 인물 이름")
-    confidence: float = Field(..., description="예측 확신도 (0~1)")

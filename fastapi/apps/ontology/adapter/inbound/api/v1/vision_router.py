@@ -1,19 +1,22 @@
 import asyncio
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
+from ontology.adapter.inbound.api.schemas.image_classifier_schema import ImageClassifyResponse
 from ontology.adapter.inbound.api.schemas.vision_schema import VisionSchema
-from ontology.adapter.inbound.api.schemas.yolo_schema import (
-    YoloPredictResponse,
-    YoloTrainRequest,
-    YoloTrainResponse,
-)
+from ontology.adapter.inbound.api.schemas.yolo_schema import YoloTrainRequest, YoloTrainResponse
+from ontology.app.dtos.image_classifier_dto import ImageClassifyCommand
 from ontology.app.dtos.vision_dto import VisionImageQuery, VisionImageResponse, VisionResponse
-from ontology.app.dtos.yolo_dto import YoloPredictCommand, YoloTrainCommand
+from ontology.app.dtos.yolo_dto import YoloTrainCommand
+from ontology.app.ports.input.image_classifier_use_case import ImageClassifierUseCase
 from ontology.app.ports.input.vision_use_case import VisionUseCase
 from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.dependencies.image_classifier_provider import get_image_classifier_use_case
 from ontology.dependencies.vision_provider import get_vision_use_case
 from ontology.dependencies.yolo_provider import get_yolo_use_case
+
+_MAX_CLASSIFY_IMAGE_BYTES = 10 * 1024 * 1024
+_ALLOWED_CLASSIFY_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 vision_router = APIRouter(prefix="/vision", tags=["vision"])
 
@@ -68,15 +71,28 @@ async def train_yolo(
 
 
 @vision_router.post(
-    "/yolo-predict",
-    response_model=YoloPredictResponse,
-    summary="업로드된 얼굴 이미지로 인물 예측",
+    "/classify",
+    response_model=ImageClassifyResponse,
+    responses={400: {"description": "지원하지 않는 포맷/backend"}, 413: {"description": "파일 크기 초과"}},
+    summary="이미지 분류 — backend로 모델 선택 (convnext: 범용, yolo: 얼굴 인식)",
 )
-async def predict_yolo(
+async def classify_image(
     file: UploadFile = File(...),
-    use_case: YoloUseCase = Depends(get_yolo_use_case),
-) -> YoloPredictResponse:
+    backend: str = Query("convnext", description="분류 backend: convnext | yolo"),
+    use_case: ImageClassifierUseCase = Depends(get_image_classifier_use_case),
+) -> ImageClassifyResponse:
+    if file.content_type not in _ALLOWED_CLASSIFY_CONTENT_TYPES:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 Content-Type입니다: {file.content_type}")
+
     content = await file.read()
-    command = YoloPredictCommand(image=content, device="cpu")
-    result = await asyncio.to_thread(use_case.predict, command)
-    return YoloPredictResponse(name=result.name, confidence=result.confidence)
+    if len(content) > _MAX_CLASSIFY_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="파일 크기가 10MB를 초과했습니다.")
+
+    try:
+        result = await asyncio.to_thread(
+            use_case.predict, ImageClassifyCommand(image=content, backend=backend)
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    return ImageClassifyResponse(label=result.label, confidence=result.confidence)

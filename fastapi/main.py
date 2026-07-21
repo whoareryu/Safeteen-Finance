@@ -97,6 +97,13 @@ from ontology.adapter.inbound.api import ontology_router
 from community.adapter.inbound.api import chef_router
 
 from ontology.adapter.inbound.api.v1.vision_router import vision_router
+from ontology.adapter.inbound.api.v1.generation_router import generation_router
+from ontology.adapter.inbound.api.v1.detection_router import detection_router
+from ontology.adapter.inbound.api.v1.pose_router import pose_router
+from ontology.adapter.inbound.api.v1.segmentation_router import segmentation_router
+from ontology.adapter.inbound.api.v1.sentiment_router import sentiment_router
+from ontology.adapter.inbound.api.v1.video_router import video_router
+from ontology.adapter.inbound.api.v1.anomaly_router import anomaly_router
 from plant.adapter.inbound.api import plant_router
 from apps.auth.admin_router import admin_router
 from apps.auth.auth_endpoints import auth_router
@@ -135,28 +142,28 @@ register_dispatch_factory(
     )
 )
 
-# ── Composition root: plant 전용 YOLO/이미지 저장소를 ontology 허브 어댑터로 주입 ──
+# ── Composition root: plant 전용 종(species) 분류기/이미지 저장소를 ontology 허브 어댑터로 주입 ──
 from fastapi.staticfiles import StaticFiles
 
-from ontology.app.use_cases.yolo_interactor import YoloInteractor
+from ontology.adapter.outbound.resource_adapters.image_classifier.yolo_classifier_model_adapter import (
+    YoloClassifierModelAdapter,
+)
 from plant.adapter.outbound.filesystem.local_image_storage_adapter import (
     LocalImageStorageAdapter,
-)
-from plant.adapter.outbound.resource_adapters.plant_yolo_dataset_adapter import (
-    PlantYoloDatasetAdapter,
 )
 from plant.adapter.outbound.resource_adapters.plant_yolo_model_adapter import (
     PlantYoloModelAdapter,
 )
 from plant.dependencies.diagnosis_provider import (
-    register_species_yolo_factory,
+    register_species_classifier_factory,
     register_image_storage_factory,
 )
 
-register_species_yolo_factory(
-    lambda: YoloInteractor(
-        dataset=PlantYoloDatasetAdapter(os.getenv("PLANT_YOLO_DATASET_PATH", "apps/plant/resources/yolo_train")),
-        model=PlantYoloModelAdapter(os.getenv("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")),
+register_species_classifier_factory(
+    lambda: YoloClassifierModelAdapter(
+        model_port=PlantYoloModelAdapter(
+            os.getenv("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")
+        )
     )
 )
 # PLANT_S3_BUCKET(AWS API 미발급, 보류 중)이 준비되기 전까지는 로컬 디스크에 저장한다.
@@ -216,11 +223,38 @@ class _PlantKnowledgeSearchAdapter(PlantKnowledgeSearchPort):
 register_plant_knowledge_factory(lambda session: _PlantKnowledgeSearchAdapter(session))
 # ─────────────────────────────────────────────────────────────────────────
 
+# ── Composition root: 이미지 생성(SDXL Turbo) 결과물 정적 서빙 ────────────────
+_ontology_generated_media_dir = _backend_root / "apps/ontology/resources/generated_images"
+_ontology_generated_media_dir.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/media/generated",
+    StaticFiles(directory=str(_ontology_generated_media_dir), check_dir=False),
+    name="ontology-generated-media",
+)
+# ─────────────────────────────────────────────────────────────────────────
+
+# ── Composition root: 시멘틱 분할(SegFormer) 오버레이 이미지 정적 서빙 ──────────
+_ontology_segmentation_media_dir = _backend_root / "apps/ontology/resources/segmentation_overlays"
+_ontology_segmentation_media_dir.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/media/segmentation",
+    StaticFiles(directory=str(_ontology_segmentation_media_dir), check_dir=False),
+    name="ontology-segmentation-media",
+)
+# ─────────────────────────────────────────────────────────────────────────
+
 app.include_router(ontology_router, prefix="/api")
 app.include_router(titanic_router, prefix="/api")
 app.include_router(silicon_valley_router, prefix="/api")
 app.include_router(chef_router, prefix="/api")
 app.include_router(vision_router, prefix="/api")
+app.include_router(generation_router, prefix="/api")
+app.include_router(detection_router, prefix="/api")
+app.include_router(pose_router, prefix="/api")
+app.include_router(segmentation_router, prefix="/api")
+app.include_router(sentiment_router, prefix="/api")
+app.include_router(video_router, prefix="/api")
+app.include_router(anomaly_router, prefix="/api")
 app.include_router(plant_router, prefix="/api")
 app.include_router(auth_router)
 app.include_router(browser_gate_router)

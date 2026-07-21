@@ -17,17 +17,3 @@ class YoloTrainResult:
     epochs: int
     classes: list[str] = field(default_factory=list)
     weights_path: str = ""
-
-
-@dataclass(frozen=True)
-class YoloPredictCommand:
-
-    image: bytes
-    device: str = "mps"
-
-
-@dataclass(frozen=True)
-class YoloPredictResult:
-
-    name: str
-    confidence: float

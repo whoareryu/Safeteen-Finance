@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from ontology.app.dtos.yolo_dto import YoloPredictCommand
-from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.app.ports.output.image_classifier_model_port import ImageClassifierModelPort
 
 from plant.app.dtos.register_plant_dto import RegisterPlantCommand, RegisterPlantResult
 from plant.app.ports.input.register_plant_use_case import RegisterPlantUseCase
@@ -26,21 +25,19 @@ class RegisterPlantInteractor(RegisterPlantUseCase):
         plant_repository: PlantRepository,
         badge_repository: BadgeRepository,
         llm: LlmPort,
-        yolo: YoloUseCase,
+        species_classifier: ImageClassifierModelPort,
     ) -> None:
         self._plant_repository = plant_repository
         self._badge_repository = badge_repository
         self._llm = llm
-        self._yolo = yolo
+        self._species_classifier = species_classifier
 
     async def register(self, command: RegisterPlantCommand) -> RegisterPlantResult:
         species_name = command.species_name
 
         if command.photo_data is not None:
-            prediction = await asyncio.to_thread(
-                self._yolo.predict, YoloPredictCommand(image=command.photo_data)
-            )
-            detected_species, _symptom = _parse_label(prediction.name or _UNKNOWN_LABEL)
+            prediction = await asyncio.to_thread(self._species_classifier.predict, command.photo_data)
+            detected_species, _symptom = _parse_label(prediction.label or _UNKNOWN_LABEL)
             species_name = detected_species
 
         if not species_name:

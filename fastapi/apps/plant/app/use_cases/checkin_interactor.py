@@ -3,8 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from ontology.app.dtos.yolo_dto import YoloPredictCommand
-from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.app.ports.output.image_classifier_model_port import ImageClassifierModelPort
 from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
 
 from plant.app.dtos.checkin_dto import CheckinCommand, CheckinResult
@@ -31,14 +30,14 @@ class CheckinInteractor(CheckinUseCase):
         checkin_repository: PlantCheckinRepository,
         badge_repository: BadgeRepository,
         care_schedule_repository: CareScheduleRepository,
-        yolo: YoloUseCase,
+        species_classifier: ImageClassifierModelPort,
         storage: ImageStorageGateway,
     ) -> None:
         self._plant_repository = plant_repository
         self._checkin_repository = checkin_repository
         self._badge_repository = badge_repository
         self._care_schedule_repository = care_schedule_repository
-        self._yolo = yolo
+        self._species_classifier = species_classifier
         self._storage = storage
 
     async def checkin(self, command: CheckinCommand) -> CheckinResult:
@@ -52,10 +51,8 @@ class CheckinInteractor(CheckinUseCase):
             command.photo_filename, command.photo_content_type, command.photo_data
         )
 
-        prediction = await asyncio.to_thread(
-            self._yolo.predict, YoloPredictCommand(image=command.photo_data)
-        )
-        _species, symptom = _parse_label(prediction.name or _UNKNOWN_LABEL)
+        prediction = await asyncio.to_thread(self._species_classifier.predict, command.photo_data)
+        _species, symptom = _parse_label(prediction.label or _UNKNOWN_LABEL)
         health_score = (
             100.0 if symptom == "healthy" else round(100 - prediction.confidence * 60, 1)
         )

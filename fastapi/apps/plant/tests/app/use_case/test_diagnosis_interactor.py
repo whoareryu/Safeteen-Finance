@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ontology.app.dtos.yolo_dto import YoloPredictResult
+from ontology.app.dtos.image_classifier_dto import ImageClassifyResult
 
 from plant.app.dtos.diagnosis_dto import DiagnosisUploadCommand
 from plant.app.use_cases.diagnosis_interactor import DiagnosisInteractor
@@ -40,12 +40,9 @@ class _FakeDiagnosisRepository:
         return self.saved
 
 
-class _FakeYoloUseCase:
-    def predict(self, command):
-        return YoloPredictResult(name="monstera__overwatered_yellowing", confidence=0.92)
-
-    def execute(self, command):
-        raise NotImplementedError
+class _FakeSpeciesClassifier:
+    def predict(self, image_bytes: bytes) -> ImageClassifyResult:
+        return ImageClassifyResult(label="monstera__overwatered_yellowing", confidence=0.92)
 
 
 class _FakeImageStorage:
@@ -57,7 +54,7 @@ async def test_diagnose_parses_species_and_symptom_from_label():
     interactor = DiagnosisInteractor(
         plant_repository=_FakePlantRepository(),
         diagnosis_repository=_FakeDiagnosisRepository(),
-        yolo=_FakeYoloUseCase(),
+        species_classifier=_FakeSpeciesClassifier(),
         storage=_FakeImageStorage(),
     )
 
@@ -82,7 +79,7 @@ async def test_get_returns_previously_saved_diagnosis():
     interactor = DiagnosisInteractor(
         plant_repository=_FakePlantRepository(),
         diagnosis_repository=diagnosis_repository,
-        yolo=_FakeYoloUseCase(),
+        species_classifier=_FakeSpeciesClassifier(),
         storage=_FakeImageStorage(),
     )
     saved = await interactor.diagnose(

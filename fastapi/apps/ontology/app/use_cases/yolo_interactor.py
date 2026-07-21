@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-import io
 import os
 
-from PIL import Image
 from ultralytics import YOLO
 
-from ontology.app.dtos.yolo_dto import (
-    YoloPredictCommand,
-    YoloPredictResult,
-    YoloTrainCommand,
-    YoloTrainResult,
-)
+from ontology.app.dtos.yolo_dto import YoloTrainCommand, YoloTrainResult
 from ontology.app.ports.input.yolo_use_case import YoloUseCase
 from ontology.app.ports.output.yolo_model_port import YoloModelPort
 from ontology.app.ports.output.yolo_port import YoloPort
@@ -43,17 +36,4 @@ class YoloInteractor(YoloUseCase):
             epochs=command.epochs,
             classes=classes,
             weights_path=weights_path,
-        )
-
-    def predict(self, command: YoloPredictCommand) -> YoloPredictResult:
-        weights_path = self._model.load_path()
-        model = YOLO(weights_path)
-        image = Image.open(io.BytesIO(command.image)).convert("RGB")
-
-        results = model.predict(source=image, device=command.device, verbose=False)
-        probs = results[0].probs
-        top1 = int(probs.top1)
-        return YoloPredictResult(
-            name=results[0].names[top1],
-            confidence=float(probs.top1conf),
         )

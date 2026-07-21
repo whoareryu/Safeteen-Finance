@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from ontology.app.dtos.yolo_dto import YoloPredictCommand
-from ontology.app.ports.input.yolo_use_case import YoloUseCase
+from ontology.app.ports.output.image_classifier_model_port import ImageClassifierModelPort
 from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
 
 from plant.app.dtos.diagnosis_dto import DiagnosisResult, DiagnosisUploadCommand
@@ -29,21 +28,19 @@ class DiagnosisInteractor(DiagnosisUseCase):
         self,
         plant_repository: PlantRepository,
         diagnosis_repository: DiagnosisRepository,
-        yolo: YoloUseCase,
+        species_classifier: ImageClassifierModelPort,
         storage: ImageStorageGateway,
     ) -> None:
         self._plant_repository = plant_repository
         self._diagnosis_repository = diagnosis_repository
-        self._yolo = yolo
+        self._species_classifier = species_classifier
         self._storage = storage
 
     async def diagnose(self, command: DiagnosisUploadCommand) -> DiagnosisResult:
         photo_url = await self._storage.save(command.filename, command.content_type, command.data)
 
-        prediction = await asyncio.to_thread(
-            self._yolo.predict, YoloPredictCommand(image=command.data)
-        )
-        species, symptom = _parse_label(prediction.name or _UNKNOWN_LABEL)
+        prediction = await asyncio.to_thread(self._species_classifier.predict, command.data)
+        species, symptom = _parse_label(prediction.label or _UNKNOWN_LABEL)
 
         plant = await self._plant_repository.find_or_create(
             owner_user_id=command.owner_user_id,

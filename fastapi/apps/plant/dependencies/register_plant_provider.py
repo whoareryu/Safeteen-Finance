@@ -11,7 +11,7 @@ from plant.adapter.outbound.pg.plant_pg_repository import PlantPgRepository
 from plant.app.ports.input.register_plant_use_case import RegisterPlantUseCase
 from plant.app.ports.output.plant_repository import PlantRepository
 from plant.app.use_cases.register_plant_interactor import RegisterPlantInteractor
-from plant.dependencies.diagnosis_provider import _get_species_yolo_use_case
+from plant.dependencies.diagnosis_provider import _get_species_classifier
 
 _LLM = PlantLlmAdapter(model="exaone3.5:2.4b")
 
@@ -25,5 +25,5 @@ def get_register_plant_use_case(db: AsyncSession = Depends(get_db)) -> RegisterP
         plant_repository=PlantPgRepository(session=db),
         badge_repository=BadgePgRepository(session=db),
         llm=_LLM,
-        yolo=_get_species_yolo_use_case(),
+        species_classifier=_get_species_classifier(),
     )

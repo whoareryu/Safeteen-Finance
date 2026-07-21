@@ -131,3 +131,9 @@ apps/plant/resources/diagnosis_uploads/
 
 # 식집사 튜토리얼 Pixabay 사진 캐시 (런타임 다운로드 — git 미포함)
 apps/plant/resources/tutorial_photos/
+
+# SDXL Turbo 이미지 생성 결과물 (S3 발급 전 임시 로컬 저장 — git 미포함)
+apps/ontology/resources/generated_images/
+
+# SegFormer 시멘틱 분할 오버레이 결과물 (S3 발급 전 임시 로컬 저장 — git 미포함)
+apps/ontology/resources/segmentation_overlays/
