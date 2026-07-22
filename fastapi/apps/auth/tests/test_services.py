@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 os.environ.setdefault("REDIS_URL", "redis://localhost:16379/0")
 os.environ.setdefault("BACKEND_PUBLIC_URL", "https://auth.whoareryu.cloud")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
 os.environ.setdefault("NAVER_CLIENT_ID", "test-naver-client-id")
 os.environ.setdefault("KAKAO_REST_API_KEY", "test-kakao-client-id")
 os.environ.setdefault("OWNER_EMAIL", "owner@example.com")
@@ -65,6 +66,32 @@ def test_jwks_returns_public_key_only() -> None:
     assert "n" in key and "e" in key
     # 개인키 자료가 응답에 절대 섞이면 안 된다.
     assert "d" not in key
+
+
+def test_google_login_redirect_sets_state_cookie() -> None:
+    response = services.google_login_redirect()
+
+    assert response.status_code in (302, 307)
+    assert "accounts.google.com" in response.headers["location"]
+    assert "wr_oauth_state_google" in response.headers.get("set-cookie", "")
+
+
+async def test_google_callback_rejects_missing_state_cookie() -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        await services.google_callback(
+            code="somecode", state="somestate", error=None, state_cookie=None, db=None
+        )
+
+    assert exc_info.value.status_code == 401
+
+
+async def test_google_callback_rejects_state_mismatch() -> None:
+    with pytest.raises(HTTPException) as exc_info:
+        await services.google_callback(
+            code="somecode", state="state-a", error=None, state_cookie="state-b", db=None
+        )
+
+    assert exc_info.value.status_code == 401
 
 
 def test_naver_login_redirect_sets_state_cookie() -> None:

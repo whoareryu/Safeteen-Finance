@@ -21,12 +21,7 @@ from sqlalchemy.orm import Session
 
 from apps.auth.consent_flow import create_pending_signup, pop_pending_signup
 from apps.auth.owner_session import issue_owner_token
-from apps.auth.schemas import (
-    ConsentCompleteRequest,
-    GoogleLoginResponse,
-    PendingConsentResponse,
-    UserResponse,
-)
+from apps.auth.schemas import ConsentCompleteRequest, UserResponse
 from apps.auth.user_model import User
 from apps.auth.user_provisioning import create_oauth_user, find_existing_user
 from apps.auth.user_role import UserRole
@@ -85,45 +80,7 @@ def _set_or_clear_owner_cookie(response: Response, email: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Google
-# ---------------------------------------------------------------------------
-async def google_login(
-    credential: str, response: Response, db: Session
-) -> GoogleLoginResponse | PendingConsentResponse:
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            "https://oauth2.googleapis.com/tokeninfo",
-            params={"id_token": credential},
-            timeout=10.0,
-        )
-    if resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Google 인증에 실패했습니다.")
-
-    info = resp.json()
-    google_sub: str = info.get("sub", "")
-    email: str = info.get("email", "").strip().lower()
-    name: str = info.get("name", "") or info.get("given_name", "") or "사용자"
-
-    if not google_sub or not email:
-        raise HTTPException(status_code=401, detail="Google 계정 정보를 가져올 수 없습니다.")
-
-    user = find_existing_user(db, provider="GOOGLE", sub=google_sub, email=email)
-    if user is None:
-        token = await create_pending_signup(
-            provider="GOOGLE", sub=google_sub, email=email, name=name
-        )
-        return PendingConsentResponse(consent_token=token, email=email, nickname=name)
-
-    user.last_login_at = datetime.now(timezone.utc)
-    db.flush()
-    await start_session(response, user)
-    is_owner = _set_or_clear_owner_cookie(response, email)
-
-    return GoogleLoginResponse(**user_response(user).model_dump(), is_owner=is_owner)
-
-
-# ---------------------------------------------------------------------------
-# Naver / Kakao 공통 — 인가코드 콜백 이후 로그인 또는 약관동의 리다이렉트
+# Google / Naver / Kakao 공통 — 인가코드 콜백 이후 로그인 또는 약관동의 리다이렉트
 # ---------------------------------------------------------------------------
 async def _login_or_redirect_to_consent(
     *, provider: str, sub: str, email: str, name: str, db: Session
@@ -144,6 +101,81 @@ async def _login_or_redirect_to_consent(
     return redirect
 
 
+# ---------------------------------------------------------------------------
+# Google — 팝업 + 서버측 인가코드 리다이렉트 (Naver/Kakao와 동일한 방식으로 통일)
+# ---------------------------------------------------------------------------
+_GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+_GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+_GOOGLE_REDIRECT_URI = f"{_BACKEND_URL}/auth/google/callback"
+
+
+def google_login_redirect() -> RedirectResponse:
+    if not _GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="Google 로그인이 설정되지 않았습니다.")
+    state = secrets.token_urlsafe(16)
+    params = {
+        "client_id": _GOOGLE_CLIENT_ID,
+        "redirect_uri": _GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "prompt": "select_account",
+    }
+    resp = RedirectResponse(f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}")
+    resp.set_cookie(
+        "wr_oauth_state_google", state, httponly=True, secure=True, samesite="lax", max_age=300
+    )
+    return resp
+
+
+async def google_callback(
+    *, code: str | None, state: str | None, error: str | None, state_cookie: str | None, db: Session
+) -> RedirectResponse:
+    if error or not code or not state or not state_cookie:
+        raise HTTPException(status_code=401, detail="Google 인증이 취소되었거나 실패했습니다.")
+    if not secrets.compare_digest(state_cookie, state):
+        raise HTTPException(status_code=401, detail="잘못된 인증 요청입니다.")
+
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": _GOOGLE_CLIENT_ID,
+                "client_secret": _GOOGLE_CLIENT_SECRET,
+                "redirect_uri": _GOOGLE_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            },
+            timeout=10.0,
+        )
+        if token_resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Google 토큰 교환에 실패했습니다.")
+
+        userinfo_resp = await client.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {token_resp.json().get('access_token')}"},
+            timeout=10.0,
+        )
+    if userinfo_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Google 사용자 정보를 가져오지 못했습니다.")
+
+    info = userinfo_resp.json()
+    google_sub: str = info.get("sub", "")
+    email: str = (info.get("email") or "").strip().lower()
+    name: str = info.get("name") or info.get("given_name") or "사용자"
+    if not google_sub or not email:
+        raise HTTPException(status_code=401, detail="Google 계정 정보를 가져올 수 없습니다.")
+
+    redirect = await _login_or_redirect_to_consent(
+        provider="GOOGLE", sub=google_sub, email=email, name=name, db=db
+    )
+    redirect.delete_cookie("wr_oauth_state_google")
+    return redirect
+
+
+# ---------------------------------------------------------------------------
+# Naver
+# ---------------------------------------------------------------------------
 _NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
 _NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
 _NAVER_REDIRECT_URI = f"{_BACKEND_URL}/auth/naver/callback"
@@ -212,6 +244,9 @@ async def naver_callback(
     return redirect
 
 
+# ---------------------------------------------------------------------------
+# Kakao
+# ---------------------------------------------------------------------------
 _KAKAO_CLIENT_ID = os.getenv("KAKAO_REST_API_KEY", "")
 _KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
 _KAKAO_REDIRECT_URI = f"{_BACKEND_URL}/auth/kakao/callback"

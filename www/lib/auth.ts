@@ -97,28 +97,6 @@ export async function updateNickname(nickname: string): Promise<AuthUser> {
   return (await res.json()) as AuthUser;
 }
 
-export type GoogleLoginResult = AuthUser & { is_owner: boolean; pending?: false };
-
-/** 계정이 아직 없는 신규 가입자 — 약관 동의(/auth/consent)를 먼저 거쳐야 한다. */
-export type PendingConsentResult = {
-  pending: true;
-  consent_token: string;
-  email: string;
-  nickname: string;
-};
-
-export async function googleLogin(
-  credential: string
-): Promise<GoogleLoginResult | PendingConsentResult> {
-  const res = await authFetch("/api/auth/google", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ credential }),
-  });
-  if (!res.ok) throw new Error(await parseError(res));
-  return (await res.json()) as GoogleLoginResult | PendingConsentResult;
-}
-
 /** OAuth 신규 가입자가 닉네임 설정·약관 동의를 완료하면 계정을 생성하고 세션을 시작한다. */
 export async function completeConsent(
   consentToken: string,

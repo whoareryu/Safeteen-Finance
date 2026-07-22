@@ -13,7 +13,6 @@ import {
   isAdmin,
   loadStoredUser,
   saveStoredUser,
-  googleLogin as apiGoogleLogin,
   updateNickname as apiUpdateNickname,
   checkOwner,
   fetchSession,
@@ -28,9 +27,8 @@ type AuthContextValue = {
   user: AuthUser | null;
   ready: boolean;
   isOwner: boolean;
-  googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
-  /** Naver·Kakao 팝업 로그인 완료 후 세션을 다시 읽어 상태를 갱신한다. */
+  /** Google·Naver·Kakao 팝업 로그인 완료 후 세션을 다시 읽어 상태를 갱신한다. */
   refreshSession: () => Promise<void>;
   updateNickname: (nickname: string) => Promise<void>;
 };
@@ -56,27 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshSession().then(() => setReady(true));
   }, [refreshSession]);
 
-  const googleLogin = useCallback(
-    async (credential: string) => {
-      const result = await apiGoogleLogin(credential);
-      if (result.pending) {
-        // 신규 가입자 — 계정 생성 전 닉네임 설정·약관 동의 화면으로 이동.
-        const qs = new URLSearchParams({
-          token: result.consent_token,
-          email: result.email,
-          nickname: result.nickname,
-        });
-        window.location.href = `/auth/consent?${qs.toString()}`;
-        return;
-      }
-      // 세션 쿠키(wr_session·wr_owner_session)는 백엔드가 httpOnly Set-Cookie로 내려준다.
-      saveStoredUser(result);
-      setUser(result);
-      setIsOwner(result.is_owner);
-    },
-    []
-  );
-
   const logout = useCallback(() => {
     logoutSession();
     saveStoredUser(null);
@@ -91,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, isOwner, googleLogin, logout, refreshSession, updateNickname }),
-    [user, ready, isOwner, googleLogin, logout, refreshSession, updateNickname]
+    () => ({ user, ready, isOwner, logout, refreshSession, updateNickname }),
+    [user, ready, isOwner, logout, refreshSession, updateNickname]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

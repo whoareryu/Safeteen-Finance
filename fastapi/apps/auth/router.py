@@ -1,10 +1,11 @@
 """auth 서비스(auth_main.py) 라우터.
 
-기존 apps/auth/auth_endpoints.py·social_login_router.py·consent_router.py가
-쓰던 경로를 그대로 유지한다 — 프론트(www/lib/auth.ts, auth-modal.tsx)가 이미
-이 경로들을 호출하고 있어서, Phase D에서는 "어느 호스트로 보내는지"만 바꾸면
-되게 하기 위함이다. 여기 새로 추가된 건 POST /auth/refresh와
-GET /.well-known/jwks.json뿐이다.
+Naver/Kakao는 처음부터 팝업 + 서버측 인가코드 리다이렉트 방식이었고, Google도
+이제 같은 방식으로 통일했다(예전에는 프론트에서 ID 토큰을 바로 받아 POST하는
+방식이었다 — GET /google/login, /google/callback으로 교체). 그 외 경로(닉네임,
+세션, 로그아웃, 약관동의 완료)는 기존 auth_endpoints.py 등에서 쓰던 경로를
+그대로 유지한다. 새로 추가된 건 POST /auth/refresh와
+GET /.well-known/jwks.json.
 """
 from __future__ import annotations
 
@@ -13,14 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from apps.auth import services
-from apps.auth.schemas import (
-    ConsentCompleteRequest,
-    GoogleCallbackRequest,
-    GoogleLoginResponse,
-    PendingConsentResponse,
-    UpdateNicknameRequest,
-    UserResponse,
-)
+from apps.auth.schemas import ConsentCompleteRequest, UpdateNicknameRequest, UserResponse
 from apps.auth.user_model import User
 from apps.database import get_sync_db
 from core.dependencies import get_current_user
@@ -116,15 +110,24 @@ async def logout(
 
 
 # ---------------------------------------------------------------------------
-# Google
+# Google — 팝업 + 서버측 인가코드 리다이렉트 (Naver/Kakao와 동일한 방식)
 # ---------------------------------------------------------------------------
-@router.post("/google")
-async def google_login(
-    body: GoogleCallbackRequest,
-    response: Response,
+@router.get("/google/login")
+def google_login():
+    return services.google_login_redirect()
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: str | None = Query(default=None),
+    state: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+    wr_oauth_state_google: str | None = Cookie(default=None),
     db: Session = Depends(get_sync_db),
-) -> GoogleLoginResponse | PendingConsentResponse:
-    return await services.google_login(body.credential, response, db)
+):
+    return await services.google_callback(
+        code=code, state=state, error=error, state_cookie=wr_oauth_state_google, db=db
+    )
 
 
 # ---------------------------------------------------------------------------

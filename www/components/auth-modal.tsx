@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import { GoogleLogin } from "@react-oauth/google";
 import { WR_AUTH_COMPLETE_MESSAGE } from "@/lib/auth";
 import { useAuth } from "./auth-provider";
 
@@ -12,20 +11,19 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { googleLogin, refreshSession } = useAuth();
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const { refreshSession } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
   const resetAndClose = () => {
     setError(null);
-    setSubmitting(false);
     onClose();
   };
 
-  const openSocialPopup = (provider: "naver" | "kakao") => {
+  // 구글도 네이버/카카오와 같은 팝업 + 서버측 인가코드 리다이렉트 방식으로 통일했다
+  // (예전에는 구글만 프론트에서 ID 토큰을 바로 받아 POST하는 위젯 방식이었다).
+  const openSocialPopup = (provider: "google" | "naver" | "kakao") => {
     // 콜백은 auth.whoareryu.cloud로 직접 오기 때문에, state 검증 쿠키가 같은
     // 도메인에 저장되도록 로그인 시작도 프록시(whoareryu.cloud) 대신 auth
     // 서비스 도메인으로 바로 연다 — 그렇지 않으면 콜백에서 쿠키를 못 읽는다.
@@ -81,35 +79,33 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ) : null}
 
         <div className="space-y-2">
-          {googleClientId && (
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={async (res) => {
-                  if (!res.credential) return;
-                  setSubmitting(true);
-                  setError(null);
-                  try {
-                    await googleLogin(res.credential);
-                    resetAndClose();
-                  } catch (e) {
-                    setError(e instanceof Error ? e.message : "Google 로그인 실패");
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-                onError={() => setError("Google 로그인에 실패했습니다.")}
-                useOneTap={false}
-                use_fedcm_for_button
-                itp_support
-                size="large"
-                width="384"
-                text="signin_with"
-              />
-            </div>
-          )}
           <button
             type="button"
-            disabled={submitting}
+            onClick={() => openSocialPopup("google")}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white py-3 text-sm font-medium text-neutral-800 disabled:opacity-60"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
+              <path
+                fill="#FFC107"
+                d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"
+              />
+              <path
+                fill="#FF3D00"
+                d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.7 0-14.3 4.3-17.7 10.7z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.4 26.7 36 24 36c-5.2 0-9.6-3.1-11.3-7.6l-6.5 5C9.6 39.6 16.3 44 24 44z"
+              />
+              <path
+                fill="#1976D2"
+                d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.3 5.3C41.5 35.6 44 30.3 44 24c0-1.3-.1-2.7-.4-3.5z"
+              />
+            </svg>
+            구글로 로그인
+          </button>
+          <button
+            type="button"
             onClick={() => openSocialPopup("naver")}
             className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white disabled:opacity-60"
           >
@@ -117,7 +113,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </button>
           <button
             type="button"
-            disabled={submitting}
             onClick={() => openSocialPopup("kakao")}
             className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black disabled:opacity-60"
           >
