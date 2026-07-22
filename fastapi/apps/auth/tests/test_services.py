@@ -99,6 +99,7 @@ def test_naver_login_redirect_sets_state_cookie() -> None:
 
     assert response.status_code in (302, 307)
     assert "nid.naver.com" in response.headers["location"]
+    assert "auth_type=reauthenticate" in response.headers["location"]
     assert "wr_oauth_state_naver" in response.headers.get("set-cookie", "")
 
 
@@ -107,6 +108,7 @@ def test_kakao_login_redirect_sets_state_cookie() -> None:
 
     assert response.status_code in (302, 307)
     assert "kauth.kakao.com" in response.headers["location"]
+    assert "prompt=select_account" in response.headers["location"]
     assert "wr_oauth_state_kakao" in response.headers.get("set-cookie", "")
 
 

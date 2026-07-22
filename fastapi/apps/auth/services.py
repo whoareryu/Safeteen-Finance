@@ -190,6 +190,10 @@ def naver_login_redirect() -> RedirectResponse:
         "client_id": _NAVER_CLIENT_ID,
         "redirect_uri": _NAVER_REDIRECT_URI,
         "state": state,
+        # 네이버는 구글 같은 "계정 선택" 화면이 없어(브라우저에 계정 하나만 로그인되는
+        # 구조), 가장 가까운 대안으로 매번 강제 재로그인(아이디/비번 재입력 또는 QR)을
+        # 시킨다 — 이미 로그인된 세션이 있어도 쿠키만으로 바로 통과되지 않는다.
+        "auth_type": "reauthenticate",
     }
     resp = RedirectResponse(f"https://nid.naver.com/oauth2.0/authorize?{urlencode(params)}")
     resp.set_cookie(
@@ -261,6 +265,9 @@ def kakao_login_redirect() -> RedirectResponse:
         "client_id": _KAKAO_CLIENT_ID,
         "redirect_uri": _KAKAO_REDIRECT_URI,
         "state": state,
+        # 간편로그인 정보를 저장해둔 사용자에게 계정 선택 화면을 보여준다(구글의
+        # select_account와 동일한 역할) — 카카오 로그인 REST API 공식 파라미터.
+        "prompt": "select_account",
     }
     resp = RedirectResponse(f"https://kauth.kakao.com/oauth/authorize?{urlencode(params)}")
     resp.set_cookie(
