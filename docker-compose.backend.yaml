@@ -40,6 +40,32 @@ services:
     networks:
       - app-network
 
+  # 1-1. 인증 게이트웨이(auth.whoareryu.cloud) — backend와 같은 이미지, 다른 엔트리포인트.
+  #      JWT_PRIVATE_KEY는 이 서비스의 env_file(.env.auth)에만 있다.
+  auth:
+    image: whoareryu/fastapi:latest
+    container_name: whoareryu-auth
+    command: ["sh", "-c", "pip install --quiet -r requirements.txt && exec uvicorn auth_main:app --host 0.0.0.0 --port 9000"]
+    env_file:
+      - ./fastapi/.env
+      - ./fastapi/.env.auth
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:whoareryu@pgvector:5432/whoareryu
+      - REDIS_URL=redis://redis:6379/0
+      # apps/auth/services.py가 Naver/Kakao redirect_uri를 여기서 만든다 — backend용
+      # .env의 BACKEND_PUBLIC_URL(api.whoareryu.cloud)을 그대로 물려받으면 콜백
+      # 주소가 틀어지므로 이 서비스에서만 auth 도메인으로 덮어쓴다.
+      - BACKEND_PUBLIC_URL=https://auth.whoareryu.cloud
+    depends_on:
+      - pgvector
+      - redis
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    restart: unless-stopped
+    networks:
+      - app-network
+
   # 2. n8n 워크플로우 자동화
   n8n:
     image: n8nio/n8n

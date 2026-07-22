@@ -8,12 +8,14 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from apps.auth.dependencies import require_admin
 from apps.auth.user_model import User
 from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
+from core.dependencies import RoleChecker
+from core.security import TokenPayload
 
 admin_router = APIRouter(prefix="/auth/admin", tags=["admin"])
+_require_admin = RoleChecker(UserRole.admin)
 
 
 class AdminUserResponse(BaseModel):
@@ -54,7 +56,7 @@ def _to_response(user: User) -> AdminUserResponse:
 @admin_router.get("/stats", response_model=AdminStatsResponse)
 def get_stats(
     db: Session = Depends(get_sync_db),
-    _admin: User = Depends(require_admin),
+    _admin: TokenPayload = Depends(_require_admin),
 ) -> AdminStatsResponse:
     now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -82,7 +84,7 @@ def get_stats(
 @admin_router.get("/users", response_model=list[AdminUserResponse])
 def list_users(
     db: Session = Depends(get_sync_db),
-    _admin: User = Depends(require_admin),
+    _admin: TokenPayload = Depends(_require_admin),
 ) -> list[AdminUserResponse]:
     users = db.execute(select(User).order_by(User.created_at.desc())).scalars().all()
     return [_to_response(u) for u in users]
@@ -93,9 +95,9 @@ def update_role(
     user_id: int,
     body: UpdateRoleRequest,
     db: Session = Depends(get_sync_db),
-    admin: User = Depends(require_admin),
+    admin: TokenPayload = Depends(_require_admin),
 ) -> AdminUserResponse:
-    if user_id == admin.id and body.role != UserRole.admin:
+    if user_id == int(admin.sub) and body.role != UserRole.admin:
         raise HTTPException(status_code=400, detail="본인의 관리자 권한은 스스로 해제할 수 없습니다.")
 
     target = db.get(User, user_id)

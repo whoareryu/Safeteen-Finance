@@ -13,7 +13,7 @@ import logging
 from urllib.parse import urlencode
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
@@ -106,9 +106,8 @@ from ontology.adapter.inbound.api.v1.video_router import video_router
 from ontology.adapter.inbound.api.v1.anomaly_router import anomaly_router
 from plant.adapter.inbound.api import plant_router
 from apps.auth.admin_router import admin_router
-from apps.auth.auth_endpoints import auth_router
-from apps.auth.consent_router import consent_router
-from apps.auth.social_login_router import social_login_router
+# 로그인(Google/Naver/Kakao)·회원가입 동의는 auth_main.py(auth.whoareryu.cloud)로
+# 이동했다 — 이 백엔드는 RS256 공개키로 토큰을 검증만 한다(core.dependencies).
 
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
 import os
@@ -256,16 +255,24 @@ app.include_router(sentiment_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 app.include_router(anomaly_router, prefix="/api")
 app.include_router(plant_router, prefix="/api")
-app.include_router(auth_router)
 app.include_router(browser_gate_router)
-app.include_router(social_login_router)
-app.include_router(consent_router)
 app.include_router(admin_router)
 
 
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "FAST API 메인 페이지", "docs": "/docs"}
+
+
+@app.get("/auth/owner-check")
+def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
+    """owner_session.py는 RS256 로그인 재작성과 무관해 이 백엔드에 그대로 남긴다.
+
+    www의 app/portfolio/titanic/(lesson)/layout.tsx가 이 경로를
+    NEXT_PUBLIC_BACKEND_URL로 직접 호출한다 — auth 서비스로 옮기면 그 파일도
+    같이 고쳐야 한다.
+    """
+    return {"is_owner": is_valid_owner_token(wr_owner_session)}
 
 
 @app.post("/chat", response_model=ChatResponse)

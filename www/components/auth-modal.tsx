@@ -26,12 +26,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   const openSocialPopup = (provider: "naver" | "kakao") => {
-    // 콜백은 api.whoareryu.cloud로 직접 오기 때문에, state 검증 쿠키가 같은
-    // 도메인에 저장되도록 로그인 시작도 프록시(whoareryu.cloud) 대신 백엔드
-    // 도메인으로 바로 연다 — 그렇지 않으면 콜백에서 쿠키를 못 읽는다.
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.whoareryu.cloud";
+    // 콜백은 auth.whoareryu.cloud로 직접 오기 때문에, state 검증 쿠키가 같은
+    // 도메인에 저장되도록 로그인 시작도 프록시(whoareryu.cloud) 대신 auth
+    // 서비스 도메인으로 바로 연다 — 그렇지 않으면 콜백에서 쿠키를 못 읽는다.
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.whoareryu.cloud";
     const popup = window.open(
-      `${backendUrl}/auth/${provider}/login`,
+      `${authUrl}/auth/${provider}/login`,
       "wr_oauth_popup",
       "width=480,height=720"
     );
