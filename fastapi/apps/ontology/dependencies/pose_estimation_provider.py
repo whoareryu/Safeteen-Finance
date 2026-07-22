@@ -12,7 +12,7 @@ from ontology.app.use_cases.pose_estimation_interactor import PoseEstimationInte
 @lru_cache(maxsize=1)
 def get_pose_estimation_model_port() -> PoseEstimationModelPort:
     # 가중치 로드 비용이 커서 요청마다 새로 만들지 않고 캐싱한다.
-    model_id = os.getenv("POSE_ESTIMATION_MODEL_ID", "nielsr/ViTPose_base_simple_coco")
+    model_id = os.getenv("POSE_ESTIMATION_MODEL_ID", "usyd-community/vitpose-base-simple")
     device = os.getenv("POSE_ESTIMATION_DEVICE", "cpu")
     return VitPoseModelAdapter(model_id=model_id, device=device)
 

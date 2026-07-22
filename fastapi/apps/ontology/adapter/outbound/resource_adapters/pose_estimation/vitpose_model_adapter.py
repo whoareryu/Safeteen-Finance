@@ -27,7 +27,7 @@ _COCO_KEYPOINT_NAMES = [
 class VitPoseModelAdapter(PoseEstimationModelPort):
     """ViTPose-B(top-down) 기반 인체 키포인트 추정 어댑터. 사람 bbox가 있어야 동작한다."""
 
-    def __init__(self, model_id: str = "nielsr/ViTPose_base_simple_coco", device: str = "cpu") -> None:
+    def __init__(self, model_id: str = "usyd-community/vitpose-base-simple", device: str = "cpu") -> None:
         self._device = torch.device(device)
         self._processor = VitPoseImageProcessor.from_pretrained(model_id)
         self._model = VitPoseForPoseEstimation.from_pretrained(model_id).to(self._device)
