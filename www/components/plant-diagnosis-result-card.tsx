@@ -5,10 +5,16 @@ import { Loader2 } from "lucide-react";
 import { generateCareGuide, type DiagnosisResult } from "@/lib/plant-api";
 import { translateSpecies, translateSymptom } from "@/lib/plant-labels";
 
+// 분류기 자체 확신도가 이 미만이면 결과를 단정적으로 보여주지 않고 재촬영을 안내한다.
+const LOW_CONFIDENCE_THRESHOLD = 0.5;
+
 export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: DiagnosisResult }) {
   const [loading, setLoading] = useState(false);
   const [prescription, setPrescription] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // symptom_confidence는 증상 미판정 상태(하우스플랜트 품종 전용 모델)에서 항상 0이 되므로
+  // 게이팅에 쓰지 않는다 — 여기서 확신도가 실제로 낮은 건 품종 분류뿐이다.
+  const isLowConfidence = diagnosis.species_confidence < LOW_CONFIDENCE_THRESHOLD;
 
   const onGenerateCareGuide = async () => {
     setLoading(true);
@@ -41,19 +47,37 @@ export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: Dia
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-center">
+        <div
+          className={`rounded-xl border px-3 py-2.5 text-center ${
+            isLowConfidence
+              ? "border-destructive/40 bg-destructive/10"
+              : "border-border bg-muted/50"
+          }`}
+        >
           <dt className="text-xs text-muted-foreground">품종 확신도</dt>
           <dd className="mt-0.5 text-lg font-semibold text-foreground">
             {(diagnosis.species_confidence * 100).toFixed(0)}%
           </dd>
         </div>
-        <div className="rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-center">
+        <div
+          className={`rounded-xl border px-3 py-2.5 text-center ${
+            isLowConfidence
+              ? "border-destructive/40 bg-destructive/10"
+              : "border-border bg-muted/50"
+          }`}
+        >
           <dt className="text-xs text-muted-foreground">증상 확신도</dt>
           <dd className="mt-0.5 text-lg font-semibold text-foreground">
             {(diagnosis.symptom_confidence * 100).toFixed(0)}%
           </dd>
         </div>
       </dl>
+
+      {isLowConfidence ? (
+        <p className="mt-3 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          확신도가 낮아요. 잎 전체가 잘 보이도록 밝은 곳에서 사진을 다시 찍어보시면 더 정확해요.
+        </p>
+      ) : null}
 
       {prescription ? (
         <p className="mt-4 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">

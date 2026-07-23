@@ -41,8 +41,12 @@ class _FakeDiagnosisRepository:
 
 
 class _FakeSpeciesClassifier:
+    def __init__(self, label: str = "monstera__overwatered_yellowing", confidence: float = 0.92) -> None:
+        self._label = label
+        self._confidence = confidence
+
     def predict(self, image_bytes: bytes) -> ImageClassifyResult:
-        return ImageClassifyResult(label="monstera__overwatered_yellowing", confidence=0.92)
+        return ImageClassifyResult(label=self._label, confidence=self._confidence)
 
 
 class _FakeImageStorage:
@@ -96,3 +100,30 @@ async def test_get_returns_previously_saved_diagnosis():
 
     assert fetched.id == saved.id
     assert fetched.detected_species == saved.detected_species
+
+
+async def test_diagnose_marks_symptom_not_assessed_for_species_only_label():
+    """품종 전용 분류기(하우스플랜트 재학습분)는 `__` 없는 라벨만 내놓는다.
+    이때 증상을 "healthy"로 임의 대체하면 실제로는 모르는 상태를 확신하는
+    것처럼 보이므로, 미판정으로 남기고 신뢰도도 0으로 둔다."""
+    interactor = DiagnosisInteractor(
+        plant_repository=_FakePlantRepository(),
+        diagnosis_repository=_FakeDiagnosisRepository(),
+        species_classifier=_FakeSpeciesClassifier(label="scindapsus_pictus", confidence=0.81),
+        storage=_FakeImageStorage(),
+    )
+
+    result = await interactor.diagnose(
+        DiagnosisUploadCommand(
+            owner_user_id=1,
+            region="서울",
+            filename="leaf.jpg",
+            content_type="image/jpeg",
+            data=b"fake-bytes",
+        )
+    )
+
+    assert result.detected_species == "scindapsus_pictus"
+    assert result.symptom_label == "not_assessed"
+    assert result.species_confidence == 0.81
+    assert result.symptom_confidence == 0.0

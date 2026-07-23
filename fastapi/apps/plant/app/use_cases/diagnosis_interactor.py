@@ -10,14 +10,20 @@ from plant.app.ports.input.diagnosis_use_case import DiagnosisUseCase
 from plant.app.ports.output.diagnosis_repository import DiagnosisRepository
 from plant.app.ports.output.plant_repository import PlantRepository
 from plant.domain.entities.diagnosis_record_entity import DiagnosisRecordEntity
+from plant.domain.value_objects.plant_label_translator import SYMPTOM_NOT_ASSESSED
 
 _UNKNOWN_LABEL = "unknown__unknown"
 
 
 def _parse_label(label: str) -> tuple[str, str]:
-    """YOLO 분류 라벨 `{species}__{symptom}`을 (species, symptom)으로 분리한다."""
+    """YOLO 분류 라벨을 (species, symptom)으로 분리한다.
+
+    `{species}__{symptom}` 결합 라벨(기존 농작물 병해 모델)이면 그대로 분리하고,
+    `__`가 없는 품종 전용 라벨(하우스플랜트 모델)이면 증상은 "미판정"으로 둔다 —
+    "healthy"로 임의 대체하면 실제로는 모르는 상태를 확신하는 것처럼 보이기 때문.
+    """
     if "__" not in label:
-        return label, "healthy"
+        return label, SYMPTOM_NOT_ASSESSED
     species, symptom = label.split("__", 1)
     return species, symptom
 
@@ -41,6 +47,7 @@ class DiagnosisInteractor(DiagnosisUseCase):
 
         prediction = await asyncio.to_thread(self._species_classifier.predict, command.data)
         species, symptom = _parse_label(prediction.label or _UNKNOWN_LABEL)
+        symptom_confidence = 0.0 if symptom == SYMPTOM_NOT_ASSESSED else prediction.confidence
 
         plant = await self._plant_repository.find_or_create(
             owner_user_id=command.owner_user_id,
@@ -56,7 +63,7 @@ class DiagnosisInteractor(DiagnosisUseCase):
                 detected_species=species,
                 species_confidence=prediction.confidence,
                 symptom_label=symptom,
-                symptom_confidence=prediction.confidence,
+                symptom_confidence=symptom_confidence,
             )
         )
         return self._to_result(record)
