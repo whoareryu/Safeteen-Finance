@@ -31,6 +31,11 @@ const TOPICS: LessonTopic[] = [
     label: "식물 지식 수집",
     items: [{ href: "/portfolio/plant/crawler", label: "크롤러/스크래퍼" }],
   },
+  {
+    id: "chat",
+    label: "채팅",
+    items: [{ href: "/portfolio/chat", label: "Langchain과 대화하기" }],
+  },
 ];
 
 export default function LessonSidebar() {
