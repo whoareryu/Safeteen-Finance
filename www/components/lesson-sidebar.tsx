@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -42,6 +43,17 @@ export default function LessonSidebar() {
   const pathname = usePathname();
   const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
+  const activeTopicId = useMemo(() => {
+    const hit = TOPICS.find((topic) => topic.items.some((it) => active(it.href)));
+    return hit?.id ?? "";
+  }, [pathname]);
+
+  const [openTopic, setOpenTopic] = useState(activeTopicId);
+
+  useEffect(() => {
+    setOpenTopic(activeTopicId);
+  }, [activeTopicId]);
+
   return (
     <aside className="relative z-20 hidden w-[260px] shrink-0 overflow-hidden border-r border-border bg-background md:block">
       <div className="sticky top-[var(--site-header-height)] max-h-[calc(100dvh-var(--site-header-height))] overflow-y-auto p-4">
@@ -49,7 +61,7 @@ export default function LessonSidebar() {
           LESSON
         </p>
 
-        <Accordion type="single" collapsible defaultValue="titanic">
+        <Accordion type="single" collapsible value={openTopic} onValueChange={setOpenTopic}>
           {TOPICS.map((topic) => (
             <AccordionItem key={topic.id} value={topic.id} className="border-0">
               <AccordionTrigger className="rounded-md px-2 py-2 text-sm hover:bg-muted hover:no-underline [&>svg]:text-muted-foreground">
