@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-void main() => runApp(const GourmetMateApp());
+void main() => runApp(const SaessakApp());
 
 // ─── constants ────────────────────────────────────────────────────────────────
 // iOS 시뮬레이터에서 호스트 localhost 접근 (Next.js dev server)
@@ -203,15 +203,15 @@ List<_Passenger> _parseCsvTitanic(String text) {
 }
 
 // ─── app ──────────────────────────────────────────────────────────────────────
-class GourmetMateApp extends StatelessWidget {
-  const GourmetMateApp({super.key});
+class SaessakApp extends StatelessWidget {
+  const SaessakApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: _themeMode,
       builder: (_, mode, _) => MaterialApp(
-        title: 'GourmetMate',
+        title: 'Saessak',
         debugShowCheckedModeBanner: false,
         themeMode: mode,
         theme: _buildTheme(Brightness.light),
@@ -239,7 +239,7 @@ class _MainShell extends StatefulWidget {
 
 class _MainShellState extends State<_MainShell> {
   int _tab = 0;
-  static const _titles = ['GourmetMate', '카테고리', '레슨', '마이페이지'];
+  static const _titles = ['Saessak', '카테고리', '레슨', '마이페이지'];
 
   @override
   Widget build(BuildContext context) {
@@ -1916,7 +1916,7 @@ class _HeroSection extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'GourmetMate',
+              'Saessak',
               style: TextStyle(
                 color: context.ink,
                 fontSize: titleSize,
