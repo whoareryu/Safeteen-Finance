@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import json
 
-from ontology.app.dtos.gemini_dto import GeminiQueryDto
 from ontology.app.dtos.semantic_routing_dto import (
     SemanticRoutingQueryDto,
     SemanticRoutingResultDto,
 )
 from ontology.app.dtos.sommelier_dto import GraphQueryDto
-from ontology.app.ports.input.gemini_use_case import GeminiUseCase
 from ontology.app.ports.input.semantic_routing_use_case import SemanticRoutingUseCase
 from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.output.intent_classification_gateway import IntentClassificationGateway
+from ontology.app.ports.output.langchain_chatbot_gateway import LangchainChatbotGateway
 from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 
@@ -33,13 +32,13 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
         intent_gateway: IntentClassificationGateway,
         sommelier: SommelierUseCase,
         plant_knowledge: PlantKnowledgeSearchPort,
-        gemini: GeminiUseCase,
+        langchain_chatbot: LangchainChatbotGateway,
     ) -> None:
         self._llm = llm
         self._intent_gateway = intent_gateway
         self._sommelier = sommelier
         self._plant_knowledge = plant_knowledge
-        self._gemini = gemini
+        self._langchain_chatbot = langchain_chatbot
 
     async def route(self, dto: SemanticRoutingQueryDto) -> SemanticRoutingResultDto:
         intent = await self._intent_gateway.classify(dto.question)
@@ -50,8 +49,8 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
             return SemanticRoutingResultDto(answer=answer, destination=destination, entities=entities)
 
         if destination == "gemini":
-            result = await self._gemini.ask(GeminiQueryDto(question=dto.question))
-            return SemanticRoutingResultDto(answer=result.answer, destination=destination, entities=entities)
+            answer = await self._langchain_chatbot.chat(dto.question)
+            return SemanticRoutingResultDto(answer=answer, destination=destination, entities=entities)
 
         answer = await self._answer_with_ontology(dto.question, entities)
         return SemanticRoutingResultDto(answer=answer, destination="qwen_rag", entities=entities)
