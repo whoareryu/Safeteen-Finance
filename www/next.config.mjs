@@ -69,8 +69,8 @@ const nextConfig = {
         destination: `${authUrl}/auth/:path*`,
       },
       {
-        source: "/api/silicon-valley/:path*",
-        destination: `${backendUrl}/api/silicon-valley/:path*`,
+        source: "/api/admin/:path*",
+        destination: `${backendUrl}/api/admin/:path*`,
       },
       {
         source: "/api/chef/:path*",

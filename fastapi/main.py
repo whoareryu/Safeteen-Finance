@@ -92,7 +92,7 @@ async def _google_browser_gate(request: Request, call_next):
 
 
 from titanic.adapter.inbound.api import titanic_router  # noqa: E402
-from admin.adapter.inbound.api import silicon_valley_router
+from admin.adapter.inbound.api import admin_app_router
 from ontology.adapter.inbound.api import ontology_router
 from community.adapter.inbound.api import chef_router
 
@@ -244,7 +244,7 @@ app.mount(
 
 app.include_router(ontology_router, prefix="/api")
 app.include_router(titanic_router, prefix="/api")
-app.include_router(silicon_valley_router, prefix="/api")
+app.include_router(admin_app_router, prefix="/api")
 app.include_router(chef_router, prefix="/api")
 app.include_router(vision_router, prefix="/api")
 app.include_router(generation_router, prefix="/api")

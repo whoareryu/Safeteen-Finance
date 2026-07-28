@@ -36,7 +36,7 @@ app/use_cases/ncl_trip_planner_interactor.py
 adapter/outbound/repository/ncl_preference_repository.py         # 탐색 이력 조회 (실시간)
 adapter/outbound/client/ncl_trip_planner_generator_client.py     # LangChain + ChatOllama
 adapter/inbound/api/schemas/ncl_trip_planner_schema.py
-adapter/inbound/api/v1/ncl_trip_planner_router.py                # POST /silicon-valley/ncl/trip-plan
+adapter/inbound/api/v1/ncl_trip_planner_router.py                # POST /admin/ncl/trip-plan
 dependencies/ncl_trip_planner_provider.py
 ```
 

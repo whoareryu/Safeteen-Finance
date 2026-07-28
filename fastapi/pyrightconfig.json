@@ -1,5 +1,5 @@
 {
-  "include": ["apps/titanic", "apps/titanic (머신러닝)/app", "apps/titanic (머신러닝)/adapter", "apps/silicon_valley"],
+  "include": ["apps/titanic", "apps/titanic (머신러닝)/app", "apps/titanic (머신러닝)/adapter", "apps/admin"],
   "exclude": ["**/__pycache__", "**/node_modules"],
   "extraPaths": ["."],
   "pythonVersion": "3.12",

@@ -37,7 +37,7 @@ app/use_cases/elastic_security_assistant_interactor.py
 adapter/outbound/repository/elastic_alert_repository.py               # 최신 보안 경고 조회 (실시간)
 adapter/outbound/client/elastic_security_assistant_generator_client.py # LangChain + ChatOllama (요약·워크플로우 제안·쿼리 생성)
 adapter/inbound/api/schemas/elastic_security_assistant_schema.py
-adapter/inbound/api/v1/elastic_security_assistant_router.py           # POST /silicon-valley/elastic/assist
+adapter/inbound/api/v1/elastic_security_assistant_router.py           # POST /admin/elastic/assist
 dependencies/elastic_security_assistant_provider.py
 ```
 

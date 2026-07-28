@@ -1,4 +1,4 @@
-"""add pdf_documents — admin(silicon_valley) PDF 업로드 추출·요약 파이프라인
+"""add pdf_documents — admin PDF 업로드 추출·요약 파이프라인
 
 Revision ID: e1f2a4b5c6d7
 Revises: a2b3c4d5e6f7

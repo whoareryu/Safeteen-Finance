@@ -86,7 +86,7 @@ def import_models() -> None:
         "plant.adapter.outbound.orm.weather_snapshot_orm",
         "plant.adapter.outbound.orm.care_schedule_orm",
         "plant.adapter.outbound.orm.notification_event_orm",
-        # Admin (silicon_valley)
+        # Admin
         "admin.adapter.outbound.orm.pdf_document_orm",
     ]
 

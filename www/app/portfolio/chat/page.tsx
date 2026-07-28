@@ -38,7 +38,7 @@ export default function LangchainChatPage() {
       setMessages((prev) => [...prev, { role: "user", content: text }]);
 
       try {
-        const res = await fetch("/api/silicon-valley/langchain/chat", {
+        const res = await fetch("/api/admin/langchain/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ message: text }),
