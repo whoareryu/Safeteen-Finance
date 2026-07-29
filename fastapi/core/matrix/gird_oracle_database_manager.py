@@ -3,14 +3,10 @@
 from __future__ import annotations
 
 import logging
-import os
 from collections.abc import AsyncGenerator, Generator
 from typing import Annotated, Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pathlib import Path
-
-from dotenv import load_dotenv
 from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import (
@@ -21,12 +17,11 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
-_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-load_dotenv(_BACKEND_DIR / ".env")
+from core.matrix.secret_manager import secret_manager
 
 logger = logging.getLogger(__name__)
 
-DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")
+DATABASE_URL: Optional[str] = secret_manager.get_secret("DATABASE_URL", None)
 DATABASE_INIT_ERROR: Optional[str] = None
 
 
@@ -134,7 +129,7 @@ def init_engine() -> None:
     if engine is not None:
         return
 
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    DATABASE_URL = secret_manager.get_secret("DATABASE_URL", None)
     if not DATABASE_URL:
         DATABASE_INIT_ERROR = "에러: DATABASE_URL이 환경 변수에 설정되지 않았습니다."
         logger.error(DATABASE_INIT_ERROR)
@@ -142,7 +137,7 @@ def init_engine() -> None:
 
     try:
         async_url = get_async_database_url()
-        echo_sql = os.getenv("SQL_ECHO", "").lower() in ("1", "true", "yes")
+        echo_sql = secret_manager.get_secret("SQL_ECHO", "").lower() in ("1", "true", "yes")
         engine = create_async_engine(async_url, echo=echo_sql, pool_pre_ping=True)
         async_session_maker = async_sessionmaker(
             bind=engine,
@@ -173,9 +168,9 @@ async def dispose_engine() -> None:
 
 def _should_auto_create_tables() -> bool:
     """개발·명시 플래그에서만 create_all 실행 (Alembic과 이중 관리 완화)."""
-    if os.getenv("AUTO_CREATE_TABLES", "").lower() in ("1", "true", "yes"):
+    if secret_manager.get_secret("AUTO_CREATE_TABLES", "").lower() in ("1", "true", "yes"):
         return True
-    return os.getenv("ENV", "development").lower() == "development"
+    return secret_manager.get_secret("ENV", "development").lower() == "development"
 
 
 # ==============================================================================

@@ -1,7 +1,6 @@
 """인증 엔드포인트 (Google OAuth · 닉네임 중복확인/수정 · 세션)."""
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
 
 import httpx
@@ -19,13 +18,14 @@ from apps.auth.user_model import User
 from apps.auth.user_provisioning import find_existing_user
 from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
+from core.matrix.secret_manager import secret_manager
 
 # Google 로그인은 프론트 프록시(whoareryu.cloud)를 거쳐 응답하지만, 네이버·카카오는
 # OAuth state 쿠키 문제로 팝업이 api.whoareryu.cloud를 직접 연다(social_login_router
 # 참고). 이 때문에 wr_session이 api.whoareryu.cloud에만 저장되면 whoareryu.cloud를 통해
 # 오는 /api/auth/session 요청에는 쿠키가 붙지 않아 401이 난다. 두 도메인이 공유하는
 # 상위 도메인을 명시해 서브도메인 어디서 로그인하든 같은 쿠키를 쓰게 한다.
-_COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None
+_COOKIE_DOMAIN = secret_manager.get_secret("COOKIE_DOMAIN", None)
 
 
 async def _start_session(

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-import os
 
 import ollama
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.matrix.secret_manager import secret_manager
 from community.adapter.outbound.orm.receiver_orm import ReceiverORM
 from community.app.dtos.receiver_dto import ReceiverCommand, ReceiverResult
 from community.app.ports.output.receiver_port import ReceiverPort
@@ -41,7 +41,7 @@ class ReceiverRepository(ReceiverPort):
 
     async def _embed(self, text: str) -> list[float] | None:
         try:
-            client = ollama.AsyncClient(host=os.getenv("OLLAMA_HOST", "http://localhost:11434"))
+            client = ollama.AsyncClient(host=secret_manager.get_secret("OLLAMA_HOST", "http://localhost:11434"))
             resp = await client.embed(model=_EMBED_MODEL, input=text)
             return resp.embeddings[0]
         except Exception as e:

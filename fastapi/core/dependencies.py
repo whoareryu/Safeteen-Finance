@@ -5,15 +5,14 @@ apps/auth 발급 로직과 달리 이 모듈은 JWT_PUBLIC_KEY만 있으면 되�
 """
 from __future__ import annotations
 
-import os
-
 import jwt
 from fastapi import Cookie, Depends, Header, HTTPException
 
 from apps.auth.user_role import UserRole
+from core.matrix.secret_manager import secret_manager
 from core.security import TokenPayload, is_token_blacklisted, verify_token
 
-_SERVICE_AUD = os.getenv("SERVICE_AUD", "whoareryu-api")
+_SERVICE_AUD = secret_manager.get_secret("SERVICE_AUD", "whoareryu-api")
 
 
 async def get_current_user(

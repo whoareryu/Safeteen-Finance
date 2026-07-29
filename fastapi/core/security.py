@@ -24,11 +24,13 @@ import jwt
 from cryptography.hazmat.primitives import serialization
 from redis.asyncio import Redis
 
+from core.matrix.secret_manager import secret_manager
+
 _ALGORITHM = "RS256"
 # 프론트엔드에 자동 refresh 인터셉터가 아직 없어서(추후 과제), 액세스 토큰이 만료되면
 # 곧바로 재로그인이 필요해진다. 문서가 예로 든 10분은 그 상태에서 너무 짧아 기본값을
 # 늘렸다 — 필요하면 ACCESS_TOKEN_TTL_MIN 환경변수로 조정.
-ACCESS_TOKEN_TTL_MIN_DEFAULT = int(os.getenv("ACCESS_TOKEN_TTL_MIN", "120"))
+ACCESS_TOKEN_TTL_MIN_DEFAULT = int(secret_manager.get_secret("ACCESS_TOKEN_TTL_MIN", "120"))
 REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30  # 30일
 
 _REFRESH_KEY_PREFIX = "refresh:"
@@ -36,7 +38,7 @@ _REFRESH_FAMILY_KEY_PREFIX = "refresh_family:"
 _BLACKLIST_KEY_PREFIX = "jwt_blacklist:"
 
 COOKIE_KWARGS = dict(
-    domain=os.getenv("COOKIE_DOMAIN") or None,
+    domain=secret_manager.get_secret("COOKIE_DOMAIN", None),
     secure=True,
     httponly=True,
     samesite="lax",
@@ -140,7 +142,7 @@ def verify_password(raw: str, hashed: str) -> bool:
 
 @lru_cache(maxsize=1)
 def _redis_client() -> Redis:
-    return Redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+    return Redis.from_url(secret_manager.get_secret("REDIS_URL", "redis://redis:6379/0"))
 
 
 async def create_refresh_token(sub: str) -> str:

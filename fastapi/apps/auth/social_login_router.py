@@ -22,8 +22,9 @@ from apps.auth.consent_flow import create_pending_signup
 from apps.auth.session_store import SessionStorePort, get_session_store
 from apps.auth.user_provisioning import find_existing_user
 from apps.database import get_sync_db
+from core.matrix.secret_manager import secret_manager
 
-_FRONTEND_URL = os.getenv("FRONTEND_URL", "https://whoareryu.cloud")
+_FRONTEND_URL = secret_manager.get_secret("FRONTEND_URL", "https://whoareryu.cloud")
 _BACKEND_URL = os.environ["BACKEND_PUBLIC_URL"]
 
 social_login_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -52,8 +53,8 @@ async def _login_or_redirect_to_consent(
 # ---------------------------------------------------------------------------
 # Naver
 # ---------------------------------------------------------------------------
-_NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
-_NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
+_NAVER_CLIENT_ID = secret_manager.get_secret("NAVER_CLIENT_ID", "")
+_NAVER_CLIENT_SECRET = secret_manager.get_secret("NAVER_CLIENT_SECRET", "")
 _NAVER_REDIRECT_URI = f"{_BACKEND_URL}/auth/naver/callback"
 
 
@@ -130,8 +131,8 @@ async def naver_callback(
 # ---------------------------------------------------------------------------
 # Kakao
 # ---------------------------------------------------------------------------
-_KAKAO_CLIENT_ID = os.getenv("KAKAO_REST_API_KEY", "")
-_KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
+_KAKAO_CLIENT_ID = secret_manager.get_secret("KAKAO_REST_API_KEY", "")
+_KAKAO_CLIENT_SECRET = secret_manager.get_secret("KAKAO_CLIENT_SECRET", "")
 _KAKAO_REDIRECT_URI = f"{_BACKEND_URL}/auth/kakao/callback"
 
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 
 from redis.asyncio import Redis
 
+from core.matrix.secret_manager import secret_manager
 from plant.adapter.outbound.html.bs4_html_parser import Bs4HtmlParser
 from plant.adapter.outbound.http.requests_web_fetcher import RequestsWebFetcher
 from plant.adapter.outbound.llm.crawl_command_interpreter import QwenCrawlCommandInterpreter
@@ -16,7 +16,7 @@ from plant.app.use_cases.crawler_interactor import CrawlerInteractor
 
 @lru_cache(maxsize=1)
 def _redis_client() -> Redis:
-    return Redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+    return Redis.from_url(secret_manager.get_secret("REDIS_URL", "redis://redis:6379/0"))
 
 
 def get_crawler_use_case() -> CrawlerUseCase:

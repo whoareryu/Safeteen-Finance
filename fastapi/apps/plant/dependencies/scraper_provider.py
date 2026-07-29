@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 from pathlib import Path
 
 from redis.asyncio import Redis
 
+from core.matrix.secret_manager import secret_manager
 from plant.adapter.outbound.filesystem.jsonl_content_storage import JsonlContentStorage
 from plant.adapter.outbound.html.bs4_html_parser import Bs4HtmlParser
 from plant.adapter.outbound.http.requests_web_fetcher import RequestsWebFetcher
@@ -18,7 +18,7 @@ _RESULTS_DIR = Path(__file__).resolve().parents[1] / "resources" / "scraped"
 
 @lru_cache(maxsize=1)
 def _redis_client() -> Redis:
-    return Redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+    return Redis.from_url(secret_manager.get_secret("REDIS_URL", "redis://redis:6379/0"))
 
 
 def get_scraper_use_case() -> ScraperUseCase:

@@ -1,6 +1,7 @@
 import os
 from functools import lru_cache
 
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.resource_adapters.image_classifier.convnext_classifier_model_adapter import (
     ConvNeXtClassifierModelAdapter,
 )
@@ -25,9 +26,11 @@ _DEFAULT_CLASS_NAMES_PATH = os.path.join(
 def get_convnext_backend() -> ImageClassifierModelPort:
     # 가중치 로드 비용이 커서 요청마다 새로 만들지 않고 캐싱한다. 실제로 요청될 때만
     # (backend=convnext) 호출되므로, 가중치가 없어도 다른 backend는 영향받지 않는다.
-    weights_path = os.getenv("IMAGE_CLASSIFIER_WEIGHTS_PATH", _DEFAULT_WEIGHTS_PATH)
-    class_names_path = os.getenv("IMAGE_CLASSIFIER_CLASS_NAMES_PATH", _DEFAULT_CLASS_NAMES_PATH)
-    device = os.getenv("IMAGE_CLASSIFIER_DEVICE", "cpu")
+    weights_path = secret_manager.get_secret("IMAGE_CLASSIFIER_WEIGHTS_PATH", _DEFAULT_WEIGHTS_PATH)
+    class_names_path = secret_manager.get_secret(
+        "IMAGE_CLASSIFIER_CLASS_NAMES_PATH", _DEFAULT_CLASS_NAMES_PATH
+    )
+    device = secret_manager.get_secret("IMAGE_CLASSIFIER_DEVICE", "cpu")
     return ConvNeXtClassifierModelAdapter(
         weights_path=weights_path, class_names_path=class_names_path, device=device
     )

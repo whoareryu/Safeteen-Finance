@@ -24,6 +24,7 @@ export default function LangchainChatPage() {
   const [loading, setLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isComposingRef = useRef(false);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -143,8 +144,19 @@ export default function LangchainChatPage() {
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false;
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !isComposingRef.current &&
+                !e.nativeEvent.isComposing
+              ) {
                 e.preventDefault();
                 void send();
               }

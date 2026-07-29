@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.repositories.sommelier_graph_repository import SommelierRepository
 from ontology.app.use_cases.sommelier_graph_interactor import SommelierInteractor
 
@@ -10,9 +10,9 @@ from ontology.app.use_cases.sommelier_graph_interactor import SommelierInteracto
 @lru_cache(maxsize=1)
 def _repo() -> SommelierRepository:
     return SommelierRepository(
-        uri=os.getenv("NEO4J_URI", "bolt://neo4j:7687"),
-        user=os.getenv("NEO4J_USER", "neo4j"),
-        password=os.getenv("NEO4J_PASSWORD", "changeme"),
+        uri=secret_manager.get_secret("NEO4J_URI", "bolt://neo4j:7687"),
+        user=secret_manager.get_secret("NEO4J_USER", "neo4j"),
+        password=secret_manager.get_secret("NEO4J_PASSWORD", "changeme"),
     )
 
 

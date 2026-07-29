@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import os
-
 import httpx
 
+from core.matrix.secret_manager import secret_manager
 from plant.app.ports.output.embedding_port import EmbeddingPort
 
 _EMBEDDING_MODEL = "bge-m3"
@@ -14,7 +13,7 @@ class PlantEmbeddingAdapter(EmbeddingPort):
 
     def __init__(self, model: str = _EMBEDDING_MODEL) -> None:
         self._model = model
-        self._base_url = os.environ.get("OLLAMA_HOST", "http://host.docker.internal:11434")
+        self._base_url = secret_manager.get_secret("OLLAMA_HOST", "http://host.docker.internal:11434")
 
     async def embed(self, text: str) -> list[float]:
         async with httpx.AsyncClient(base_url=self._base_url, timeout=30.0) as client:

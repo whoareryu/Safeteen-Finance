@@ -26,9 +26,10 @@ from apps.auth.user_model import User
 from apps.auth.user_provisioning import create_oauth_user, find_existing_user
 from apps.auth.user_role import UserRole
 from core import security
+from core.matrix.secret_manager import secret_manager
 
-_AUD = os.getenv("SERVICE_AUD", "whoareryu-api")
-_FRONTEND_URL = os.getenv("FRONTEND_URL", "https://whoareryu.cloud")
+_AUD = secret_manager.get_secret("SERVICE_AUD", "whoareryu-api")
+_FRONTEND_URL = secret_manager.get_secret("FRONTEND_URL", "https://whoareryu.cloud")
 _BACKEND_URL = os.environ["BACKEND_PUBLIC_URL"]  # 문서상 auth 컨테이너 자신의 공개 URL
 
 
@@ -104,8 +105,8 @@ async def _login_or_redirect_to_consent(
 # ---------------------------------------------------------------------------
 # Google — 팝업 + 서버측 인가코드 리다이렉트 (Naver/Kakao와 동일한 방식으로 통일)
 # ---------------------------------------------------------------------------
-_GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-_GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+_GOOGLE_CLIENT_ID = secret_manager.get_secret("GOOGLE_CLIENT_ID", "")
+_GOOGLE_CLIENT_SECRET = secret_manager.get_secret("GOOGLE_CLIENT_SECRET", "")
 _GOOGLE_REDIRECT_URI = f"{_BACKEND_URL}/auth/google/callback"
 
 
@@ -176,8 +177,8 @@ async def google_callback(
 # ---------------------------------------------------------------------------
 # Naver
 # ---------------------------------------------------------------------------
-_NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
-_NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
+_NAVER_CLIENT_ID = secret_manager.get_secret("NAVER_CLIENT_ID", "")
+_NAVER_CLIENT_SECRET = secret_manager.get_secret("NAVER_CLIENT_SECRET", "")
 _NAVER_REDIRECT_URI = f"{_BACKEND_URL}/auth/naver/callback"
 
 
@@ -251,8 +252,8 @@ async def naver_callback(
 # ---------------------------------------------------------------------------
 # Kakao
 # ---------------------------------------------------------------------------
-_KAKAO_CLIENT_ID = os.getenv("KAKAO_REST_API_KEY", "")
-_KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
+_KAKAO_CLIENT_ID = secret_manager.get_secret("KAKAO_REST_API_KEY", "")
+_KAKAO_CLIENT_SECRET = secret_manager.get_secret("KAKAO_CLIENT_SECRET", "")
 _KAKAO_REDIRECT_URI = f"{_BACKEND_URL}/auth/kakao/callback"
 
 
@@ -371,8 +372,8 @@ async def refresh_session(refresh_token: str | None, response: Response, db: Ses
 
     result = await security.rotate_refresh_token(refresh_token)
     if result is None:
-        response.delete_cookie("wr_session", domain=os.getenv("COOKIE_DOMAIN") or None)
-        response.delete_cookie("wr_refresh", domain=os.getenv("COOKIE_DOMAIN") or None)
+        response.delete_cookie("wr_session", domain=secret_manager.get_secret("COOKIE_DOMAIN", None))
+        response.delete_cookie("wr_refresh", domain=secret_manager.get_secret("COOKIE_DOMAIN", None))
         raise HTTPException(status_code=401, detail="세션이 만료되었습니다. 다시 로그인해 주세요.")
 
     sub, new_refresh_token = result
@@ -402,7 +403,7 @@ async def logout(sub: str | None, jti: str | None, response: Response) -> None:
         await security.revoke_refresh_family(sub)
     if jti:
         await security.blacklist_token(jti, ttl_seconds=security.ACCESS_TOKEN_TTL_MIN_DEFAULT * 60)
-    cookie_domain = os.getenv("COOKIE_DOMAIN") or None
+    cookie_domain = secret_manager.get_secret("COOKIE_DOMAIN", None)
     response.delete_cookie("wr_session", domain=cookie_domain)
     response.delete_cookie("wr_refresh", domain=cookie_domain)
     response.delete_cookie("wr_owner_session")

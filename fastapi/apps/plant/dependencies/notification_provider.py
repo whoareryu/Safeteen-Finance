@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import os
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.database import get_db
+from core.matrix.secret_manager import secret_manager
 
 from plant.adapter.outbound.coupang.coupang_search_link_adapter import CoupangSearchLinkAdapter
 from plant.adapter.outbound.n8n.channel_strategies.discord_channel_strategy import (
@@ -24,7 +23,7 @@ from plant.app.ports.input.notification_use_case import NotificationUseCase
 from plant.app.ports.output.notification_repository import NotificationRepository
 from plant.app.use_cases.notification_interactor import NotificationInteractor
 
-_HUB_URL = os.getenv("N8N_HUB_WEBHOOK_URL", "")
+_HUB_URL = secret_manager.get_secret("N8N_HUB_WEBHOOK_URL", "")
 _COUPANG_LINK = CoupangSearchLinkAdapter()
 _GATEWAY = N8nNotificationGateway(
     strategies={

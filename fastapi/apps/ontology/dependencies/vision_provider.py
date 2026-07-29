@@ -1,17 +1,16 @@
-import os
-
 from ontology.app.ports.input.vision_use_case import VisionUseCase
 from ontology.app.use_cases.vision_interactor import VisionInteractor
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from core.matrix.gird_oracle_database_manager import get_db
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.repositories.vision_repository import VisionRepository
 from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
 from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
 from ontology.app.ports.output.vision_port import VisionPort
 
-_S3_BUCKET = os.getenv("VISION_S3_BUCKET", "")
-_AWS_REGION = os.getenv("AWS_REGION", "ap-northeast-2")
+_S3_BUCKET = secret_manager.get_secret("VISION_S3_BUCKET", "")
+_AWS_REGION = secret_manager.get_secret("AWS_REGION", "ap-northeast-2")
 
 
 """

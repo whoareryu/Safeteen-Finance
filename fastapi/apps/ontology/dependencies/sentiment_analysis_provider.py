@@ -1,6 +1,6 @@
-import os
 from functools import lru_cache
 
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.resource_adapters.sentiment_analysis.sentiment_classifier_model_adapter import (
     SentimentClassifierModelAdapter,
 )
@@ -12,8 +12,8 @@ from ontology.app.use_cases.sentiment_analysis_interactor import SentimentAnalys
 @lru_cache(maxsize=1)
 def get_sentiment_model_port() -> SentimentAnalysisModelPort:
     # 가중치 로드 비용이 커서 요청마다 새로 만들지 않고 캐싱한다.
-    model_id = os.getenv("SENTIMENT_ANALYSIS_MODEL_ID", "monologg/koelectra-base-finetuned-nsmc")
-    device = os.getenv("SENTIMENT_ANALYSIS_DEVICE", "cpu")
+    model_id = secret_manager.get_secret("SENTIMENT_ANALYSIS_MODEL_ID", "monologg/koelectra-base-finetuned-nsmc")
+    device = secret_manager.get_secret("SENTIMENT_ANALYSIS_DEVICE", "cpu")
     return SentimentClassifierModelAdapter(model_id=model_id, device=device)
 
 

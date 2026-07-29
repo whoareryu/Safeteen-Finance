@@ -2,6 +2,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.filesystem.local_image_storage_adapter import (
     LocalImageStorageAdapter,
 )
@@ -23,17 +24,17 @@ _DEFAULT_MEDIA_DIR = (
 @lru_cache(maxsize=1)
 def get_segmentation_model_port() -> SemanticSegmentationModelPort:
     # 가중치 로드 비용이 커서 요청마다 새로 만들지 않고 캐싱한다.
-    model_id = os.getenv(
+    model_id = secret_manager.get_secret(
         "SEMANTIC_SEGMENTATION_MODEL_ID", "nvidia/segformer-b2-finetuned-ade-512-512"
     )
-    device = os.getenv("SEMANTIC_SEGMENTATION_DEVICE", "cpu")
+    device = secret_manager.get_secret("SEMANTIC_SEGMENTATION_DEVICE", "cpu")
     return SegformerModelAdapter(model_id=model_id, device=device)
 
 
 def get_segmentation_storage_gateway() -> ImageStorageGateway:
     return LocalImageStorageAdapter(
         base_dir=_DEFAULT_MEDIA_DIR,
-        public_base_url=os.getenv("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
+        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
         url_prefix="media/segmentation",
     )
 

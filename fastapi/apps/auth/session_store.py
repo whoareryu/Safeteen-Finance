@@ -5,13 +5,13 @@
 """
 from __future__ import annotations
 
-import os
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
 from redis.asyncio import Redis
 
 from apps.auth.jwt_service import TOKEN_TTL_SECONDS
+from core.matrix.secret_manager import secret_manager
 
 _KEY_PREFIX = "session:"
 
@@ -43,7 +43,7 @@ class RedisSessionStore(SessionStorePort):
 
 @lru_cache(maxsize=1)
 def _redis_client() -> Redis:
-    return Redis.from_url(os.getenv("REDIS_URL", "redis://redis:6379/0"))
+    return Redis.from_url(secret_manager.get_secret("REDIS_URL", "redis://redis:6379/0"))
 
 
 def get_session_store() -> SessionStorePort:

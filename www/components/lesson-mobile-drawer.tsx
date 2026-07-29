@@ -37,7 +37,7 @@ const TOPICS: LessonTopic[] = [
   {
     id: "chat",
     label: "채팅",
-    items: [{ href: "/portfolio/chat", label: "Langchain과 대화하기" }],
+    items: [{ href: "/portfolio/langchain/chat", label: "Langchain과 대화하기" }],
   },
 ];
 

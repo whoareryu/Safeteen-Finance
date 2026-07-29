@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 from core.db_health_adapter import DbHealthAdapter
 from core.database import dispose_engine, get_db, init_db, init_engine
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from core.matrix.secret_manager import secret_manager
 
 try:
     from doro.app.doro_director import DoroDirector
@@ -110,8 +111,6 @@ from apps.auth.admin_router import admin_router
 # 이동했다 — 이 백엔드는 RS256 공개키로 토큰을 검증만 한다(core.dependencies).
 
 # ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
-import os
-
 from apps.auth.owner_session import is_valid_owner_token
 from community.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
 from community.dependencies.email_provider import get_email_use_case
@@ -161,7 +160,7 @@ from plant.dependencies.diagnosis_provider import (
 register_species_classifier_factory(
     lambda: YoloClassifierModelAdapter(
         model_port=PlantYoloModelAdapter(
-            os.getenv("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")
+            secret_manager.get_secret("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")
         )
     )
 )
@@ -171,7 +170,7 @@ _plant_diagnosis_media_dir = _backend_root / "apps/plant/resources/diagnosis_upl
 register_image_storage_factory(
     lambda: LocalImageStorageAdapter(
         base_dir=_plant_diagnosis_media_dir,
-        public_base_url=os.getenv("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
+        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
         url_prefix="media/plant",
     )
 )
@@ -189,7 +188,7 @@ _plant_tutorial_media_dir = _backend_root / "apps/plant/resources/tutorial_photo
 register_tutorial_image_storage_factory(
     lambda: LocalImageStorageAdapter(
         base_dir=_plant_tutorial_media_dir,
-        public_base_url=os.getenv("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
+        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
         url_prefix="media/plant-tutorial",
     )
 )

@@ -2,6 +2,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+from core.matrix.secret_manager import secret_manager
 from ontology.adapter.outbound.filesystem.local_image_storage_adapter import (
     LocalImageStorageAdapter,
 )
@@ -19,9 +20,9 @@ _DEFAULT_MEDIA_DIR = Path(os.path.dirname(os.path.dirname(__file__))) / "resourc
 @lru_cache(maxsize=1)
 def get_generation_model_port() -> ImageGenerationModelPort:
     # 가중치 로드 비용이 매우 커서(수 GB) 요청마다 새로 만들지 않고 캐싱한다.
-    model_id = os.getenv("IMAGE_GENERATION_MODEL_ID", "stabilityai/sdxl-turbo")
-    lora_weights_path = os.getenv("IMAGE_GENERATION_LORA_PATH") or None
-    device = os.getenv("IMAGE_GENERATION_DEVICE", "cpu")
+    model_id = secret_manager.get_secret("IMAGE_GENERATION_MODEL_ID", "stabilityai/sdxl-turbo")
+    lora_weights_path = secret_manager.get_secret("IMAGE_GENERATION_LORA_PATH", None)
+    device = secret_manager.get_secret("IMAGE_GENERATION_DEVICE", "cpu")
     return SdxlTurboModelAdapter(
         model_id=model_id, lora_weights_path=lora_weights_path, device=device
     )
@@ -32,7 +33,7 @@ def get_generation_storage_gateway() -> ImageStorageGateway:
     # 자격증명 발급 후 S3ImageStorageGateway로 교체.
     return LocalImageStorageAdapter(
         base_dir=_DEFAULT_MEDIA_DIR,
-        public_base_url=os.getenv("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
+        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
         url_prefix="media/generated",
     )
 

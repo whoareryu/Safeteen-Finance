@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from functools import lru_cache
-from pathlib import Path
 
-from dotenv import load_dotenv
-
-_BACKEND_ROOT = Path(__file__).resolve().parents[3]
-_ENV_PATH = _BACKEND_ROOT / ".env"
+from core.matrix.secret_manager import secret_manager
 
 
 @dataclass(frozen=True)
@@ -45,12 +40,13 @@ class ExternalApiSettings:
 
 @lru_cache(maxsize=1)
 def get_external_settings() -> ExternalApiSettings:
-    load_dotenv(_ENV_PATH)
     return ExternalApiSettings(
-        openweather_api_key=(os.getenv("OPENWEATHER_API_KEY") or "").strip(),
-        openweather_city=(os.getenv("OPENWEATHER_CITY") or "Seoul").strip() or "Seoul",
-        plant_air_purifying_api_key=(os.getenv("PLANT_AIR_PURIFYING_API_KEY") or "").strip(),
-        plant_drought_resistant_api_key=(os.getenv("PLANT_DROUGHT_RESISTANT_API_KEY") or "").strip(),
-        plant_indoor_garden_api_key=(os.getenv("PLANT_INDOOR_GARDEN_API_KEY") or "").strip(),
-        pixabay_api_key=(os.getenv("PIXABAY_API_KEY") or "").strip(),
+        openweather_api_key=secret_manager.get_secret("OPENWEATHER_API_KEY", "").strip(),
+        openweather_city=secret_manager.get_secret("OPENWEATHER_CITY", "Seoul").strip() or "Seoul",
+        plant_air_purifying_api_key=secret_manager.get_secret("PLANT_AIR_PURIFYING_API_KEY", "").strip(),
+        plant_drought_resistant_api_key=secret_manager.get_secret(
+            "PLANT_DROUGHT_RESISTANT_API_KEY", ""
+        ).strip(),
+        plant_indoor_garden_api_key=secret_manager.get_secret("PLANT_INDOOR_GARDEN_API_KEY", "").strip(),
+        pixabay_api_key=secret_manager.get_secret("PIXABAY_API_KEY", "").strip(),
     )
