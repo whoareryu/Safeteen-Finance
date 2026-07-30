@@ -105,7 +105,7 @@ export default function Home() {
               <GeminiChat
                 variant="apple"
                 apiPath="/api/plant/chat"
-                model="qwen2.5:1.5b-instruct"
+                model="exaone3.5:2.4b"
                 inputPlaceholder="새싹이에게 물어보기"
                 onImageAttach={diagnoseFromChat}
               />

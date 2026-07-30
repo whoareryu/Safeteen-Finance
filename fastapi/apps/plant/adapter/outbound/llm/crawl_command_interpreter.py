@@ -5,7 +5,7 @@ import json
 from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 from plant.app.ports.output.crawl_command_interpreter_port import CrawlCommandInterpreterPort
 
-_MODEL = "qwen2.5:1.5b-instruct"
+_MODEL = "exaone3.5:2.4b"
 
 _PROMPT = """너는 웹 크롤링/스크래핑 명령을 해석하는 비서야. 사용자의 자연어 명령에서
 찾고 싶은 핵심 키워드와 탐색 깊이(depth)를 추출해서, 아래 JSON 형식으로만 응답해.
@@ -24,8 +24,8 @@ depth를 명령에서 알 수 없으면 2를 기본값으로 써.
 """
 
 
-class QwenCrawlCommandInterpreter(CrawlCommandInterpreterPort):
-    """PoC 단계라 QLoRA 파인튜닝 없이, 이미 서빙 중인 Qwen 1.5B에 파싱 전용
+class ExaoneCrawlCommandInterpreter(CrawlCommandInterpreterPort):
+    """PoC 단계라 QLoRA 파인튜닝 없이, 이미 서빙 중인 EXAONE 3.5 2.4B에 파싱 전용
     시스템 프롬프트만 갈아 끼워 명령을 해석한다 (semantic-routing과 동일 패턴)."""
 
     def __init__(self, model: str = _MODEL) -> None:

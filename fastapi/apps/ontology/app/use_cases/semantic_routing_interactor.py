@@ -53,7 +53,7 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
             return SemanticRoutingResultDto(answer=answer, destination=destination, entities=entities)
 
         answer = await self._answer_with_ontology(dto.question, entities)
-        return SemanticRoutingResultDto(answer=answer, destination="qwen_rag", entities=entities)
+        return SemanticRoutingResultDto(answer=answer, destination="exaone_rag", entities=entities)
 
     async def _answer_with_ontology(self, question: str, entities: list[str]) -> str:
         context = await self._search_ontology(question, entities)

@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 from core.matrix.secret_manager import secret_manager
 from plant.adapter.outbound.html.bs4_html_parser import Bs4HtmlParser
 from plant.adapter.outbound.http.requests_web_fetcher import RequestsWebFetcher
-from plant.adapter.outbound.llm.crawl_command_interpreter import QwenCrawlCommandInterpreter
+from plant.adapter.outbound.llm.crawl_command_interpreter import ExaoneCrawlCommandInterpreter
 from plant.adapter.outbound.redis.crawl_queue_repository import RedisCrawlQueueRepository
 from plant.app.ports.input.crawler_use_case import CrawlerUseCase
 from plant.app.ports.output.crawl_command_interpreter_port import CrawlCommandInterpreterPort
@@ -28,4 +28,4 @@ def get_crawler_use_case() -> CrawlerUseCase:
 
 
 def get_crawl_command_interpreter() -> CrawlCommandInterpreterPort:
-    return QwenCrawlCommandInterpreter()
+    return ExaoneCrawlCommandInterpreter()

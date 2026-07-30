@@ -11,7 +11,7 @@ from plant.adapter.inbound.mappers.chat_mapper import to_command, to_response
 chat_router = APIRouter(tags=["plant-chat"])
 
 
-@chat_router.post("/chat", summary="Qwen 라우팅 식물 채팅 (DB 있으면 RAG, 없으면 Gemini)")
+@chat_router.post("/chat", summary="EXAONE 라우팅 식물 채팅 (DB 있으면 RAG, 없으면 Gemini)")
 async def chat(
     request: ChatRequest,
     use_case: SemanticRoutingUseCase = Depends(get_semantic_routing_use_case),

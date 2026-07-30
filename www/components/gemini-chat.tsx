@@ -17,7 +17,7 @@ type Msg = { id: string; role: Role; content: string };
 
 type AttachedImage = { file: File; previewUrl: string };
 
-const DEFAULT_MODEL = "qwen2.5:1.5b-instruct";
+const DEFAULT_MODEL = "exaone3.5:2.4b";
 
 function id() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -28,7 +28,7 @@ type GeminiChatProps = {
   /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
   apiPath?: string;
   inputPlaceholder?: string;
-  /** 기본 qwen2.5:1.5b-instruct */
+  /** 기본 exaone3.5:2.4b */
   model?: string;
   /** 제공 시에만 첨부(+)/카메라 버튼이 활성화됨. 선택한 이미지를 받아 채팅창에 표시할 텍스트를 반환 */
   onImageAttach?: (file: File) => Promise<string>;

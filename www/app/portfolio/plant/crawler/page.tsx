@@ -114,7 +114,7 @@ function CrawlerDoc() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">동작 흐름</h2>
         <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
-          <li>키워드를 Qwen(1.5B)이 해석해 검색 키워드·탐색 깊이(depth)를 추출</li>
+          <li>키워드를 EXAONE(2.4B)이 해석해 검색 키워드·탐색 깊이(depth)를 추출</li>
           <li>URL과 키워드를 ontology 허브의 Redis 큐(<code className="rounded bg-muted px-1 py-0.5">ontology:crawler:queue</code>)에 적재</li>
           <li>큐에서 즉시 꺼내 BFS로 같은 도메인 링크를 depth 제한까지 탐색</li>
           <li>방문한 페이지의 제목·본문·링크를 모아 <code className="rounded bg-muted px-1 py-0.5">ontology/resources/crawled/</code>에 JSONL로 저장</li>
@@ -154,7 +154,7 @@ function ScraperDoc() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">동작 흐름</h2>
         <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
-          <li>키워드를 Qwen(1.5B)이 해석해 검색 키워드를 추출</li>
+          <li>키워드를 EXAONE(2.4B)이 해석해 검색 키워드를 추출</li>
           <li>URL과 키워드를 ontology 허브의 Redis 큐(<code className="rounded bg-muted px-1 py-0.5">ontology:scraper:queue</code>)에 적재</li>
           <li>큐에서 즉시 꺼내 페이지를 페치하고 BeautifulSoup으로 본문 태그(p/li/h1~h3)에서 키워드 포함 문단만 추출</li>
           <li>결과를(문단이 없어도) <code className="rounded bg-muted px-1 py-0.5">ontology/resources/scraped/</code>에 JSONL로 저장</li>
