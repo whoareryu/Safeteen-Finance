@@ -1,6 +1,6 @@
 ---
 type: spoke
-app: silicon_valley
+app: admin
 links:
   - star_craft
 ---

@@ -1,6 +1,6 @@
 ---
 type: spoke
-app: silicon_valley
+app: admin
 links:
   - star_craft
 ---
@@ -15,7 +15,7 @@ LangChain의 강점/약점을 이 프로젝트의 헥사고날 구조에 맞춘 
 
 ## 0. 컨텍스트
 
-- 이 저장소에서 LangChain은 현재 `silicon_valley` 앱의 Morningstar 인사이트 엔진에서 사용 중이다.
+- 이 저장소에서 LangChain은 현재 `admin` 앱의 Morningstar 인사이트 엔진에서 사용 중이다.
   ([005-langchain-morningstar-strategy.md](005-langchain-morningstar-strategy.md) 참고)
 - 설치된 패키지: `langchain`, `langchain-community`, `langsmith`, `langgraph`. 별도 provider 패키지
   (`langchain-google-genai` 등)는 없으며, 로컬 Ollama(`core/lol/t1_mid_faker_orchestrator.py`와 동일한

@@ -1,4 +1,4 @@
-# silicon_valley — Architecture Rules
+# admin — Architecture Rules
 
 헥사고날(Ports & Adapters) + Clean Architecture 기반. 각 캐릭터(도메인 행위자)가 하나의 수직 슬라이스를 형성한다.
 
@@ -7,7 +7,7 @@
 ## 폴더 구조
 
 ```
-silicon_valley/
+admin/
 ├── adapter/
 │   ├── inbound/
 │   │   └── api/

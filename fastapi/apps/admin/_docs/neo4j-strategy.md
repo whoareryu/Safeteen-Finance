@@ -1,6 +1,6 @@
 ---
 type: spoke
-app: silicon_valley
+app: admin
 links:
   - langgragh-harness
   - neo4j-harness
