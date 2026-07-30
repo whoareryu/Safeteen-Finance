@@ -6,16 +6,16 @@ paths:
 
 # TypeScript 규칙
 
-`nextjs/`에서 실제로 쓰이고 있는 패턴을 기준으로 한다. 새 코드는 아래를 따르고,
+`www/`에서 실제로 쓰이고 있는 패턴을 기준으로 한다. 새 코드는 아래를 따르고,
 기존 파일을 수정할 때는 그 파일의 스타일을 우선한다 (루트 CLAUDE.md §3 정밀한 수정).
 
 ---
 
 ## 1. 기본
 
-- **strict mode 필수.** `nextjs/tsconfig.json`의 `"strict": true`를 끄지 않는다.
+- **strict mode 필수.** `www/tsconfig.json`의 `"strict": true`를 끄지 않는다.
 - **`any` 금지.** 외부에서 들어온 값은 `unknown`으로 받고 좁혀서 쓴다.
-- **인터페이스보다 타입 별칭(`type`)을 선호한다.**
+- **타입 별칭(`type`)을 기본으로 쓴다.** `interface`는 `lib/`의 순수 데이터 모델에서만 유지한다.
 - `enum`을 쓰지 않는다. 유니언 리터럴 또는 `as const` 객체로 대체한다.
 
 `next.config.mjs`의 `typescript.ignoreBuildErrors: true`는 의도된 설정이지만,
@@ -25,103 +25,69 @@ paths:
 
 ## 2. 타입 별칭 우선
 
-선언은 `type`을 기본으로 한다. 유니언·교차·매핑·`typeof` 파생 등 실제 쓰이는
-표현을 그대로 담을 수 있다.
+선언은 `type`을 기본으로 한다.
 
 ```ts
-// components/GeminiHeroChat.tsx
+// components/gemini-chat.tsx
 type Role = "user" | "assistant";
-type ChatMessage = { id: string; role: Role; text: string };
-```
-
-```ts
-// components/ui/toast.tsx — 라이브러리 타입에서 파생
-type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
+type Msg = { id: string; role: Role; content: string };
+type AttachedImage = { file: File; previewUrl: string };
 ```
 
 `interface`는 `lib/`의 순수 데이터 모델처럼 이미 그렇게 선언된 곳에서만 유지한다
-(`lib/crawlingBoard.ts`의 `BoardPost`). 새로 만드는 타입은 `type`으로 쓴다.
-선언 병합(declaration merging)이 필요한 경우에만 `interface`가 정당한 선택이다.
+(`lib/titanic.ts`의 `ChatMessage`/`SmithChatResponse`, `lib/plant-api.ts`,
+`lib/chef-address.ts`). 새로 만드는 타입은 `type`으로 쓴다. 선언 병합(declaration
+merging)이 필요한 경우에만 `interface`가 정당한 선택이다.
 
 ---
 
 ## 3. `unknown` 우선, `any` 금지
 
-파싱된 JSON, API 응답, 에러 객체는 `unknown`으로 받고 `typeof` / `in` /
-`Array.isArray`로 좁힌다.
+API 응답은 `unknown`을 포함한 형태로 받고 좁혀서 쓴다. `lib/` 전반에서 반복되는
+패턴:
 
 ```ts
-// app/api/gemini/chat/route.ts
-function extractGeminiError(raw: string, parsed: unknown) {
-  if (typeof parsed === "object" && parsed !== null) {
-    const body = parsed as Record<string, unknown>;
-    const apiError = body.error ?? body.message;
-    if (typeof apiError === "string") return apiError;
-    // ...
-  }
-  return raw || "Gemini API 오류";
-}
+// lib/plant-api.ts, lib/my-plants-api.ts, lib/plant-tutorial-api.ts, lib/crawler-api.ts 공통 패턴
+const data = (await res.json().catch(() => ({}))) as T & { detail?: unknown };
 ```
 
 에러는 `instanceof`로 좁힌다.
 
 ```ts
-const msg = e instanceof Error ? e.message : "알 수 없는 오류";
+// app/api/titanic/smith-chat/route.ts
+const message = e instanceof Error ? e.message : "오류가 발생했습니다.";
 ```
-
-`fetch` 응답은 기대 형태를 명시해 받는다.
-
-```ts
-const data = (await res.json()) as { text?: string; detail?: unknown };
-```
-
-> **현재 남아 있는 예외:** `components/GeminiHeroChat.tsx`,
-> `components/moneyball/MoneyballHeroChat.tsx`, `app/api/gemini/chat/route.ts`의
-> `parseApiError` / `extractGeminiError`에 `as any`가 남아 있다. 새 코드에서
-> 복사하지 않는다. 해당 파일을 손볼 일이 생기면 `Record<string, unknown>` 캐스팅
-> 뒤 `typeof` 검사로 정리한다.
 
 ---
 
 ## 4. 컴포넌트 Props
 
 - Props는 `<컴포넌트명>Props` 이름의 `type`으로 선언한다.
-- 컴포넌트는 **named export** 함수 선언을 기본으로 한다 (`export function Xxx`).
-- 선택 값은 `?`와 기본값으로 처리하고, `className?: string`을 받아 `cn()`으로 합친다.
+- 컴포넌트는 **default export** 함수 선언이 다수다 (`export default function Xxx`).
+  기존 파일이 named export면 그 스타일을 따른다.
+- 선택 값은 `?`와 기본값으로 처리하고, JSDoc 주석으로 기본 동작을 남긴다.
 
 ```tsx
-// components/home/PortfolioItem.tsx
-import { cn } from "@/lib/utils";
-import type { PortfolioItemData } from "./portfolio-data";
-
-type PortfolioItemProps = {
-  item: PortfolioItemData;
-  featured?: boolean;
-  className?: string;
+// components/gemini-chat.tsx
+type GeminiChatProps = {
+  variant?: "dark" | "apple";
+  /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
+  apiPath?: string;
+  inputPlaceholder?: string;
+  onImageAttach?: (file: File) => Promise<string>;
 };
 
-export function PortfolioItem({
-  item,
-  featured = false,
-  className,
-}: PortfolioItemProps) {
-  return <article className={cn("group flex flex-col", className)}>...</article>;
+export default function GeminiChat({
+  variant = "dark",
+  apiPath = "/api/chat",
+  inputPlaceholder = "무엇이든 물어보세요",
+  onImageAttach,
+}: GeminiChatProps) {
+  // ...
 }
 ```
 
-콜백 Props는 `on*` 이름에 반환 타입까지 적는다.
-
-```ts
-// components/layout/MobileMenu.tsx
-type MobileMenuProps = {
-  onClose: () => void;
-  shopOpen: boolean;
-  onToggleShop: () => void;
-  isLessonPage?: boolean;
-};
-```
-
-`components/ui/`(shadcn 자동 생성)는 직접 수정하지 않는다. 그쪽은 DOM 속성을
+`components/ui/`(shadcn 자동생성)는 직접 수정하지 않는다. 그쪽은 DOM 속성을
 `React.ComponentProps<'button'> & VariantProps<typeof buttonVariants>`처럼
 확장하는 shadcn 관례를 따르며, 우리 규칙보다 생성기 출력이 우선이다.
 
@@ -129,27 +95,12 @@ type MobileMenuProps = {
 
 ## 5. 상수는 `as const`, 타입은 거기서 파생
 
-값과 타입을 두 번 적지 않는다. 상수 배열/객체에 `as const`를 붙이고 타입을 뽑아 쓴다.
+값과 타입을 두 번 적지 않는다.
 
 ```tsx
-// components/GeminiHeroChat.tsx
-const MODEL_OPTIONS = [
-  { key: "fast", label: "빠른 응답" },
-  { key: "pro", label: "고품질" },
-] as const;
-
-const [modelKey, setModelKey] =
-  useState<(typeof MODEL_OPTIONS)[number]["key"]>("fast");
-```
-
-키가 고정된 조회 테이블은 `Record`로 명시한다.
-
-```ts
-// app/api/gemini/chat/route.ts
-const MODEL_IDS: Record<string, string> = {
-  fast: "gemini-2.5-flash",
-  pro: "gemini-2.5-pro",
-};
+// components/gemini-chat.tsx 스타일
+const ROLES = ["user", "assistant"] as const;
+type Role = (typeof ROLES)[number];
 ```
 
 ---
@@ -158,45 +109,59 @@ const MODEL_IDS: Record<string, string> = {
 
 - `useState`는 초기값으로 추론되지 않을 때만 제네릭을 붙인다.
   - `useState("")` → 제네릭 불필요
-  - `useState<ChatMessage[]>([])`, `useState<string | null>(null)` → 필요
-- `useRef`는 DOM 엘리먼트 타입을 명시한다: `useRef<HTMLTextAreaElement>(null)`.
-- Context는 값 타입을 `type`으로 선언하고 `createContext<T>`에 넘긴다.
+  - `useState<Msg[]>([])`, `useState<string | null>(null)` → 필요
+- `useRef`는 DOM 엘리먼트 타입을 명시한다: `useRef<HTMLTextAreaElement>(null)`
+  (`app/portfolio/langchain/chat/page.tsx` 참고).
 
 ```tsx
-// components/layout/RightPanelContext.tsx
-type Ctx = {
-  content: ReactNode;
-  setContent: (node: ReactNode) => void;
-};
-
-const RightPanelContext = createContext<Ctx>({
-  content: null,
-  setContent: () => {},
-});
+// app/portfolio/langchain/chat/page.tsx
+const [messages, setMessages] = useState<Msg[]>([INITIAL]);
+const textareaRef = useRef<HTMLTextAreaElement>(null);
+const isComposingRef = useRef(false);
 ```
 
 ---
 
 ## 7. Route Handler (`app/api/**/route.ts`)
 
-- 시그니처는 `NextRequest` / `NextResponse`를 쓴다.
-- 요청 본문은 **파싱 전에 기대 형태를 선언**하고, `req.json()` 실패를 잡는다.
-- 응답은 성공 `{ ... }` / 실패 `{ error: string }` + 적절한 `status`로 통일한다.
+두 패턴이 실제로 쓰인다.
+
+**(a) 백엔드로 그대로 넘기는 얇은 프록시** — 대부분 이 형태다. 로직은
+`lib/backend-proxy.ts`의 `proxyToBackend`에 있다.
 
 ```ts
-export async function POST(req: NextRequest) {
-  let body: { messages?: ChatMessage[]; modelKey?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "잘못된 요청 본문입니다." }, { status: 400 });
-  }
-  // ...
+// app/api/chat/route.ts
+import { proxyToBackend } from "@/lib/backend-proxy";
+
+export async function POST(request: Request) {
+  return proxyToBackend(request, "/chat");
 }
 ```
 
-에러 메시지는 사용자에게 노출되므로 **한국어**로 쓰고, 상위 API 키·URL 등
-내부 정보를 그대로 흘리지 않는다.
+**(b) 요청 본문을 가공해서 넘기는 경우** — 파싱 전에 기대 형태를 선언하고,
+`req.json()` 실패와 백엔드 호출 실패를 각각 잡는다.
+
+```ts
+// app/api/titanic/smith-chat/route.ts
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json()) as { message?: string };
+    const userMessage = (body.message ?? "").trim();
+    if (!userMessage) {
+      return NextResponse.json({ error: "메시지를 입력해 주세요." }, { status: 400 });
+    }
+    // ... 백엔드 호출
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "오류가 발생했습니다.";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
+}
+```
+
+새 백엔드 프록시 라우트를 추가할 때는 (a)를 우선 고려하고, 요청/응답 가공이
+필요할 때만 (b)로 간다. 에러 메시지는 사용자에게 노출되므로 **한국어**로 쓰고,
+백엔드 URL·내부 정보를 그대로 흘리지 않는다 (`lib/backend-proxy.ts`의
+`backendNotConfiguredResponse` 참고).
 
 ---
 
@@ -204,12 +169,6 @@ export async function POST(req: NextRequest) {
 
 - 타입 전용 import는 `import type` 또는 인라인 `type` 지정자를 쓴다.
   `isolatedModules: true`이므로 이 구분이 필요하다.
-
-```ts
-import { clsx, type ClassValue } from "clsx";
-import type { PortfolioItemData } from "./portfolio-data";
-```
-
 - 프로젝트 내부 참조는 경로 별칭 `@/`를 쓴다 (`@/lib/utils`, `@/components/ui/button`).
   같은 디렉터리 내부 참조에만 상대 경로를 허용한다.
 - 클라이언트 컴포넌트는 파일 최상단에 `"use client";`를 둔다. 상태·이벤트·브라우저
@@ -217,22 +176,12 @@ import type { PortfolioItemData } from "./portfolio-data";
 
 ---
 
-## 9. 브라우저 전용 코드
+## 9. 컴포넌트에서 직접 `fetch` 금지
 
-`localStorage` 등은 서버 렌더링에서 실행될 수 있으므로 가드한다.
-
-```ts
-// lib/crawlingBoard.ts
-function getStoredPosts(): BoardPost[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as BoardPost[]) : [];
-  } catch {
-    return [];
-  }
-}
-```
+`www/CLAUDE.md` 규약: 컴포넌트에서 `fetch` 직접 호출 금지, `lib/` 래퍼를 경유한다
+(예외: `app/portfolio/langchain/chat/page.tsx`처럼 백엔드 라우트 하나만 호출하는
+단순 페이지는 현재 직접 `fetch`를 쓰고 있다 — 새로 만들 때는 `lib/` 래퍼를 우선
+검토한다).
 
 ---
 
@@ -246,4 +195,5 @@ function getStoredPosts(): BoardPost[] {
 - [ ] 상수 리터럴에 `as const`를 붙이고 타입을 파생시켰다
 - [ ] 타입 전용 import에 `type` 지정자를 붙였다
 - [ ] 내부 import가 `@/` 별칭을 쓴다
-- [ ] `pnpm build`가 통과한다 (`ignoreBuildErrors`에 기대지 않는다) 
+- [ ] 새 API 프록시는 가능하면 `lib/backend-proxy.ts`의 `proxyToBackend`를 썼다
+- [ ] `pnpm build`가 통과한다 (`www`에는 ESLint 설정이 없어 `pnpm lint`는 검증 수단이 아니다)

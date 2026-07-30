@@ -127,6 +127,89 @@ Violating any of the rules above (SOLID, architecture layers) is a blocker — s
 
 ---
 
+## 저장소 구조
+
+```text
+cloud.whoareryu/
+├── fastapi/        # FastAPI 백엔드 (Python, 헥사고날)
+├── www/            # Next.js 프론트엔드 (TypeScript)
+├── flutter/        # Flutter 모바일 앱
+├── a2a-mcp/        # Agent-to-Agent / MCP 실험 코드 (agents/, shared/)
+├── training/       # QLoRA 등 로컬 모델 학습 코드 (venv·데이터·산출물은 미추적)
+├── _docs/          # 공통 문서 (architecture.md 등)
+├── docker-compose.yaml            # 단일 백엔드 스택 (backend·pgvector·redis·cloudflared·adminer)
+├── docker-compose.backend.yaml    # 프로덕션 전체 스택 (+auth·n8n·neo4j) — start.sh가 이걸 씀
+└── start.sh / stop.sh / start-tunnel.sh
+```
+
+`models/`, `ollama-models/`는 수 GB급 모델 바이너리·심볼릭 링크라 `.gitignore` 대상이다 (로컬 전용, 미추적).
+
+---
+
+## 배포
+
+- 프론트엔드(`www/`)는 **Vercel**에 배포된다 (`whoareryu.cloud`, `www.whoareryu.cloud` → Vercel CNAME).
+- 백엔드는 Docker 호스트에서 `docker-compose.backend.yaml`로 기동되고, **Cloudflare Tunnel**(named tunnel `whoareryu.cloud`)로 외부에 노출된다. 터널도 `cloudflared` 서비스로 같은 compose 스택 안에서 돈다 (`CLOUDFLARE_TUNNEL_TOKEN` 사용).
+- 서브도메인 라우팅(Cloudflare DNS → Tunnel):
+
+  | 서브도메인 | 대상 |
+  |-----------|------|
+  | `api.whoareryu.cloud` | `backend` 서비스 (`fastapi/main.py`, 8000) |
+  | `auth.whoareryu.cloud` | `auth` 서비스 (`fastapi/auth_main.py`, 9000 — 같은 이미지, 다른 엔트리포인트) |
+  | `n8n.whoareryu.cloud` | `n8n` 서비스 |
+  | `whoareryu.cloud` / `www.whoareryu.cloud` | Vercel |
+
+- `auth`는 `backend`와 완전히 분리된 컨테이너다. RS256 개인키(`JWT_PRIVATE_KEY`)는 `fastapi/.env.auth`에만 있고, `backend`는 공개키로만 토큰을 검증한다.
+- 배포 절차: `./start.sh` → `docker compose --env-file fastapi/.env -f docker-compose.backend.yaml pull && up -d` → 안 쓰는 이미지 정리 → `start-tunnel.sh`(Gmail 웹훅 전용 별도 quick tunnel — 메인 API 터널과 무관).
+- 로컬에서 컨테이너 없이(bare) 백엔드를 띄울 땐, 컨테이너 안에서만 풀리는 호스트명(`pgvector`, `host.docker.internal`)이 그대로 안 풀린다 — `DATABASE_URL`/`OLLAMA_HOST`를 셸에서 `export`로 `127.0.0.1` 기준 값으로 덮어써야 한다.
+
+---
+
+## 환경 변수
+
+`.env*`는 전부 커밋 금지다 (`.gitignore`가 차단). 예시 파일을 복사해 실제 값을 채운다.
+
+| 파일 | 예시 파일 | 용도 |
+|------|-----------|------|
+| `fastapi/.env` | `fastapi/.env.example` | 백엔드 전체 설정 (`DATABASE_URL`, `GEMINI_API_KEY`, `OLLAMA_HOST`, OAuth 등) |
+| `fastapi/.env.auth` | — | `auth` 서비스 전용 (`JWT_PRIVATE_KEY`) |
+| `www/.env.local` | `www/.env.example` | `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_AUTH_URL` |
+| 루트 `.env` | — | `docker-compose*.yaml`의 `${VAR}` 치환용 (`CLOUDFLARE_TUNNEL_TOKEN`, `PGVECTOR_*` 등) |
+
+`www/.env.local`에 `NEXT_PUBLIC_BACKEND_URL`/`NEXT_PUBLIC_AUTH_URL`을 안 채우면 로컬 개발 서버가 조용히 프로덕션 도메인으로 요청을 보낸다 — 로컬 백엔드를 테스트할 땐 반드시 채운다.
+
+---
+
+## 테스트
+
+| 도메인 | 프레임워크 | 위치/설정 |
+|--------|-----------|-----------|
+| fastapi | pytest (`asyncio_mode = auto`) | `fastapi/pytest.ini`, `testpaths = apps` — 앱별 `apps/<앱명>/tests/` |
+| flutter | `flutter test` | `flutter/test/` |
+| www | 없음 | 검증 수단은 `pnpm build` (ESLint 설정 부재로 `pnpm lint` 미동작) |
+
+`ollama` 마커가 붙은 fastapi 테스트는 로컬 Ollama 서버가 필요하다.
+
+---
+
+## 브랜치 전략
+
+- `main`: 통합 브랜치.
+- `mac` / `window`: 작업 PC별 동기화 브랜치.
+- 그 외 기능 브랜치(`plant-manager` 등)는 필요할 때 만든다.
+
+---
+
+## 코딩 컨벤션 (공통)
+
+- 커밋 메시지는 **Conventional Commits + 스코프** 형식을 쓴다: `type(scope): 한국어 설명`
+  (예: `feat(admin): PDF 업로드→텍스트 추출→요약 파이프라인 추가`, `fix(www): ...`). 여러 도메인에 걸치면 `type(fastapi,www): ...`처럼 콤마로 묶는다.
+- 문서·주석·커밋 메시지·사용자 노출 에러 메시지는 한국어로 쓴다.
+- `fastapi` / `www` / `flutter`는 서로 직접 임포트하지 않는다. 통신은 HTTP API로만 한다.
+- 비밀값은 코드에 하드코딩하지 않고 환경 변수로 주입한다.
+
+---
+
 ## 그래프 링크
 
 [[fastapi/CLAUDE\|Backend]] · [[www/CLAUDE\|Frontend]] · [[flutter/CLAUDE\|Flutter]] · [[_docs/architecture\|Master Architecture]]
