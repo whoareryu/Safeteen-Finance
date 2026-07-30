@@ -23,3 +23,6 @@ models/
 
 # a2a-mcp — 패키지별 독립 uv venv, 코드만 커밋
 a2a-mcp/**/.venv/
+
+.mcp.json
+.DS_Store
