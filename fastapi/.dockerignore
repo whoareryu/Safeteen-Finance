@@ -18,3 +18,11 @@ venv
 
 **/.DS_Store
 **/.coverage
+
+ollama-models
+
+# QLoRA 학습 환경 — 백엔드 이미지 빌드에 포함되면 안 됨
+training/.venv
+training/outputs
+training/data
+training/models

@@ -17,12 +17,8 @@ Neo4j는 이미 이 저장소의 Docker 스택에 설치·배선되어 sommelier
 
 ## 1. 현재 배포 구성
 
-두 compose 파일에 동일한 `neo4j` 서비스가 정의돼 있다.
-
-| 파일 | 용도 |
-|------|------|
-| `docker-compose.yaml` | 로컬 개발 — `./fastapi`를 빌드 컨텍스트로 이미지를 직접 빌드 |
-| `docker-compose.backend.yaml` | 배포 — `whoareryu/fastapi:latest` 사전 빌드 이미지, `restart: unless-stopped` 포함 |
+로컬 실행은 더 이상 지원하지 않고, `fastapi/docker-compose.yaml` 하나로 통합돼 클라우드
+호스트(EC2)에서만 기동한다. `neo4j` 서비스도 이 파일 하나에만 정의돼 있다.
 
 ```yaml
 neo4j:
@@ -72,16 +68,15 @@ NEO4J_PASSWORD=<실제 비밀번호>
 
 ## 3. 운영 체크리스트
 
-- [ ] **기본 비밀번호 방치 금지.** `NEO4J_PASSWORD`를 `.env`에 설정 안 하면 두 compose 파일 모두
-      `changeme`로 조용히 폴백한다. 배포 환경(`docker-compose.backend.yaml`)에서는 반드시 실제
-      비밀번호를 `.env`에 채워야 한다 — placeholder를 그대로 쓴 채 올라가지 않았는지 확인.
-- [ ] **`docker-compose.backend.yaml`은 `.env`를 암묵적으로 안 읽는다.** 파일 상단 주석대로
-      `docker compose --env-file fastapi/.env -f docker-compose.backend.yaml up`처럼 `--env-file`을
+- [ ] **기본 비밀번호 방치 금지.** `NEO4J_PASSWORD`를 `.env`에 설정 안 하면 `changeme`로 조용히
+      폴백한다. 반드시 실제 비밀번호를 `fastapi/.env`에 채워야 한다 — placeholder를 그대로 쓴 채
+      올라가지 않았는지 확인.
+- [ ] **`fastapi/docker-compose.yaml`은 `.env`를 암묵적으로 안 읽는다.** 파일 상단 주석대로
+      `docker compose --env-file fastapi/.env -f fastapi/docker-compose.yaml up`처럼 `--env-file`을
       명시해야 `${NEO4J_USER}`/`${NEO4J_PASSWORD}` 치환이 실제로 적용된다. 빠뜨리면 위 `changeme`
       폴백으로 조용히 넘어간다.
-- [ ] **`neo4j_data` 볼륨이 실제로 영속되는지.** 로컬 개발(`docker-compose.yaml`)엔
-      `restart: unless-stopped`가 없어 `docker compose down` 시 컨테이너는 사라지지만 볼륨은
-      남는다 — `down -v`를 실수로 쓰면 그래프 데이터가 통째로 날아간다.
+- [ ] **`neo4j_data` 볼륨이 실제로 영속되는지.** `restart: unless-stopped`가 있어도 `docker compose
+      down -v`를 실수로 쓰면 그래프 데이터가 통째로 날아간다 — `-v` 없이 `down`을 쓰는지 항상 확인.
 - [ ] **헬스체크가 없다.** `backend`가 `depends_on: neo4j`로 시작 순서만 보장할 뿐, Neo4j가 완전히
       기동됐는지는 확인하지 않는다. 콜드 스타트 시 `sommelier_graph_router` 첫 요청이 연결 실패로
       튈 수 있다 — 재현되면 `depends_on`에 `condition: service_healthy` + Neo4j `healthcheck`

@@ -20,7 +20,7 @@
 venv를 만든다.
 
 ```bash
-cd ~/projects/cloud.whoareryu/training
+cd ~/projects/cloud.whoareryu/fastapi/training
 uv python install 3.11
 ~/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11 -m venv .venv
 source .venv/bin/activate
@@ -53,12 +53,11 @@ sudo apt install -y build-essential
 QLoRA는 학습 시점에 bitsandbytes로 4bit 양자화하므로, **AWQ 등 사전 양자화된 버전이 아닌
 원본 체크포인트**가 필요하다. (`huggingface-cli`는 deprecated — `hf` CLI를 쓴다.)
 
-모델은 `cloud.whoareryu` repo 루트의 `models/`(`ollama-models`와 같은 급의 폴더, git
-추적 대상 아님)에 받는다:
+모델은 이 폴더(`fastapi/training/`) 밑의 `models/`(git 추적 대상 아님)에 받는다:
 
 ```bash
 hf download Qwen/Qwen3-4B-Instruct-2507 \
-  --local-dir ../models/Qwen3-4B-Instruct-2507
+  --local-dir ./models/Qwen3-4B-Instruct-2507
 ```
 
 ## 3. 학습 데이터 준비
@@ -76,7 +75,7 @@ hf download Qwen/Qwen3-4B-Instruct-2507 \
 
 ```bash
 python train_qlora.py \
-  --base-model ../models/Qwen3-4B-Instruct-2507 \
+  --base-model ./models/Qwen3-4B-Instruct-2507 \
   --dataset ./data/train.jsonl \
   --output-dir ./outputs/qwen3-4b-qlora
 ```
@@ -86,7 +85,7 @@ python train_qlora.py \
 
 ## 참고
 
-- `.venv/`, `outputs/`, `data/`(`training/` 하위)와 repo 루트의 `models/`는 전부
+- `.venv/`, `outputs/`, `data/`, `models/`(전부 `fastapi/training/` 하위)는 전부
   `.gitignore` 처리됨 (수 GB 단위라 git으로 관리하지 않는다).
 - 학습된 어댑터를 실제 서빙(Ollama)에 반영하려면 별도로 병합(`merge_and_unload`) 후
   Ollama Modelfile로 재패키징하는 과정이 필요 — 아직 이 단계는 구현 안 됨.

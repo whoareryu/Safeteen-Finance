@@ -6,6 +6,7 @@ on:
       - main
       - mac
       - window
+      - aws
 
 concurrency:
   group: sync-dev-server
@@ -30,4 +31,4 @@ jobs:
               -o ProxyCommand="cloudflared access ssh --hostname ssh.whoareryu.cloud" \
               -i ~/.ssh/deploy_key \
               "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" \
-              "cd ~/projects/cloud.whoareryu && git fetch origin && git pull origin \$(git branch --show-current)"
+              "cd ~/cloud.whoareryu && git fetch origin && git pull origin \$(git branch --show-current)"

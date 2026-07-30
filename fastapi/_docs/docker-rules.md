@@ -19,7 +19,7 @@
 
 1. **compose 파일 확인**
    ```bash
-   grep -A2 "container_name" docker-compose.yaml docker-compose.backend.yaml
+   grep -A2 "container_name" fastapi/docker-compose.yaml
    ```
    `whoareryu-backend`, `whoareryu-pgvector`, `whoareryu-redis`, `whoareryu-neo4j`, `whoareryu-n8n`, `whoareryu-adminer`, `whoareryu-cloudflared` 등 기존 서비스명과 겹치는지 확인한다.
 

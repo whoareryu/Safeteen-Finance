@@ -19,7 +19,7 @@ Claude Code 작업 지시서 — 인증 게이트웨이(auth.whoareryu.cloud) �
   (HS256 JWT + Redis 세션, 구글·네이버·카카오 로그인, RBAC)을 전담.
 - 목표: 같은 코드베이스에서 엔트리포인트를 분리해 auth.whoareryu.cloud(인증 전용)와
   api.whoareryu.cloud(비즈니스)를 별도 컨테이너로 운영.
-- 네트워크: Docker 공유 네트워크 app-network (docker-compose.backend.yaml). 진입은
+- 네트워크: Docker 공유 네트워크 app-network (fastapi/docker-compose.yaml). 진입은
   Cloudflare Named Tunnel(cloudflared)만. 호스트 포트 미노출.
 - 키 체계: RS256 비대칭. 개인키는 auth 컨테이너에만 존재.
 
@@ -49,7 +49,7 @@ Claude Code 작업 지시서 — 인증 게이트웨이(auth.whoareryu.cloud) �
 
 - apps/ 하위 기존 앱(ontology, titanic, plant, admin, community 등) 코드는 한 줄도
   수정하지 않는다.
-- 어떤 서비스에도 docker-compose.backend.yaml에 ports: 매핑을 추가하지 않는다.
+- 어떤 서비스에도 fastapi/docker-compose.yaml에 ports: 매핑을 추가하지 않는다.
 - JWT 검증부의 허용 알고리즘은 algorithms=["RS256"] 리터럴로 하드코딩한다.
   환경변수·설정으로 빼지 않는다.
 - 개인키(JWT_PRIVATE_KEY)를 읽는 코드는 발급 함수에만 존재해야 한다. 검증
@@ -151,7 +151,7 @@ async def healthz(): return {"ok": True}
 - 보호가 필요한 라우터에 dependencies=[Depends(RoleChecker(Role.USER))] 적용은
   이번 범위에서 예시 1개 앱에만 적용해 패턴을 보인다 (대상 앱은 사용자에게 질문).
 
-2.6 docker-compose.backend.yaml 서비스 추가
+2.6 fastapi/docker-compose.yaml 서비스 추가
 
 ```
   auth:

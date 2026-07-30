@@ -11,12 +11,13 @@ fastapi/runs/
 # 심볼릭 링크 — 탐색기에서 보기 편하라고 만든 바로가기라 git 추적 대상 아님
 ollama-models
 
-# QLoRA 학습 환경 (training/) — 코드만 커밋, venv·데이터·결과물은 제외
-training/.venv/
-training/outputs/
-training/data/
+# QLoRA 학습 환경 (fastapi/training/) — 코드만 커밋, venv·데이터·결과물은 제외
+fastapi/training/.venv/
+fastapi/training/outputs/
+fastapi/training/data/
+fastapi/training/models/
 **/__pycache__/
-training/.pip-tmp/
+fastapi/training/.pip-tmp/
 
 # 베이스 모델 원본(수 GB) — repo 루트, ollama-models와 같은 급의 폴더. git 추적 대상 아님
 models/

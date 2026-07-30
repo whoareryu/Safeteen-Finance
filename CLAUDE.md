@@ -134,22 +134,25 @@ cloud.whoareryu/
 ├── fastapi/        # FastAPI 백엔드 (Python, 헥사고날)
 ├── www/            # Next.js 프론트엔드 (TypeScript)
 ├── flutter/        # Flutter 모바일 앱
-├── a2a-mcp/        # Agent-to-Agent / MCP 실험 코드 (agents/, shared/)
-├── training/       # QLoRA 등 로컬 모델 학습 코드 (venv·데이터·산출물은 미추적)
-├── _docs/          # 공통 문서 (architecture.md 등)
-├── docker-compose.yaml            # 단일 백엔드 스택 (backend·pgvector·redis·cloudflared·adminer)
-├── docker-compose.backend.yaml    # 프로덕션 전체 스택 (+auth·n8n·neo4j) — start.sh가 이걸 씀
-└── start.sh / stop.sh / start-tunnel.sh
+├── a2a-mcp/        # Agent-to-Agent / MCP 실험 코드 (agents/, shared/) — 물리적으로 분리된 별개 배포 단위
+└── _docs/          # 공통 문서 (architecture.md 등)
 ```
 
-`models/`, `ollama-models/`는 수 GB급 모델 바이너리·심볼릭 링크라 `.gitignore` 대상이다 (로컬 전용, 미추적).
+Docker Compose 스택(backend·auth·n8n·pgvector·redis·neo4j·cloudflared·adminer),
+기동/종료 스크립트(`start.sh`/`stop.sh`/`start-tunnel.sh`), QLoRA 학습 코드(`training/`)까지
+전부 `fastapi/` 안에 있다 — `fastapi/`만 있으면 배포가 완결되도록 자기완결형으로 묶여 있다.
+로컬 전용 클라이언트 실행은 더 이상 지원하지 않고, EC2 등 클라우드 호스트에서만 기동한다.
+(`fastapi/training/`은 CUDA가 필요해 GPU가 없는 호스트에서는 실행 자체가 안 된다 — 학습을
+실제로 어디서 돌릴지는 별도 결정 필요.)
+
+`fastapi/ollama-models`는 로컬 Ollama 모델 디렉터리로 가는 심볼릭 링크라 `.gitignore` 대상이다 (로컬 전용, 미추적).
 
 ---
 
 ## 배포
 
 - 프론트엔드(`www/`)는 **Vercel**에 배포된다 (`whoareryu.cloud`, `www.whoareryu.cloud` → Vercel CNAME).
-- 백엔드는 Docker 호스트에서 `docker-compose.backend.yaml`로 기동되고, **Cloudflare Tunnel**(named tunnel `whoareryu.cloud`)로 외부에 노출된다. 터널도 `cloudflared` 서비스로 같은 compose 스택 안에서 돈다 (`CLOUDFLARE_TUNNEL_TOKEN` 사용).
+- 백엔드는 Docker 호스트에서 `fastapi/docker-compose.yaml`로 기동되고, **Cloudflare Tunnel**(named tunnel `whoareryu.cloud`)로 외부에 노출된다. 터널도 `cloudflared` 서비스로 같은 compose 스택 안에서 돈다 (`CLOUDFLARE_TUNNEL_TOKEN` 사용).
 - 서브도메인 라우팅(Cloudflare DNS → Tunnel):
 
   | 서브도메인 | 대상 |
@@ -160,8 +163,8 @@ cloud.whoareryu/
   | `whoareryu.cloud` / `www.whoareryu.cloud` | Vercel |
 
 - `auth`는 `backend`와 완전히 분리된 컨테이너다. RS256 개인키(`JWT_PRIVATE_KEY`)는 `fastapi/.env.auth`에만 있고, `backend`는 공개키로만 토큰을 검증한다.
-- 배포 절차: `./start.sh` → `docker compose --env-file fastapi/.env -f docker-compose.backend.yaml pull && up -d` → 안 쓰는 이미지 정리 → `start-tunnel.sh`(Gmail 웹훅 전용 별도 quick tunnel — 메인 API 터널과 무관).
-- 로컬에서 컨테이너 없이(bare) 백엔드를 띄울 땐, 컨테이너 안에서만 풀리는 호스트명(`pgvector`, `host.docker.internal`)이 그대로 안 풀린다 — `DATABASE_URL`/`OLLAMA_HOST`를 셸에서 `export`로 `127.0.0.1` 기준 값으로 덮어써야 한다.
+- 배포 절차: `cd fastapi && ./start.sh` → `docker compose --env-file .env -f docker-compose.yaml pull && up -d` → 안 쓰는 이미지 정리 → `./start-tunnel.sh`(Gmail 웹훅 전용 별도 quick tunnel — 메인 API 터널과 무관).
+- 로컬 실행(컨테이너 없는 bare 실행 포함)은 더 이상 지원 대상이 아니다 — 클라우드 호스트(EC2)에서만 기동한다.
 
 ---
 
@@ -174,7 +177,8 @@ cloud.whoareryu/
 | `fastapi/.env` | `fastapi/.env.example` | 백엔드 전체 설정 (`DATABASE_URL`, `GEMINI_API_KEY`, `OLLAMA_HOST`, OAuth 등) |
 | `fastapi/.env.auth` | — | `auth` 서비스 전용 (`JWT_PRIVATE_KEY`) |
 | `www/.env.local` | `www/.env.example` | `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_AUTH_URL` |
-| 루트 `.env` | — | `docker-compose*.yaml`의 `${VAR}` 치환용 (`CLOUDFLARE_TUNNEL_TOKEN`, `PGVECTOR_*` 등) |
+
+`fastapi/.env`가 `fastapi/docker-compose.yaml`의 `${VAR}` 치환(`CLOUDFLARE_TUNNEL_TOKEN`, `PGVECTOR_*` 등)까지 겸한다 — 루트에는 더 이상 `.env`를 두지 않는다.
 
 `www/.env.local`에 `NEXT_PUBLIC_BACKEND_URL`/`NEXT_PUBLIC_AUTH_URL`을 안 채우면 로컬 개발 서버가 조용히 프로덕션 도메인으로 요청을 보낸다 — 로컬 백엔드를 테스트할 땐 반드시 채운다.
 
