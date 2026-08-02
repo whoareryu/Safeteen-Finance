@@ -15,15 +15,10 @@ class ExternalApiSettings:
     plant_air_purifying_api_key: str
     plant_drought_resistant_api_key: str
     plant_indoor_garden_api_key: str
-    pixabay_api_key: str
 
     @property
     def openweather_configured(self) -> bool:
         return bool(self.openweather_api_key)
-
-    @property
-    def pixabay_configured(self) -> bool:
-        return bool(self.pixabay_api_key)
 
     @property
     def air_purifying_configured(self) -> bool:
@@ -48,5 +43,4 @@ def get_external_settings() -> ExternalApiSettings:
             "PLANT_DROUGHT_RESISTANT_API_KEY", ""
         ).strip(),
         plant_indoor_garden_api_key=secret_manager.get_secret("PLANT_INDOOR_GARDEN_API_KEY", "").strip(),
-        pixabay_api_key=secret_manager.get_secret("PIXABAY_API_KEY", "").strip(),
     )

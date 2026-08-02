@@ -4,10 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarCheck,
-  Gamepad2,
   Home,
   Leaf,
-  MessageCircle,
   Sprout,
   UserCircle,
 } from "lucide-react";
@@ -18,8 +16,6 @@ const TABS = [
   { href: "/plant", label: "진단", Icon: Leaf },
   { href: "/plant/my-plants", label: "마이플랜트", Icon: Sprout },
   { href: "/plant/care-calendar", label: "케어일정", Icon: CalendarCheck },
-  { href: "/plant/tutorial", label: "식집사 튜토리얼", Icon: Gamepad2 },
-  { href: "/social", label: "소셜", Icon: MessageCircle },
   { href: "/mypage", label: "마이페이지", Icon: UserCircle },
 ] as const;
 

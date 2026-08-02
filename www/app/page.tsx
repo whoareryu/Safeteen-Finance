@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarCheck, Leaf, Sparkles } from "lucide-react";
+import { CalendarCheck, Leaf } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { uploadPlantPhoto } from "@/lib/plant-api";
@@ -21,12 +21,6 @@ const FEATURES = [
     Icon: CalendarCheck,
     title: "케어 캘린더",
     description: "물주기·시비 일정을 자동으로 챙겨드려요.",
-  },
-  {
-    href: "/social",
-    Icon: Sparkles,
-    title: "식집사 커뮤니티",
-    description: "다른 식집사들과 케어 팁을 나눠보세요.",
   },
 ] as const;
 
@@ -114,7 +108,7 @@ export default function Home() {
         </section>
 
         <section className="px-6 pb-28 pt-12">
-          <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
+          <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
             {FEATURES.map(({ href, Icon, title, description }) => (
               <Link key={href} href={href}>
                 <Card className="saessak-card h-full border-0 transition hover:-translate-y-0.5 hover:shadow-lg">

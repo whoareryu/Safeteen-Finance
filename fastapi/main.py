@@ -181,24 +181,6 @@ app.mount(
 )
 # ─────────────────────────────────────────────────────────────────────────
 
-# ── Composition root: 식집사 튜토리얼 Pixabay 사진 캐시 저장소(로컬 디스크) ──
-from plant.dependencies.tutorial_provider import register_tutorial_image_storage_factory
-
-_plant_tutorial_media_dir = _backend_root / "apps/plant/resources/tutorial_photos"
-register_tutorial_image_storage_factory(
-    lambda: LocalImageStorageAdapter(
-        base_dir=_plant_tutorial_media_dir,
-        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
-        url_prefix="media/plant-tutorial",
-    )
-)
-app.mount(
-    "/media/plant-tutorial",
-    StaticFiles(directory=str(_plant_tutorial_media_dir), check_dir=False),
-    name="plant-tutorial-media",
-)
-# ─────────────────────────────────────────────────────────────────────────
-
 # ── Composition root: plant 전용 pgvector(plant_knowledge)를 ontology 시맨틱
 #    라우터의 exaone_rag 지식 소스로 주입 ──────────────────────────────────
 from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
