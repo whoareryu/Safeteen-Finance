@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'package:video_player/video_player.dart';
 
+import 'auth.dart';
+import 'features/auth/auth_session.dart';
+import 'features/auth/auth_session_store.dart';
 import 'features/clock/clock_screen.dart';
 import 'features/plant/care_calendar_screen.dart';
 import 'features/plant/coming_soon_screen.dart';
@@ -9,7 +13,13 @@ import 'features/plant/diagnosis_upload_screen.dart';
 import 'features/plant/home_screen.dart';
 import 'features/plant/my_plants_screen.dart';
 
-void main() => runApp(const SaessakApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // KAKAO_NATIVE_APP_KEY와 동일한 값이어야 한다 (fastapi/.env) — id_token의 aud 검증이
+  // 이 값 기준이라, 둘이 다르면 로그인 시도가 전부 INVALID_AUDIENCE로 실패한다.
+  await KakaoSdk.init(nativeAppKey: '33804733ae14a6be9efe61e59867b8be');
+  runApp(const SaessakApp());
+}
 
 // ─── global state ─────────────────────────────────────────────────────────────
 final _themeMode = ValueNotifier<ThemeMode>(ThemeMode.light);
@@ -81,10 +91,14 @@ class SaessakApp extends StatelessWidget {
       builder: (_, mode, _) => MaterialApp(
         title: 'Saessak',
         debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
         themeMode: mode,
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         home: const _IntroVideoScreen(),
+        routes: {
+          kLoginRouteName: (_) => const KakaoLoginScreen(),
+        },
       ),
     );
   }
@@ -145,11 +159,16 @@ class _IntroVideoScreenState extends State<_IntroVideoScreen> with WidgetsBindin
     }
   }
 
-  void _goToApp() {
+  Future<void> _goToApp() async {
     if (_navigated) return;
     _navigated = true;
+    // 세션 유효성(만료·로테이션·블랙리스트)은 여기서 확인하지 않는다 — 로컬에 리프레시
+    // 토큰이 있는지만 보고 즉시 분기한다(네트워크 왕복 없음, 인트로가 기다리지 않는다).
+    // 실제 유효성은 MainShell 진입 후 첫 인증 API 호출에서 401→refresh로 지연 확인된다.
+    final hasSession = await AuthSessionStore.hasRefreshToken();
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const _MainShell()),
+      MaterialPageRoute(builder: (_) => hasSession ? const MainShell() : const KakaoLoginScreen()),
     );
   }
 
@@ -204,13 +223,13 @@ class _IntroVideoScreenState extends State<_IntroVideoScreen> with WidgetsBindin
 }
 
 // ─── main shell ───────────────────────────────────────────────────────────────
-class _MainShell extends StatefulWidget {
-  const _MainShell();
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
   @override
-  State<_MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell> {
+class _MainShellState extends State<MainShell> {
   int _tab = 0;
   static const _titles = ['Saessak', '진단', '마이플랜트', '케어일정', '시계'];
 

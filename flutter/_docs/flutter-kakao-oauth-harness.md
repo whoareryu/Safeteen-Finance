@@ -1,220 +1,176 @@
-# 카카오 소셜 로그인 인증 모듈 구현 하네스 — 플러터 클라이언트
+# 카카오 소셜 로그인 인증 모듈 — 플러터 클라이언트 (구현 완료)
 
-> 이 문서는 Claude Code가 본 저장소의 **플러터(flutter)** 영역에서 카카오 로그인
-> 클라이언트를 구현할 때 반드시 준수해야 하는 사양이다.
-> 아래 규칙과 충돌하는 구현은 어떤 이유로도 채택하지 않는다.
-> 사양이 모호하거나 기존 코드와 충돌하면 **임의로 추측하지 말고 질문**한다.
+> 원래 그린필드 전제로 쓴 사양이었으나, 백엔드 구현 과정에서 API 계약이 바뀌어
+> (snake_case, `/auth/mobile/*` 경로, 동의 화면 추가) 실제 구현 기준으로 다시 썼다.
 >
-> 짝 문서: [[fastapi/_docs/flutter-kakao-oauth-harness\|백엔드 인증 하네스]] — API 명세,
-> id_token 검증 규칙, Redis 토큰 저장소 등 서버 쪽 구현은 그쪽에 있다. 이 문서는 그
-> 서버 계약(§4)을 **호출하는 쪽**이며, 계약을 임의로 바꾸지 않는다 — 바꿔야 하면 백엔드
-> 하네스도 함께 갱신하고 사용자에게 보고한다.
-
----
-
-## 0. 작업 전 필수 확인 (Discovery First)
-
-코드를 한 줄이라도 작성하기 전에 아래를 먼저 조사하고 결과를 요약 보고할 것.
-
-- [ ] `pubspec.yaml`에 `kakao_flutter_sdk_user`가 이미 등록되어 있는가? 버전은?
-- [ ] `android/app/src/main/AndroidManifest.xml` / `ios/Runner/Info.plist`에 카카오
-      네이티브 앱 키·URL 스킴이 이미 설정돼 있는가 — [[flutter/_docs/flutter-android-harness\|Android 하네스]] / [[flutter/_docs/flutter-ios-harness\|iOS 하네스]] 참고
-- [ ] 기존 로그인 화면·라우팅 진입점이 있는가 (`lib/main.dart` 등 현재 구조 파악)
-- [ ] 기존 HTTP 클라이언트(Dio/http) 설정과 인터셉터 유무 — `lib/features/plant/plant_api.dart` 등 기존 API 클라이언트 패턴 참고
-- [ ] 토큰 저장 방식 — 현재 `flutter_secure_storage` 또는 `SharedPreferences` 중 뭘 쓰고 있는가
-- [ ] 백엔드 API 베이스 URL을 관리하는 방식 (환경별 설정이 이미 있는가)
-
-**중복 구현 금지.** 이미 존재하는 컴포넌트는 재사용하거나 확장한다.
+> 짝 문서: [[fastapi/_docs/flutter-kakao-oauth-harness\|백엔드 인증 하네스]]
 
 ---
 
 ## 1. 목표
 
-Flutter는 카카오 SDK로 로그인해 카카오가 서명한 `id_token`을 얻고, 그것을 서버
-(`POST /api/auth/kakao/mobile`)로 전달해 **자체 access/refresh JWT**를 발급받는다.
-
-핵심 원칙:
-
-1. **Flutter는 신원을 직접 검증하지 않는다.** 검증은 전적으로 서버 책임이다 ([[fastapi/_docs/flutter-kakao-oauth-harness\|백엔드 하네스]] §2). 클라이언트는 `id_token`을 그대로 전달하기만 한다.
-2. **모바일 전용 엔드포인트만 호출한다.** 웹 로그인 경로(`/api/auth/kakao/web` 등)는 절대 호출하지 않는다 (§3).
-3. 최초 로그인 이후에는 자체 JWT로만 세션을 유지한다 — 매 요청마다 카카오와 통신하지 않는다.
+Flutter는 카카오 SDK로 로그인해 `id_token`을 얻고, `auth.whoareryu.cloud`(백엔드 §2)에
+전달해 자체 access/refresh JWT를 받는다. **Flutter는 신원을 직접 검증하지 않는다.**
 
 ---
 
-## 2. 클라이언트 인증 흐름
-
-### 2.1 전체 시퀀스
+## 2. 실제 구현 파일
 
 ```
-[Flutter]
-  loginWithKakaoTalk() / loginWithKakaoAccount()
-    → OAuthToken { idToken, accessToken, refreshToken }
-    → accessToken/refreshToken은 서버로 보내지 않고 폐기하거나 로컬에만 둔다
-  POST /api/auth/kakao/mobile  { "idToken": "...", "nonce": "...", "deviceId": "..." }
-
-[API Server] — 상세는 백엔드 하네스 §2.3
-  id_token 서명·클레임 검증 → User 조회/생성 → 자체 JWT 발급 → Redis에 refresh 저장
-    → { "accessToken": "...", "refreshToken": "...", "expiresIn": 1800 }
-
-[Flutter]
-  accessToken은 메모리, refreshToken은 flutter_secure_storage에 저장 (§5)
+flutter/lib/
+├── auth.dart                          # KakaoLoginScreen — 카카오 로그인 버튼 화면
+└── features/auth/
+    ├── auth_api.dart                  # 백엔드 호출 (plant_api.dart와 동일 스타일)
+    ├── auth_models.dart                # AuthTokens, MobileLoginResult
+    ├── auth_session_store.dart         # flutter_secure_storage 래퍼 (refresh token, device_id)
+    ├── auth_session.dart               # 메모리 access token + 401→refresh 단일-비행 게이트
+    └── consent_screen.dart             # 신규 유저 닉네임+약관동의 화면
 ```
 
-### 2.2 금지된 대안
-
-- **`UserApi.instance.me()`를 호출해 프로필을 서버로 전송하는 방식 → 채택 금지.** 서버가 검증할 수 없는 정보는 의미가 없다.
-- 카카오 `access_token`을 서버로 보내는 방식 → **채택 금지** (서버가 신뢰하지 않음)
-- 카카오 `refresh_token`을 서버로 전송/저장 → **채택 금지**
-
-### 2.3 nonce
-
-로그인 요청 직전에 클라이언트가 CSPRNG로 `nonce`를 생성해 카카오 SDK 로그인 호출과
-서버 요청 양쪽에 동일하게 사용한다. 서버는 이 값을 1회용으로 소비한다 — 재사용 금지.
+`pubspec.yaml`: `kakao_flutter_sdk_user`, `flutter_secure_storage`, `uuid`,
+`kakao_flutter_sdk_common`(명시적 direct dependency — `depend_on_referenced_packages` 린트 때문에 추가).
 
 ---
 
-## 3. 호출 대상 엔드포인트 (모바일 전용)
+## 3. 로그인 흐름 (실제 구현)
 
-| 항목 | 값 |
-|---|---|
-| 로그인 | `POST /api/auth/kakao/mobile` |
-| 리프레시 | `POST /api/auth/mobile/refresh` |
-| 로그아웃 | `POST /api/auth/mobile/logout` |
-| 입력 자격증명 | Flutter SDK가 발급한 `id_token` |
-| 토큰 전달 방식 | 응답 바디(JSON) |
-| Access TTL | 30분 |
-| Refresh TTL | 60일 |
-| 동시 세션 | 기기별 다중 허용 |
+```dart
+// lib/auth.dart
+final nonce = _generateNonce();  // Random.secure() → base64Url, 새 패키지 불필요
+OAuthToken token;
+try {
+  token = await UserApi.instance.loginWithKakaoTalk(nonce: nonce);
+} catch (_) {
+  token = await UserApi.instance.loginWithKakaoAccount(nonce: nonce);
+}
+final result = await loginWithKakao(idToken: token.idToken!, nonce: nonce, deviceId: deviceId);
 
-**웹 전용 엔드포인트(`/api/auth/kakao/web`, `/api/auth/web/refresh` 등)는 모바일
-클라이언트가 절대 호출하지 않는다.** 서버가 `platform` 클레임 불일치를 401로 막긴 하지만,
-애초에 클라이언트 코드에 web 엔드포인트 URL이 등장해서는 안 된다.
-
----
-
-## 4. API 요청/응답 계약
-
-계약의 원본은 [[fastapi/_docs/flutter-kakao-oauth-harness\|백엔드 하네스]] §6이다 — 여기 값과
-어긋나면 백엔드 문서를 기준으로 맞추고, 서버 구현이 실제로 다르면 사용자에게 보고한다.
-
-### 4.1 `POST /api/auth/kakao/mobile`
-
-```jsonc
-// Request
-{ "idToken": "eyJ...", "nonce": "5f3a...", "deviceId": "a1b2c3..." }
-
-// 200 OK
-{
-  "accessToken": "eyJ...",
-  "refreshToken": "eyJ...",
-  "tokenType": "Bearer",
-  "expiresIn": 1800,
-  "isNewUser": true
+if (result.requiresConsent) {
+  // → ConsentScreen(consentToken, suggestedNickname, deviceId)
+} else {
+  // → MainShell (기존 유저, 바로 로그인)
 }
 ```
 
-### 4.2 `POST /api/auth/mobile/refresh`
+- **`UserApi.instance.me()`는 호출하지 않는다** (서버가 클라이언트 프로필을 신뢰하지 않는다는 원칙).
+- 신규 유저는 `ConsentScreen`에서 닉네임 확인 + 약관 동의 후 `completeConsent()` 호출 →
+  성공 시 `MainShell`로 이동. (하네스 원안엔 없던 화면 — 사용자가 "동의 화면도 같이 만들어야
+  함"으로 결정.)
 
-```jsonc
-// Request
-{ "refreshToken": "eyJ..." }
+---
 
-// 200 OK — 새 access + 새 refresh (rotation). 이전 refreshToken은 폐기하고 새 값으로 교체 저장한다.
+## 4. API 계약 — snake_case (하네스 원안의 camelCase 아님)
+
+백엔드가 `apps/auth/schemas.py`의 기존 snake_case 컨벤션(`consent_token`, `agree_terms`
+등)을 따르고 있어서 모바일 API도 그것에 맞췄다.
+
+| 엔드포인트 | 요청 | 응답(성공) |
+|---|---|---|
+| `POST /auth/mobile/kakao/login` | `{id_token, nonce, device_id}` | `{status, access_token?, refresh_token?, ..., consent_token?, suggested_nickname?}` |
+| `POST /auth/mobile/consent/complete` | `{consent_token, nickname, agree_terms, device_id}` | `{access_token, refresh_token, token_type, expires_in}` |
+| `POST /auth/mobile/refresh` | `{refresh_token}` | `{access_token, refresh_token, token_type, expires_in}` |
+| `POST /auth/mobile/logout` | `Authorization: Bearer <access_token>` | 204 |
+
+베이스 URL: `https://auth.whoareryu.cloud/auth/mobile` (plant_api.dart가 쓰는
+`api.whoareryu.cloud`와 **다른 호스트** — auth 서비스가 토큰 발급 전용으로 분리돼 있어서).
+
+### 에러 처리 — `X-Error-Code` 응답 헤더로 분기
+
+백엔드가 `detail`은 한국어 문자열(기존 관례), 머신 판별용 코드는 `X-Error-Code` 헤더로
+따로 준다. `auth_api.dart::AuthApiException`이 `res.headers['x-error-code']`를 읽어
+`errorCode` 필드에 담는다 — JSON 바디 안에 `code` 필드가 있는 게 아니다.
+
+---
+
+## 5. 세션 유지 — `main.dart`의 `_goToApp()`
+
+```dart
+Future<void> _goToApp() async {
+  if (_navigated) return;
+  _navigated = true;
+  final hasSession = await AuthSessionStore.hasRefreshToken();  // 로컬만 확인, 네트워크 없음
+  Navigator.of(context).pushReplacement(MaterialPageRoute(
+    builder: (_) => hasSession ? const MainShell() : const KakaoLoginScreen(),
+  ));
+}
 ```
 
-### 4.3 `POST /api/auth/mobile/logout`
-
-바디 없음(또는 저장된 refreshToken). 204 반환 — 로컬 토큰(메모리 access, secure storage
-refresh)도 함께 정리하고 로그인 화면으로 이동한다.
-
-### 4.4 에러 코드 — UI 분기 기준
-
-| 상황 | HTTP | code | 클라이언트 처리 |
-|---|---|---|---|
-| id_token 검증 실패 | 401 | `INVALID_ID_TOKEN` | 로그인 재시도 유도 |
-| id_token 만료 | 401 | `EXPIRED_ID_TOKEN` | 카카오 재로그인부터 다시 |
-| aud 불일치 | 401 | `INVALID_AUDIENCE` | 앱 설정 오류 — 로그 남기고 사용자에게 일반 오류 표시 |
-| nonce 불일치 | 401 | `INVALID_NONCE` | 로그인 재시도 |
-| 플랫폼 클레임 불일치 | 401 | `PLATFORM_MISMATCH` | 세션 폐기됨 — 강제 로그아웃 처리 |
-| refresh 재사용 탐지 | 401 | `TOKEN_REUSE_DETECTED` | 전체 세션 폐기됨 — 강제 로그아웃 + 재로그인 유도 |
-| JWKS 조회 실패 | 503 | `IDP_UNAVAILABLE` | 일시 오류 안내, 재시도 버튼 |
+- 세션 유효성(만료·로테이션·블랙리스트)은 여기서 확인하지 않는다 — `MainShell` 진입 후
+  첫 인증 API 호출에서 401→refresh로 지연 확인된다(§6).
+- 인트로 영상은 실측 4.01초(`ffprobe`)라 기존 `_onTick`(영상 종료 리스너)이 이미 자연스럽게
+  ~4초에 `_goToApp()`을 호출한다 — 별도 4초 타이머는 추가하지 않았다. 기존 6초 안전장치
+  타이머(영상 초기화 실패 대비)도 그대로 둠, 목적이 다름.
+- `_MainShell` → `MainShell`(public)로 이름만 바꿈 — `auth.dart`/`consent_screen.dart`가
+  참조해야 해서. `lib/auth.dart`가 `main.dart`를 `show MainShell`로 import하고, `main.dart`도
+  `auth.dart`를 import한다 — Dart는 라이브러리 간 순환 import를 허용하므로 문제없다.
 
 ---
 
-## 5. Flutter 클라이언트 요구사항
+## 6. 401 → refresh (Dio 없이, `http` 패키지)
 
-- `kakao_flutter_sdk_user` 사용. `loginWithKakaoTalk()` 실패(미설치·사용자 취소) 시 `loginWithKakaoAccount()`로 폴백.
-- **`UserApi.instance.me()`를 호출하지 않는다.**
-- 서버로는 `idToken`, `nonce`, `deviceId`만 전송한다.
-- 자체 access 토큰은 메모리, refresh 토큰은 `flutter_secure_storage`에 보관한다. **`SharedPreferences` 사용 금지.**
-- Dio `Interceptor`로 401 감지 → refresh 1회 시도 → 실패 시 로그인 화면으로 이동. **재시도 루프 방지 플래그 필수.**
-- 동시에 여러 요청이 401을 받아도 refresh 호출은 **1회로 합류**시킨다 (Completer/Mutex).
+프로젝트에 Dio 사용 이력이 전혀 없어(`plant_api.dart` 포함 전부 `http`) 이번에도 Dio를
+새로 들이지 않았다. `AuthSession.authorizedRequest()`가 `Completer` 기반으로 401을 처리한다:
 
----
+```dart
+static Future<http.Response> authorizedRequest(
+  Future<http.Response> Function(String? accessToken) send,
+) async {
+  final res = await send(_accessToken);
+  if (res.statusCode != 401) return res;
+  final refreshed = await _refreshOnce();  // 동시 요청은 이 Completer에 합류
+  if (refreshed == null) { await forceLogout(); return res; }
+  return send(refreshed);  // 정확히 1회만 재시도
+}
+```
 
-## 6. 보안 규칙 (클라이언트 측)
+- `forceLogout()`은 `navigatorKey`(전역 `GlobalKey<NavigatorState>`, `auth_session.dart`에
+  정의)로 `/auth` 라우트(`kLoginRouteName`)로 강제 이동한다. `main.dart`의 `MaterialApp`에
+  `navigatorKey`와 `routes: {kLoginRouteName: (_) => const KakaoLoginScreen()}`를 등록.
 
-- 카카오 `access_token` / `refresh_token`은 서버로 전송하지도, 앱 저장소에 영구 저장하지도 않는다.
-- 자체 access 토큰은 메모리에만 — 앱 종료 시 사라지는 게 정상이다. refresh 토큰만 `flutter_secure_storage`.
-- 로그에 `id_token`, 자체 JWT 원문, `email` 전체를 남기지 않는다.
-- `nonce`는 매 로그인 시도마다 새로 생성한다 (재사용 금지).
-
----
-
-## 7. 환경/설정
-
-카카오 네이티브 앱 키·URL 스킴은 `.env` 같은 런타임 환경변수가 아니라
-`android/app/src/main/AndroidManifest.xml`/`ios/Runner/Info.plist`에 직접 설정한다 —
-[[flutter/_docs/flutter-android-harness\|Android 하네스]] / [[flutter/_docs/flutter-ios-harness\|iOS 하네스]] 참고.
-
-이 네이티브 앱 키는 백엔드가 `aud` 검증에 쓰는 `KAKAO_NATIVE_APP_KEY`([[fastapi/_docs/flutter-kakao-oauth-harness\|백엔드 하네스]] §8)와 **같은 값**이어야 한다 — 다르면 모든 로그인 시도가 `INVALID_AUDIENCE`로 실패한다. 값이 일치하는지 구현 전에 확인한다.
-
-백엔드 API 베이스 URL은 기존 프로젝트 방식(§0에서 확인한 환경별 설정)을 따른다. 새 설정
-방식을 임의로 도입하지 않는다.
+참고: `kakao_flutter_sdk_user`가 내부적으로 `dio`를 transitive dependency로 끌고 오지만
+(카카오 SDK 자체 구현), **우리 앱 코드(auth_api.dart 등)는 여전히 `http` 패키지만 쓴다** —
+카카오 SDK 내부 구현과는 무관.
 
 ---
 
-## 8. 테스트
+## 7. 토큰 저장
 
-원본 사양에 플러터 전용 테스트 체크리스트가 정의되어 있지 않다 — 임의로 항목을 확정하지
-않는다. 구현 착수 시 최소한 아래는 `flutter test`로 검증 대상인지 사용자와 확인한다:
-
-- 401 인터셉터의 재시도-루프 방지 동작
-- 동시 다발 401에서 refresh 호출이 1회로 합류되는지
-- refresh 실패 시 로그인 화면으로의 강제 이동
-
-검증 방법은 [[.claude/rules/testing\|테스트 규칙]] — `flutter test` (+ `flutter analyze`).
+- 액세스 토큰: 메모리만(`AuthSession._accessToken`, static 필드) — 앱 재시작하면 사라짐, 정상.
+- 리프레시 토큰 + device_id: `flutter_secure_storage`(`AuthSessionStore`). **`SharedPreferences` 사용 안 함.**
 
 ---
 
-## 9. 작업 순서 (플러터)
+## 8. iOS 네이티브 설정 (완료) — Android는 미착수
 
-백엔드 §6/§4 API 계약이 확정된 뒤 착수하거나, 최소한 계약이 고정된 상태에서 병행한다.
+카카오 콘솔에 Android 플랫폼이 아직 등록 안 돼 있어(`applicationId`도 `com.example.taper`
+placeholder 그대로) 이번엔 **iOS만** 구현했다.
 
-1. Discovery(§0) 수행 후 결과 보고 → **승인받고 다음 단계 진행**
-2. Kakao SDK 초기화 확인/추가 (네이티브 앱 키, URL 스킴 — §7)
-3. 로그인 화면/버튼 + `loginWithKakaoTalk()` → `loginWithKakaoAccount()` 폴백
-4. 서버 로그인 API 연동 (`idToken`/`nonce`/`deviceId` 전송, §4.1)
-5. 토큰 저장(secure storage) + Dio 인터셉터(401 → refresh 1회 합류, §5)
-6. 로그아웃 연동
-7. 테스트 작성 (§8에서 합의된 범위)
-8. 필요 시 환경별 설정·README 갱신
-
-각 단계 완료 시 **변경 파일 목록과 핵심 결정 사항을 요약 보고**한다.
+- `Info.plist`에 `CFBundleURLTypes`(scheme `kakao{NATIVE_APP_KEY}`) + `LSApplicationQueriesSchemes`
+  (`kakaokompassauth`, `kakaolink`, `kakaoplus`) 추가 — `REPLACE_WITH_KAKAO_NATIVE_APP_KEY`
+  플레이스홀더로 되어 있음, 실값 확인되면 여기와 `lib/main.dart`의 `KakaoSdk.init()` 둘 다 교체해야 함(반드시 동일한 값).
+- **`AppDelegate.swift`는 수정 안 함.** `kakao_flutter_sdk_auth` 플러그인이
+  `registrar.addApplicationDelegate(instance)`/`addSceneDelegate(instance)`로 URL 콜백
+  처리를 자체 등록한다(`KakaoFlutterSdkAuthPlugin.swift` 확인함) — 하네스 원안이 가정한
+  수동 `application(_:open:options:)` 오버라이드는 이 플러그인 버전(2.0.0+1)에서는 불필요.
+- `main()`에서 `WidgetsFlutterBinding.ensureInitialized()` 후 `await KakaoSdk.init(nativeAppKey: '...')`.
+- Android(`AndroidManifest.xml`, `applicationId` 정정 포함)는 **미완성 — 후속 작업.**
 
 ---
 
-## 10. 금지 사항 요약 (플러터)
+## 9. 테스트
 
-- ❌ `UserApi.instance.me()` 결과를 서버로 전송
-- ❌ 카카오 `access_token`을 서버로 전송 (서버측 신원 확인 시도)
-- ❌ 카카오 `refresh_token`을 서버로 전송/저장 요청
-- ❌ `SharedPreferences`에 토큰 저장
-- ❌ 재시도 루프 방지 없이 401 인터셉터 구현
-- ❌ 동시 요청마다 refresh를 각각 호출 (합류 없이 중복 호출)
-- ❌ 웹 전용 엔드포인트를 모바일 코드에서 호출
-- ❌ 시크릿·토큰 원문 로깅
-- ❌ 테스트 없이 완료 보고
+`flutter analyze` — 클린 통과 확인. `flutter build ios --release --no-codesign`으로 pod
+install + 네이티브 컴파일까지 확인함. 실기기 로그인 E2E는 `KAKAO_NATIVE_APP_KEY` 실값이
+채워져야 가능 — 아직 미완.
+
+---
+
+## 10. 알려진 갭
+
+- `KAKAO_NATIVE_APP_KEY` 실값 미입력(`main.dart`/`Info.plist` 둘 다 플레이스홀더).
+- Android 전체(콘솔 등록, `applicationId` 정정, `AndroidManifest.xml`) 미착수.
+- 로그아웃 UI 없음 — `logoutSession()` API 클라이언트 함수는 있지만 호출하는 화면이 아직 없다
+  (`MainShell`의 "마이페이지"가 현재 `ComingSoonScreen`).
 
 ---
 

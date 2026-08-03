@@ -26,6 +26,25 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- 카카오 로그인 — lib/main.dart의 KakaoSdk.init(nativeAppKey:)와 같은 값이어야 한다. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao33804733ae14a6be9efe61e59867b8be</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<!-- 카카오톡으로 로그인 -->
+		<string>kakaokompassauth</string>
+		<!-- 카카오톡 공유 -->
+		<string>kakaolink</string>
+		<!-- 카카오톡 채널 -->
+		<string>kakaoplus</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>잎사귀 사진을 촬영해 식물을 진단하고 등록하려면 카메라 접근 권한이 필요합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
