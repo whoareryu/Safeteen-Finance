@@ -16,5 +16,6 @@
     "**/archetype-resources/**",
     "**/META-INF/maven/**",
     "**/flutter/**"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
