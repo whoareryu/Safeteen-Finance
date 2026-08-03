@@ -54,6 +54,7 @@ class TokenPayload:
     exp: int
     iat: int
     jti: str
+    platform: str = "web"
 
 
 def _private_key() -> str:
@@ -94,7 +95,11 @@ def public_jwk() -> dict:
 
 
 def create_access_token(
-    sub: str, roles: list[str], aud: str, expires_min: int = ACCESS_TOKEN_TTL_MIN_DEFAULT
+    sub: str,
+    roles: list[str],
+    aud: str,
+    expires_min: int = ACCESS_TOKEN_TTL_MIN_DEFAULT,
+    platform: str = "web",
 ) -> str:
     now = int(time.time())
     payload = {
@@ -104,6 +109,7 @@ def create_access_token(
         "iat": now,
         "exp": now + expires_min * 60,
         "jti": uuid.uuid4().hex,
+        "platform": platform,
     }
     return jwt.encode(
         payload, _private_key(), algorithm=_ALGORITHM, headers={"kid": key_id()}
@@ -120,6 +126,7 @@ def verify_token(token: str, aud: str) -> TokenPayload:
         exp=payload["exp"],
         iat=payload["iat"],
         jti=payload["jti"],
+        platform=payload.get("platform", "web"),
     )
 
 
@@ -145,23 +152,35 @@ def _redis_client() -> Redis:
     return Redis.from_url(secret_manager.get_secret("REDIS_URL", "redis://redis:6379/0"))
 
 
-async def create_refresh_token(sub: str) -> str:
-    """새 리프레시 토큰 체인을 시작한다 (로그인 시 호출)."""
+async def create_refresh_token(
+    sub: str, *, namespace: str = "", extra: dict | None = None, ttl_seconds: int = REFRESH_TOKEN_TTL_SECONDS
+) -> str:
+    """새 리프레시 토큰 체인을 시작한다 (로그인 시 호출).
+
+    namespace는 키 프리픽스 앞에 그대로 붙는다(기본값 ""이면 기존 웹 키와 동일) —
+    모바일처럼 별도 세션 네임스페이스가 필요한 호출자가 서로 다른 값을 준다.
+    extra는 저장되는 JSON에 그대로 병합된다(device_id 등 부가 정보용).
+    """
     token = secrets.token_urlsafe(32)
     family_id = uuid.uuid4().hex
     client = _redis_client()
+    data = {"sub": sub, "family_id": family_id, "status": "active"}
+    if extra:
+        data.update(extra)
     await client.set(
-        f"{_REFRESH_KEY_PREFIX}{token}",
-        json.dumps({"sub": sub, "family_id": family_id, "status": "active"}),
-        ex=REFRESH_TOKEN_TTL_SECONDS,
+        f"{namespace}{_REFRESH_KEY_PREFIX}{token}",
+        json.dumps(data),
+        ex=ttl_seconds,
     )
     await client.set(
-        f"{_REFRESH_FAMILY_KEY_PREFIX}{sub}", family_id, ex=REFRESH_TOKEN_TTL_SECONDS
+        f"{namespace}{_REFRESH_FAMILY_KEY_PREFIX}{sub}", family_id, ex=ttl_seconds
     )
     return token
 
 
-async def rotate_refresh_token(token: str) -> tuple[str, str] | None:
+async def rotate_refresh_token(
+    token: str, *, namespace: str = "", ttl_seconds: int = REFRESH_TOKEN_TTL_SECONDS
+) -> tuple[str, str] | None:
     """리프레시 토큰을 검증하고 로테이션한다.
 
     반환값: 성공 시 (sub, 새 리프레시 토큰). 실패(모르는 토큰) 또는 재사용
@@ -169,35 +188,37 @@ async def rotate_refresh_token(token: str) -> tuple[str, str] | None:
     체인 전체를 폐기해 강제 재로그인시킨다.
     """
     client = _redis_client()
-    raw = await client.get(f"{_REFRESH_KEY_PREFIX}{token}")
+    raw = await client.get(f"{namespace}{_REFRESH_KEY_PREFIX}{token}")
     if raw is None:
         return None
 
     data = json.loads(raw)
     sub, family_id, status = data["sub"], data["family_id"], data["status"]
-    current_family = await client.get(f"{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
+    current_family = await client.get(f"{namespace}{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
 
     if status != "active" or current_family is None or current_family.decode() != family_id:
-        await client.delete(f"{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
+        await client.delete(f"{namespace}{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
         return None
 
     data["status"] = "used"
     await client.set(
-        f"{_REFRESH_KEY_PREFIX}{token}", json.dumps(data), ex=REFRESH_TOKEN_TTL_SECONDS
+        f"{namespace}{_REFRESH_KEY_PREFIX}{token}", json.dumps(data), ex=ttl_seconds
     )
 
     new_token = secrets.token_urlsafe(32)
+    new_data = {"sub": sub, "family_id": family_id, "status": "active"}
+    extra_keys = set(data) - {"sub", "family_id", "status"}
+    for key in extra_keys:
+        new_data[key] = data[key]
     await client.set(
-        f"{_REFRESH_KEY_PREFIX}{new_token}",
-        json.dumps({"sub": sub, "family_id": family_id, "status": "active"}),
-        ex=REFRESH_TOKEN_TTL_SECONDS,
+        f"{namespace}{_REFRESH_KEY_PREFIX}{new_token}", json.dumps(new_data), ex=ttl_seconds
     )
     return sub, new_token
 
 
-async def revoke_refresh_family(sub: str) -> None:
+async def revoke_refresh_family(sub: str, *, namespace: str = "") -> None:
     """로그아웃 등으로 해당 사용자의 리프레시 체인 전체를 폐기한다."""
-    await _redis_client().delete(f"{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
+    await _redis_client().delete(f"{namespace}{_REFRESH_FAMILY_KEY_PREFIX}{sub}")
 
 
 # ── 액세스 토큰 블랙리스트 (즉시 차단용) ─────────────────────────────────────
@@ -205,9 +226,9 @@ async def revoke_refresh_family(sub: str) -> None:
 # 즉시 무효화가 필요한 경우를 위해 jti 블랙리스트를 둔다.
 
 
-async def blacklist_token(jti: str, ttl_seconds: int) -> None:
-    await _redis_client().set(f"{_BLACKLIST_KEY_PREFIX}{jti}", "1", ex=ttl_seconds)
+async def blacklist_token(jti: str, ttl_seconds: int, *, namespace: str = "") -> None:
+    await _redis_client().set(f"{namespace}{_BLACKLIST_KEY_PREFIX}{jti}", "1", ex=ttl_seconds)
 
 
-async def is_token_blacklisted(jti: str) -> bool:
-    return await _redis_client().exists(f"{_BLACKLIST_KEY_PREFIX}{jti}") == 1
+async def is_token_blacklisted(jti: str, *, namespace: str = "") -> bool:
+    return await _redis_client().exists(f"{namespace}{_BLACKLIST_KEY_PREFIX}{jti}") == 1

@@ -1,368 +1,210 @@
-# 카카오 소셜 로그인 인증 모듈 구현 하네스 — 백엔드
+# 카카오 소셜 로그인 인증 모듈 — 백엔드 (구현 완료)
 
-> 이 문서는 Claude Code가 본 저장소의 **백엔드(fastapi)** 영역에서 카카오 로그인 인증
-> 모듈을 구현할 때 반드시 준수해야 하는 사양이다.
-> 아래 규칙과 충돌하는 구현은 어떤 이유로도 채택하지 않는다.
-> 사양이 모호하거나 기존 코드와 충돌하면 **임의로 추측하지 말고 질문**한다.
+> 이 문서는 원래 그린필드 전제로 쓴 사양이었으나, 실제 구현 과정에서 기존 인프라
+> (`auth_main.py`/`main.py` 분리, `core/security.py`의 RS256 인프라)와 충돌하는 부분이
+> 드러나 **실제 구현 기준으로 다시 썼다.** 지금부터는 "이렇게 만들어라"가 아니라
+> "이렇게 만들어져 있다"는 as-built 레퍼런스다.
 >
-> 짝 문서: [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 클라이언트 하네스]] —
-> Flutter가 지켜야 할 클라이언트 요구사항·API 호출 계약은 그쪽에 있다. 이 문서는 그
-> 계약을 **정의하는 쪽**이며, 여기 §6 API 명세를 임의로 바꾸면 플러터 쪽 구현이 깨진다.
+> 짝 문서: [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 클라이언트 하네스]]
 
 ---
 
-## 0. 작업 전 필수 확인 (Discovery First)
-
-코드를 한 줄이라도 작성하기 전에 아래를 먼저 조사하고 결과를 요약 보고할 것.
-
-- [ ] `fastapi/docker-compose.yaml`에 `redis` 서비스가 존재하는가? (없으면 §5.3에 따라 추가)
-- [ ] 기존 인증/유저 관련 도메인, 유즈케이스, 어댑터가 있는가? (`apps/auth/` 등) 있다면 경로와 책임 범위
-- [ ] 기존 `User` 엔티티 및 테이블 스키마 (PK 타입, 소프트 삭제 여부, 타임스탬프 컬럼 규칙) — `apps/auth/user_model.py`
-- [ ] 환경변수 로딩 방식 — `core/matrix/secret_manager.py`의 `secret_manager.get_secret()` 사용 (§9, [[.claude/rules/security/secrets-and-auth\|시크릿·인증 규칙]] 참고)
-- [ ] 기존 예외 처리 / 에러 응답 포맷 컨벤션
-- [ ] 테스트 디렉터리 구조와 실행 커맨드 (`fastapi/pytest.ini`, `apps/<앱명>/tests/`)
-
-**중복 구현 금지.** 이미 존재하는 컴포넌트는 재사용하거나 확장한다.
-
----
-
-## 1. 목표
-
-Flutter 앱에서 카카오 OAuth를 수행하고, **자체 API 서버가 신원을 검증한 뒤 자체 JWT를 발급**하는 인증 체계를 구축한다.
-
-핵심 원칙:
+## 1. 목표 · 핵심 원칙 (변경 없음)
 
 1. **서버는 클라이언트가 보낸 프로필 정보를 절대 신뢰하지 않는다.** 신뢰의 근거는 오직 카카오가 서명한 `id_token`뿐이다.
-2. **모바일과 웹의 로그인 경로는 철저히 분리한다.** (§3, 최우선 제약)
+2. **모바일과 웹의 로그인 경로는 철저히 분리한다** (§3).
 3. 최초 로그인 시에만 카카오와 통신한다. 이후 세션 유지는 자체 JWT만으로 이루어진다.
+4. **id_token은 OIDC 방식으로 검증한다** — `access_token`으로 `GET /v2/user/me`를 호출해 신원을 확인하는 기존 웹 플로우(`apps/auth/services.py`)의 패턴은 모바일에서 재사용하지 않는다.
 
 ---
 
-## 2. 인증 플로우 (OIDC 방식 — 필수)
+## 2. 실제 아키텍처 — 두 서비스로 분리돼 있다
 
-### 2.1 채택 방식
+```
+auth.whoareryu.cloud (auth_main.py)  ← JWT_PRIVATE_KEY 보유, 토큰 "발급" 전용
+api.whoareryu.cloud  (main.py)       ← JWT_PUBLIC_KEY만 보유, 토큰 "검증"만
+```
 
-카카오 개발자 콘솔에서 **OpenID Connect를 활성화**하고, 로그인 결과로 받은 `id_token`(JWT)을 서버로 전달받는다.
-서버는 **JWKS 기반 로컬 서명 검증**만으로 인증을 완료한다.
+모바일 카카오 로그인 엔드포인트는 토큰을 발급하므로 **반드시 `auth_main.py`(auth.whoareryu.cloud)에 있다.** 이건 원래 하네스 문서가 전혀 몰랐던 제약이었다.
 
-### 2.2 금지된 대안
+---
 
-- `access_token`을 서버로 받아 `GET /v2/user/me`로 신원을 확인하는 방식 → **채택 금지**
-  (서버→카카오 네트워크 왕복이 발생하고, `app_id` 별도 검증 없이는 타 앱 발급 토큰을 구분하지 못함)
-- 클라이언트가 보낸 프로필 필드(닉네임·이메일 등)를 검증 없이 신뢰 → **채택 금지**
-- 카카오 `refresh_token`을 서버에 저장 → **채택 금지** (§7 참조)
+## 3. JWT 발급 — 새로 안 만들고 `core/security.py` 확장
 
-### 2.3 전체 시퀀스
+기존 RS256 인프라(웹 로그인이 이미 씀)를 **가산적으로 확장**했다. 별도 `JWT_SECRET_KEY`/HS256 체계는 안 만들었다 — 두 체계가 공존하면 `api.whoareryu.cloud`의 공용 검증 로직(`core/dependencies.py::get_current_user`)이 모바일 토큰을 못 읽는다.
+
+- `TokenPayload.platform: str = "web"` 필드 추가 (기본값 있어 기존 호출부 전부 그대로 유효)
+- `create_access_token(..., platform: str = "web")`
+- `create_refresh_token`/`rotate_refresh_token`/`revoke_refresh_family`/`blacklist_token`/`is_token_blacklisted` 전부에 `namespace: str = ""` 키워드 인자 추가 — 기본값이면 기존 웹 키(`refresh:{token}` 등)와 100% 동일. 모바일은 `namespace="auth:mobile:"`로 호출해 `auth:mobile:refresh:{token}` 등으로 격리된다.
+- `create_refresh_token(..., extra: dict | None = None)` — Redis에 저장되는 JSON에 `device_id`/`platform` 같은 부가 필드를 얹는다. **하네스 원안의 7필드 Redis Hash 스키마는 안 씀** — JSON 문자열 + `extra` 병합이 충분히 단순하고 기존 저장 방식과 동일하다.
+- 회귀 테스트로 "네임스페이스 기본값이면 기존 웹 동작과 동일함"을 증명함 — `apps/auth/tests/test_security.py` 참고.
+
+---
+
+## 4. 인증 플로우 — 신규 유저는 동의(약관) 화면을 거친다
+
+> 원래 문서엔 없던 부분. 웹 로그인(`apps/auth/consent_flow.py` + `consent_router.py`)이
+> 이미 "신규 OAuth 유저는 동의를 받고 나서만 계정을 생성"하는 패턴을 갖고 있어서,
+> 모바일도 **그 패턴을 그대로 재사용**했다 (동의 화면 없이 바로 가입시키는 방안은
+> 기각됨 — 사용자 확인).
 
 ```
 [Flutter]
-  loginWithKakaoTalk() / loginWithKakaoAccount()
-    → OAuthToken { idToken, accessToken, refreshToken }
-    → accessToken/refreshToken은 서버로 보내지 않고 폐기 또는 로컬 보관
-  POST /api/auth/kakao/mobile  { "idToken": "...", "nonce": "..." }
+  loginWithKakaoTalk(nonce:) / loginWithKakaoAccount(nonce:)
+    → OAuthToken.idToken (OIDC 활성화 시에만 채워짐)
+  POST /auth/mobile/kakao/login  { "id_token", "nonce", "device_id" }
 
-[API Server]
-  1. JWKS 캐시에서 kid 매칭 공개키 조회
-  2. RS256 서명 검증
-  3. 클레임 검증: iss / aud / exp / nonce
-  4. sub(카카오 회원번호)로 User 조회
-       - 존재하지 않으면 → 신규 가입 처리 (DB INSERT)
-       - 존재하면       → 최종 로그인 시각 갱신
-  5. 자체 access JWT + refresh JWT 발급
-  6. refresh 토큰을 Redis 모바일 네임스페이스에 저장 (§5)
-    → { "accessToken": "...", "refreshToken": "...", "expiresIn": 1800 }
+[auth_main.py]
+  1. PyJWKClient로 카카오 JWKS에서 서명키 조회 (자체 Redis 캐시 없음 — PyJWKClient가
+     이미 kid 기반 인프로세스 캐싱을 함, auth_main.py가 단일 프로세스라 충분)
+  2. jwt.decode(algorithms=["RS256"], issuer=, audience=KAKAO_NATIVE_APP_KEY, leeway=60)
+  3. nonce 1회 소비 확인 (Redis SET NX auth:mobile:nonce:{nonce} EX 300)
+  4. sub로 기존 유저 조회 (find_existing_user 재사용)
+       - 있으면 → 바로 로그인, { "status": "logged_in", "access_token", ... }
+       - 없으면 → pending_signup 생성(consent_flow.py 재사용),
+                  { "status": "consent_required", "consent_token", "suggested_nickname" }
+
+[Flutter, 신규 유저인 경우만]
+  ConsentScreen에서 닉네임 확인 + 약관 동의
+  POST /auth/mobile/consent/complete { "consent_token", "nickname", "agree_terms", "device_id" }
+    → 계정 생성(policy_agreed_at 채움) + 로그인
 ```
-
-클라이언트 쪽 상세 동작(카카오 SDK 호출, 토큰 저장, 인터셉터 등)은 이 문서의 책임이 아니다 —
-[[flutter/_docs/flutter-kakao-oauth-harness\|플러터 하네스]] §2·§5를 따른다.
-
-### 2.4 id_token 검증 규칙 (하나라도 실패 시 401)
-
-| 항목 | 기대값 |
-|---|---|
-| 알고리즘 | `RS256` (헤더의 `alg`를 신뢰하지 말고 서버에서 강제 지정) |
-| 서명 | `https://kauth.kakao.com/.well-known/jwks.json` 공개키로 검증 |
-| `iss` | `https://kauth.kakao.com` |
-| `aud` | 카카오 **네이티브 앱 키** (환경변수) |
-| `exp` | 현재 시각 기준 미만료 (clock skew 허용 ≤ 60초) |
-| `nonce` | 클라이언트가 로그인 요청 시 생성한 값과 일치 |
-
-- JWKS는 애플리케이션 시작 시 로드하고 **Redis에 캐싱**(TTL 6시간)한다.
-- 캐시에 없는 `kid`가 등장하면 **1회에 한해** JWKS를 재조회한다. (무한 재조회 방지 — 최소 5분 쿨다운)
-
-### 2.5 id_token 클레임에서 얻는 정보
-
-`sub`, `nickname`, `picture`, `email`(동의 시). 그 외 확장 정보(성별, 연령대 등)는 포함되지 않는다.
-**추가 정보가 실제로 필요한 경우에만** `GET /v2/user/me`를 별도 유즈케이스로 호출한다. 로그인 경로에는 절대 포함시키지 않는다.
 
 ---
 
-## 3. 【최우선 제약】 모바일 / 웹 로그인 완전 분리
-
-모바일과 웹은 **서로 다른 인증 채널**로 취급한다. 코드, 저장소, 토큰이 어느 지점에서도 섞이지 않아야 한다.
-
-### 3.1 분리 대상
+## 5. 【최우선 제약】 모바일 / 웹 분리 — 실제 값
 
 | 구분 | 모바일 | 웹 |
 |---|---|---|
-| 로그인 엔드포인트 | `POST /api/auth/kakao/mobile` | `POST /api/auth/kakao/web` |
-| 리프레시 엔드포인트 | `POST /api/auth/mobile/refresh` | `POST /api/auth/web/refresh` |
-| 로그아웃 엔드포인트 | `POST /api/auth/mobile/logout` | `POST /api/auth/web/logout` |
-| 입력 자격증명 | Flutter SDK가 발급한 `id_token` | 인가 코드(Authorization Code) 교환 결과 |
-| `aud` 검증 대상 | 네이티브 앱 키 | JavaScript 앱 키 (REST 앱 키) |
-| 토큰 전달 방식 | 응답 바디(JSON) | refresh는 `HttpOnly` + `Secure` + `SameSite=Lax` 쿠키 |
-| 토큰 저장소 | Redis `auth:mobile:*` | Redis `auth:web:*` |
-| Access TTL | 30분 | 15분 |
-| Refresh TTL | 60일 | 14일 |
-| 동시 세션 | 기기별 다중 허용 | 단일 세션 |
+| 로그인 | `POST /auth/mobile/kakao/login` | `POST /auth/kakao/login` (기존) |
+| 동의 완료 | `POST /auth/mobile/consent/complete` | `POST /auth/consent/complete` (기존) |
+| 리프레시 | `POST /auth/mobile/refresh` | `POST /auth/refresh` (기존) |
+| 로그아웃 | `POST /auth/mobile/logout` | `POST /auth/logout` (기존) |
+| Redis 프리픽스 | `auth:mobile:*` | 기본 네임스페이스(`refresh:*`, `refresh_family:*`, `jwt_blacklist:*`) |
+| `platform` 클레임 | `"mobile"` | `"web"` |
+| 토큰 전달 | JSON 바디 | 쿠키(`wr_session`/`wr_refresh`, HttpOnly) |
 
-### 3.2 강제 규칙
+**`/api` 프리픽스는 안 붙는다** — `auth_main.py`가 원래 그렇게 마운트돼 있어서(기존 `/auth/kakao/*` 컨벤션과 통일). 하네스 원안의 `POST /api/auth/kakao/mobile`은 폐기.
 
-- 발급하는 모든 JWT payload에 **`platform` 클레임을 필수 포함**한다. 값은 `"mobile"` 또는 `"web"`.
-- 리프레시/로그아웃 시 **요청 엔드포인트의 플랫폼과 토큰의 `platform` 클레임이 일치하지 않으면 즉시 401**을 반환하고 해당 세션을 폐기한다.
-- 모바일 refresh 토큰으로 웹 세션을 얻거나, 그 반대가 가능한 경로가 **단 하나라도 존재해서는 안 된다.**
-- 웹/모바일 로직을 `if platform == "web"` 같은 분기로 한 함수에 뭉치지 않는다. **유즈케이스와 어댑터를 물리적으로 분리**한다. 공통 로직은 순수 도메인 서비스로만 추출한다.
-- `User` 레코드 자체는 카카오 `sub` 기준으로 **공유**한다. 분리 대상은 계정이 아니라 **세션과 토큰**이다.
+`apps/auth/adapter/inbound/api/v1/mobile_auth_router.py`에서 `platform` 불일치를 401(`PLATFORM_MISMATCH`)로 강제한다 (모바일 로그아웃 유스케이스가 `core.dependencies.get_current_user`로 얻은 토큰의 `platform`을 검사).
 
 ---
 
-## 4. 아키텍처 규칙
-
-기존 헥사고날(포트 & 어댑터) 구조를 따른다. `fastapi/CLAUDE.md`의 feature 슬라이스 규약과 정합성을 맞춘다. 예시 배치:
+## 6. 아키텍처 — `apps/titanic` 레퍼런스 패턴 (하네스 원안의 레이어명과 다름)
 
 ```
-apps/auth/
+fastapi/apps/auth/
 ├── domain/
-│   ├── model/            # User, AuthSession, Platform(Enum) — 프레임워크 의존 0
-│   └── exception/        # InvalidIdTokenError, PlatformMismatchError ...
-├── application/
-│   ├── port/
-│   │   ├── inbound/      # MobileKakaoLoginUseCase, WebKakaoLoginUseCase, RefreshTokenUseCase
-│   │   └── outbound/     # IdTokenVerifierPort, TokenStorePort, UserRepositoryPort, JwtIssuerPort
-│   └── service/          # 유즈케이스 구현 (모바일/웹 각각 별도 클래스)
-└── adapter/
-    ├── inbound/web/      # FastAPI 라우터, Pydantic 스키마
-    └── outbound/
-        ├── kakao/        # JWKS 클라이언트, OIDC 검증기
-        ├── persistence/  # User 리포지토리
-        └── redis/        # TokenStore 구현
+│   ├── model/mobile_kakao_identity.py
+│   └── exception/mobile_auth_exceptions.py
+├── app/                                    # ← "application/"이 아니라 "app/" (titanic 컨벤션)
+│   ├── dtos/mobile_auth_dto.py
+│   ├── ports/{input,output}/               # ← "port/{inbound,outbound}"이 아니라 "ports/{input,output}"
+│   └── use_cases/
+├── adapter/
+│   ├── inbound/api/{schemas,v1}/
+│   └── outbound/{kakao,redis,persistence,mappers}/
+└── dependencies/mobile_auth_provider.py    # get_mobile_*_use_case()
 ```
 
-- 의존 방향은 **바깥 → 안쪽 단방향**. 도메인은 `fastapi`, `redis`, `jose` 등을 import하지 않는다.
-- 유즈케이스는 **포트 인터페이스에만 의존**한다. 구체 클래스 주입 금지.
-- `import-linter` 계약이 설정되어 있다면 새 레이어 규칙을 계약에 추가한다.
-- 패키지 관리는 `uv`를 사용한다.
-- 기존 `apps/auth/dependencies.py`(`get_current_user`, X-User-Id 헤더 임시 방식)와의 관계를 먼저 파악하고, 이 모듈이 그것을 대체하는지 병행하는지 §0 Discovery 단계에서 확인·보고한다.
+기존 `apps/auth/`의 플랫(레거시) 파일들(`router.py`, `services.py`, `user_model.py`,
+`user_provisioning.py`, `consent_flow.py`)은 **그대로 재사용, 수정 없음** — 새 코드가
+그 위에 얹힌다.
 
 ---
 
-## 5. Redis — 모바일 로그인 토큰 저장소
+## 7. API 명세 — 실제 필드명은 **snake_case**
 
-> Redis에는 "컬럼" 개념이 없으므로, **전용 키 네임스페이스 + Hash 필드**로 설계한다.
-> 모바일과 웹은 키 프리픽스부터 분리하여 조회 자체가 교차되지 않게 한다.
+> 하네스 원안은 camelCase(`idToken`, `accessToken` 등)를 가정했는데, `auth_main.py`의
+> 기존 스키마(`apps/auth/schemas.py`의 `ConsentCompleteRequest.consent_token`,
+> `agree_terms` 등)가 이미 snake_case라 그것에 맞췄다.
 
-### 5.1 키 스키마
-
-```
-# 모바일 refresh 토큰 (Hash)
-auth:mobile:refresh:{jti}
-  ├─ user_id      : "1024"
-  ├─ kakao_sub    : "3456789012"
-  ├─ platform     : "mobile"          # 고정값, 검증용
-  ├─ device_id    : "a1b2c3..."       # 기기 식별자
-  ├─ issued_at    : "2026-08-03T09:12:33Z"
-  ├─ expires_at   : "2026-10-02T09:12:33Z"
-  └─ rotated_from : "{이전 jti}"       # 최초 발급 시 빈 문자열
-  TTL = 60일
-
-# 사용자별 활성 모바일 세션 인덱스 (Set) — 전체 로그아웃/강제 만료용
-auth:mobile:sessions:{user_id}  → { jti, jti, ... }
-  TTL = 60일 (갱신 시 연장)
-
-# 웹 (별도 프리픽스, 모바일 코드에서 접근 금지)
-auth:web:refresh:{jti}
-auth:web:sessions:{user_id}
-
-# 블랙리스트 (로그아웃된 access 토큰의 잔여 수명 동안 차단)
-auth:blacklist:{platform}:{jti}   TTL = access 토큰 잔여 TTL
-
-# JWKS 캐시
-auth:jwks:kakao                   TTL = 6시간
-```
-
-### 5.2 동작 규칙
-
-- **Refresh Token Rotation 필수.** 리프레시 성공 시 기존 `jti` 키를 삭제하고 새 `jti`를 발급한다.
-- **재사용 탐지:** 이미 삭제된 `jti`로 리프레시 요청이 들어오면 탈취로 간주하고, 해당 `user_id`의 **모바일 세션 전체를 폐기**(`auth:mobile:sessions:{user_id}` 순회 삭제)한 뒤 401을 반환하고 경고 로그를 남긴다.
-- TTL은 Redis에 위임하고, 애플리케이션에서 별도 만료 배치를 돌리지 않는다.
-- 삭제·조회는 반드시 `TokenStorePort` 구현체를 경유한다. 유즈케이스에서 Redis 클라이언트를 직접 호출하지 않는다.
-- `MobileTokenStore`와 `WebTokenStore`는 **별도 구현 클래스**로 만들고, 각자 자신의 프리픽스만 다룬다. 프리픽스를 파라미터로 받는 공용 클래스로 합치지 않는다.
-
-### 5.3 docker-compose
-
-`redis` 서비스가 없으면 아래 기준으로 추가한다. 이미 있으면 **기존 설정을 존중**하고 필요한 부분만 보완한다 — 신규/재생성 전에 [[fastapi/_docs/docker-rules\|Docker 규칙(중복 생성 방지)]]의 체크리스트를 먼저 따른다.
-
-- 이미지: `redis:7-alpine`
-- 네트워크: 기존 백엔드 네트워크에 연결, **포트는 호스트로 노출하지 않는다** (컨테이너 내부 통신만)
-- 영속화: AOF 활성화 (`appendonly yes`) + named volume
-- 인증: `requirepass`를 환경변수로 주입
-- healthcheck: `redis-cli ping`
-- FastAPI 서비스에 `depends_on: redis (condition: service_healthy)` 추가
-
----
-
-## 6. API 명세
-
-**이 절이 백엔드↔플러터 간의 계약이다.** 필드명·타입·에러 코드를 임의로 바꾸지 않는다 — 바꿔야 하면 플러터 쪽 하네스도 함께 갱신하고 사용자에게 보고한다.
-
-### 6.1 `POST /api/auth/kakao/mobile`
-
+### `POST /auth/mobile/kakao/login`
 ```jsonc
 // Request
-{ "idToken": "eyJ...", "nonce": "5f3a...", "deviceId": "a1b2c3..." }
+{ "id_token": "eyJ...", "nonce": "...", "device_id": "..." }
 
-// 200 OK
-{
-  "accessToken": "eyJ...",
-  "refreshToken": "eyJ...",
-  "tokenType": "Bearer",
-  "expiresIn": 1800,
-  "isNewUser": true
-}
+// 200 — 기존 유저
+{ "status": "logged_in", "access_token": "...", "refresh_token": "...",
+  "token_type": "Bearer", "expires_in": 7200, "is_new_user": false }
+
+// 200 — 신규 유저 (동의 필요)
+{ "status": "consent_required", "consent_token": "...", "suggested_nickname": "..." }
 ```
 
-### 6.2 `POST /api/auth/mobile/refresh`
-
+### `POST /auth/mobile/consent/complete`
 ```jsonc
 // Request
-{ "refreshToken": "eyJ..." }
-
-// 200 OK — 새 access + 새 refresh (rotation)
+{ "consent_token": "...", "nickname": "...", "agree_terms": true, "device_id": "..." }
+// 200 → { "access_token", "refresh_token", "token_type", "expires_in" }
 ```
 
-### 6.3 `POST /api/auth/mobile/logout`
+### `POST /auth/mobile/refresh`
+```jsonc
+{ "refresh_token": "..." } → { "access_token", "refresh_token", "token_type", "expires_in" }
+```
 
-현재 세션의 refresh 키 삭제 + access `jti` 블랙리스트 등록. 204 반환.
+### `POST /auth/mobile/logout`
+`Authorization: Bearer <access_token>` 헤더 필요. 204 반환.
 
-### 6.4 에러 코드
+### 에러 — Korean `detail` + `X-Error-Code` 헤더
 
-| 상황 | HTTP | code |
+> 하네스 원안은 `detail`을 `{code, message}` 딕셔너리로 하려 했는데, 이 저장소의
+> `.claude/rules/api-standards.md` §4("`detail`은 한국어 문자열")와 충돌해서 바꿨다.
+> 에러 코드는 **응답 헤더**로 분리했다 — `detail`은 여전히 한국어 문자열.
+
+| 상황 | HTTP | `X-Error-Code` |
 |---|---|---|
 | id_token 서명/클레임 검증 실패 | 401 | `INVALID_ID_TOKEN` |
 | id_token 만료 | 401 | `EXPIRED_ID_TOKEN` |
-| aud 불일치 (타 앱 토큰) | 401 | `INVALID_AUDIENCE` |
-| nonce 불일치 | 401 | `INVALID_NONCE` |
+| aud 불일치 | 401 | `INVALID_AUDIENCE` |
+| nonce 불일치/재사용 | 401 | `INVALID_NONCE` |
 | 플랫폼 클레임 불일치 | 401 | `PLATFORM_MISMATCH` |
 | refresh 재사용 탐지 | 401 | `TOKEN_REUSE_DETECTED` |
 | JWKS 조회 실패 | 503 | `IDP_UNAVAILABLE` |
+| 약관 미동의 | 422 | `TERMS_NOT_AGREED` |
+| 닉네임 미입력 | 422 | `NICKNAME_REQUIRED` |
+| 닉네임 중복 | 409 | `NICKNAME_TAKEN` |
+| consent_token 만료/무효 | 400 | `CONSENT_TOKEN_INVALID` |
 
-에러 응답 포맷은 **기존 프로젝트 컨벤션을 따른다.** 새 포맷을 만들지 않는다.
-
----
-
-## 7. 보안 규칙
-
-- 카카오 `access_token` / `refresh_token`은 **서버로 전송받지도, 저장하지도 않는다.**
-  (서버가 사용자 대신 카카오 API를 호출할 요구사항이 생기면 그때 별도 설계 — 지금은 범위 밖)
-- 자체 JWT 서명 키는 환경변수로 주입한다(`secret_manager` 경유, §9). 코드/저장소에 하드코딩 금지.
-- 로그에 `id_token`, JWT 원문, `email` 전체를 남기지 않는다. 마스킹하거나 `jti`·`user_id`만 기록한다.
-- `nonce`는 클라이언트가 CSPRNG로 생성한 값을 서버가 **1회용으로 소비**한다 (Redis `SET NX` + 짧은 TTL).
-- 회원 탈퇴 시 어드민 키로 카카오 `POST /v1/user/unlink`를 호출하고, 해당 유저의 **모바일·웹 전체 세션을 폐기**한다.
+실제 매핑 표는 `apps/auth/adapter/inbound/api/v1/mobile_auth_router.py::_ERROR_MAP`.
 
 ---
 
-## 8. 환경변수
+## 8. 환경변수 — 실제 값
 
 ```dotenv
-# Kakao
-KAKAO_NATIVE_APP_KEY=        # 모바일 aud 검증용
-KAKAO_JS_APP_KEY=            # 웹 aud 검증용
-KAKAO_REST_API_KEY=
-KAKAO_ADMIN_KEY=             # unlink 전용
+KAKAO_NATIVE_APP_KEY=   # 플러터 KakaoSdk.init(nativeAppKey:)와 동일한 값
 KAKAO_ISSUER=https://kauth.kakao.com
 KAKAO_JWKS_URL=https://kauth.kakao.com/.well-known/jwks.json
-
-# 자체 JWT
-JWT_SECRET_KEY=
-JWT_ALGORITHM=HS256
-JWT_MOBILE_ACCESS_TTL_MINUTES=30
-JWT_MOBILE_REFRESH_TTL_DAYS=60
-JWT_WEB_ACCESS_TTL_MINUTES=15
-JWT_WEB_REFRESH_TTL_DAYS=14
-
-# Redis
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=
-REDIS_DB=0
 ```
 
-`fastapi/.env.example`을 실제 값 없이 함께 갱신한다. 값 로딩은 `os.getenv` 직접 호출이 아니라
-`secret_manager.get_secret()` 경유 — [[.claude/rules/security/secrets-and-auth\|시크릿·인증 규칙]] 참고.
-
-카카오 네이티브 앱 키는 여기(`.env`)에서는 **검증용**으로만 쓰인다. 플러터 앱에 실제로 심는
-네이티브 키·URL 스킴 설정은 `AndroidManifest.xml`/`Info.plist` 쪽이며 그건 백엔드 책임이
-아니다 — [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 하네스]] §7 참고.
+`REDIS_URL` 단일 연결 문자열을 그대로 씀(하네스 원안의 분해형 `REDIS_HOST/PORT/DB`는 폐기).
+`.env.example`에 추가 완료. `.env`는 훅으로 보호돼 있어 Claude가 직접 못 고침 — 사람이
+Native App Key 실값을 채워야 한다. 새 Python 의존성 없음(`PyJWT`의 `PyJWKClient` 사용).
 
 ---
 
-## 9. 테스트 (필수)
+## 9. 테스트 — `fastapi/apps/auth/tests/`
 
-작성하지 않으면 완료로 간주하지 않는다.
+`python -m pytest apps/auth/tests/ -v` — 58개 전부 통과 확인(기존 웹 로그인 테스트 포함, 회귀 없음).
 
-**단위 테스트 — 외부 의존 전부 페이크/스텁** (DB 없이 돌아야 함, [[.claude/rules/testing\|테스트 규칙]] 참고)
-
-- [ ] 유효한 id_token → 신규 유저 생성 + 토큰 발급
-- [ ] 유효한 id_token → 기존 유저 재로그인 (중복 생성 없음)
-- [ ] 서명 위조 → `INVALID_ID_TOKEN`
-- [ ] `aud`가 웹 앱 키인 토큰을 모바일 엔드포인트로 → `INVALID_AUDIENCE`
-- [ ] `exp` 만료 → `EXPIRED_ID_TOKEN`
-- [ ] `nonce` 불일치 / 재사용 → `INVALID_NONCE`
-- [ ] **웹 refresh 토큰으로 `/api/auth/mobile/refresh` 호출 → `PLATFORM_MISMATCH`**
-- [ ] **모바일 refresh 토큰으로 `/api/auth/web/refresh` 호출 → `PLATFORM_MISMATCH`**
-- [ ] rotation 후 이전 refresh 재사용 → `TOKEN_REUSE_DETECTED` + 해당 유저 모바일 세션 전체 폐기
-
-**통합 테스트**
-
-- [ ] 실제 Redis 컨테이너(testcontainers 또는 compose 테스트 프로파일) 대상으로 키 생성/TTL/삭제 검증
-- [ ] `auth:mobile:*`와 `auth:web:*` 키가 상호 조회되지 않음을 확인
-
-JWKS와 카카오 응답은 **테스트에서 실제 네트워크를 타지 않도록** 고정 키페어로 스텁 처리한다.
+- `test_mobile_kakao_login_interactor.py` / `test_mobile_consent_complete_interactor.py` /
+  `test_mobile_refresh_interactor.py` / `test_mobile_logout_interactor.py` — 단위, 포트 전부 페이크
+- `test_kakao_id_token_verifier.py` — 단위, 로컬 RSA 키페어로 만든 가짜 JWKS(`PyJWKClient` 몽키패치), 실네트워크 없음
+- `test_mobile_kakao_token_store.py` — 통합, 실제 Redis 필요(`REDIS_URL`, 기본 `redis://localhost:16379/0`)
+- `test_security.py`에 `namespace`/`platform` 회귀 케이스 추가
 
 ---
 
-## 10. 작업 순서 (백엔드)
+## 10. 알려진 갭 (의도적으로 남겨둠)
 
-1. Discovery(§0) 수행 후 결과 보고 → **승인받고 다음 단계 진행**
-2. 도메인 모델 + 포트 인터페이스 정의
-3. OIDC 검증기 어댑터 + JWKS 캐시
-4. Redis TokenStore (모바일/웹 각각) + docker-compose 반영
-5. 모바일 로그인/리프레시/로그아웃 유즈케이스 + 라우터
-6. 웹 유즈케이스 + 라우터 (모바일과 동일 구조, 코드 공유 없음)
-7. 테스트 작성 및 전체 통과 확인
-8. `.env.example`, README 인증 섹션 갱신
-
-§6 API 명세가 확정·구현되어야 [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 쪽 작업]]이
-실제 서버를 상대로 진행될 수 있다 — 순서상 백엔드가 선행이거나, 최소한 §6 계약만 먼저 확정해서
-플러터와 병행한다.
-
-각 단계 완료 시 **변경 파일 목록과 핵심 결정 사항을 요약 보고**한다.
-
----
-
-## 11. 금지 사항 요약 (백엔드)
-
-- ❌ `access_token` 기반 서버측 신원 확인
-- ❌ 카카오 refresh token을 서버에 저장
-- ❌ 모바일/웹 로직을 하나의 유즈케이스에서 분기 처리
-- ❌ 모바일/웹 토큰을 같은 Redis 키 네임스페이스에 저장
-- ❌ 유즈케이스에서 Redis·HTTP 클라이언트 직접 호출
-- ❌ 도메인 레이어의 프레임워크 import
-- ❌ 시크릿 하드코딩, 토큰 원문 로깅
-- ❌ 테스트 없이 완료 보고
+- Android는 이번 범위에서 뺐다 — 사용자가 카카오 콘솔에 Android 플랫폼을 아직 등록하지 않음. iOS만 구현.
+- `KAKAO_NATIVE_APP_KEY` 실값 미입력 — 사용자가 확인 후 채워야 실제 로그인 테스트 가능.
+- 카카오 회원 탈퇴 시 `POST /v1/user/unlink` 연동은 이번 범위 밖(원 하네스 §7에 있었지만 미구현).
 
 ---
 
 ## 관련 문서
 
-[[fastapi/CLAUDE\|Backend CLAUDE]] · [[fastapi/_docs/CLAUDE\|Backend Docs 인덱스]] · [[fastapi/_docs/docker-rules\|Docker 규칙]] · [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 클라이언트 하네스(짝 문서)]] · [[.claude/rules/security/secrets-and-auth\|시크릿·인증 규칙]]
+[[fastapi/CLAUDE\|Backend CLAUDE]] · [[fastapi/_docs/CLAUDE\|Backend Docs 인덱스]] · [[flutter/_docs/flutter-kakao-oauth-harness\|플러터 클라이언트 하네스(짝 문서)]] · [[.claude/rules/security/secrets-and-auth\|시크릿·인증 규칙]] · [[.claude/rules/api-standards\|API 규칙]]

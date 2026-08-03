@@ -19,6 +19,7 @@ load_dotenv(_backend_root / ".env")
 
 from fastapi import FastAPI
 
+from apps.auth.adapter.inbound.api.v1.mobile_auth_router import mobile_auth_router
 from apps.auth.router import jwks_router, router as auth_router
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app = FastAPI(
 )
 app.include_router(auth_router)
 app.include_router(jwks_router)
+app.include_router(mobile_auth_router)
 
 
 @app.get("/healthz")

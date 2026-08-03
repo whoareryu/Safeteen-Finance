@@ -179,3 +179,59 @@ def test_password_hash_roundtrip() -> None:
 
     assert security.verify_password("hunter2", hashed) is True
     assert security.verify_password("wrong", hashed) is False
+
+
+# ── platform/namespace 가산적 확장 회귀 테스트 (모바일 카카오 로그인 추가분) ──
+# 기본값(namespace="", platform="web")이 이 파일의 기존 테스트들과 100% 동일하게
+# 동작함을 보장한다 — 웹 로그인 동작이 이번 확장으로 바뀌지 않았다는 증거.
+
+
+def test_token_payload_platform_defaults_to_web() -> None:
+    token = security.create_access_token(sub="42", roles=["user"], aud=_AUD)
+
+    payload = security.verify_token(token, aud=_AUD)
+
+    assert payload.platform == "web"
+
+
+def test_create_access_token_accepts_explicit_platform() -> None:
+    token = security.create_access_token(sub="42", roles=["user"], aud=_AUD, platform="mobile")
+
+    payload = security.verify_token(token, aud=_AUD)
+
+    assert payload.platform == "mobile"
+
+
+async def test_namespace_default_matches_original_web_key_shape() -> None:
+    token = await security.create_refresh_token(sub="42")
+
+    client = security._redis_client()
+    assert await client.exists(f"refresh:{token}") == 1
+
+
+async def test_namespaced_refresh_token_does_not_collide_with_default_namespace() -> None:
+    web_token = await security.create_refresh_token(sub="55")
+    mobile_token = await security.create_refresh_token(sub="55", namespace="auth:mobile:")
+
+    # 같은 sub라도 네임스페이스가 다르면 서로의 리프레시 체인에 영향을 주지 않는다.
+    web_result = await security.rotate_refresh_token(web_token)
+    mobile_result = await security.rotate_refresh_token(mobile_token, namespace="auth:mobile:")
+
+    assert web_result is not None
+    assert mobile_result is not None
+    assert await security.rotate_refresh_token(mobile_token) is None  # 잘못된(빈) 네임스페이스로는 안 보임
+
+
+async def test_create_refresh_token_extra_is_persisted_through_rotation() -> None:
+    token = await security.create_refresh_token(
+        sub="77", namespace="auth:mobile:", extra={"device_id": "device-xyz"}
+    )
+    client = security._redis_client()
+    raw = await client.get(f"auth:mobile:refresh:{token}")
+    assert json.loads(raw)["device_id"] == "device-xyz"
+
+    result = await security.rotate_refresh_token(token, namespace="auth:mobile:")
+    assert result is not None
+    _, rotated = result
+    rotated_raw = await client.get(f"auth:mobile:refresh:{rotated}")
+    assert json.loads(rotated_raw)["device_id"] == "device-xyz"
