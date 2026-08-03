@@ -146,9 +146,7 @@ from fastapi.staticfiles import StaticFiles
 from ontology.adapter.outbound.resource_adapters.image_classifier.yolo_classifier_model_adapter import (
     YoloClassifierModelAdapter,
 )
-from plant.adapter.outbound.filesystem.local_image_storage_adapter import (
-    LocalImageStorageAdapter,
-)
+from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
 from plant.adapter.outbound.resource_adapters.plant_yolo_model_adapter import (
     PlantYoloModelAdapter,
 )
@@ -164,14 +162,14 @@ register_species_classifier_factory(
         )
     )
 )
-# PLANT_S3_BUCKET(AWS API 미발급, 보류 중)이 준비되기 전까지는 로컬 디스크에 저장한다.
-# 발급 후에는 S3ImageStorageGateway(bucket=os.getenv("PLANT_S3_BUCKET", ""), ...)로 교체.
+# PLANT_S3_BUCKET 발급 완료 — 진단 사진은 S3ImageStorageGateway로 저장한다.
+# (media/plant 로컬 마운트는 발급 전 업로드된 기존 사진 URL 호환을 위해 그대로 둔다.)
 _plant_diagnosis_media_dir = _backend_root / "apps/plant/resources/diagnosis_uploads"
 register_image_storage_factory(
-    lambda: LocalImageStorageAdapter(
-        base_dir=_plant_diagnosis_media_dir,
-        public_base_url=secret_manager.get_secret("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000"),
-        url_prefix="media/plant",
+    lambda: S3ImageStorageGateway(
+        bucket=secret_manager.get_secret("PLANT_S3_BUCKET", ""),
+        region=secret_manager.get_secret("AWS_REGION", "ap-northeast-2"),
+        prefix="plant",
     )
 )
 app.mount(
