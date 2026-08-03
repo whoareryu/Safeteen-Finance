@@ -27,7 +27,7 @@ from apps.auth.app.ports.input.mobile_auth_use_case import (
     MobileLogoutUseCase,
     MobileRefreshUseCase,
 )
-from apps.auth.dependencies.mobile_auth_provider import (
+from apps.auth.mobile_auth_provider import (
     get_mobile_consent_complete_use_case,
     get_mobile_kakao_login_use_case,
     get_mobile_logout_use_case,
