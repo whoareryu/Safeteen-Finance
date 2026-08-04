@@ -53,6 +53,9 @@ class _FakeImageStorage:
     async def save(self, filename: str, content_type: str, data: bytes) -> str:
         return f"https://fake-bucket/{filename}"
 
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        return f"{stored_url}?signed=1"
+
 
 async def test_diagnose_parses_species_and_symptom_from_label():
     interactor = DiagnosisInteractor(
@@ -75,7 +78,7 @@ async def test_diagnose_parses_species_and_symptom_from_label():
     assert result.detected_species == "monstera"
     assert result.symptom_label == "overwatered_yellowing"
     assert result.species_confidence == 0.92
-    assert result.photo_url == "https://fake-bucket/leaf.jpg"
+    assert result.photo_url == "https://fake-bucket/leaf.jpg?signed=1"
 
 
 async def test_get_returns_previously_saved_diagnosis():

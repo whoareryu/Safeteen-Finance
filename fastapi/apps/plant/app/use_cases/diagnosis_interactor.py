@@ -66,18 +66,20 @@ class DiagnosisInteractor(DiagnosisUseCase):
                 symptom_confidence=symptom_confidence,
             )
         )
-        return self._to_result(record)
+        return await self._to_result(record)
 
     async def get(self, diagnosis_id: int) -> DiagnosisResult:
         record = await self._diagnosis_repository.get(diagnosis_id)
-        return self._to_result(record)
+        return await self._to_result(record)
 
-    @staticmethod
-    def _to_result(record: DiagnosisRecordEntity) -> DiagnosisResult:
+    async def _to_result(self, record: DiagnosisRecordEntity) -> DiagnosisResult:
+        # DB에는 storage.save()가 준 원래 URL을 저장해 두고, 응답을 내려줄 때마다
+        # 매번 새로 서명한(퍼블릭 접근 불가 버킷에서도 열리는) URL로 바꿔서 돌려준다.
+        viewable_url = await self._storage.presigned_url(record.photo_url)
         return DiagnosisResult(
             id=record.id,  # type: ignore[arg-type]
             plant_id=record.plant_id,
-            photo_url=record.photo_url,
+            photo_url=viewable_url,
             detected_species=record.detected_species,
             species_confidence=record.species_confidence,
             symptom_label=record.symptom_label,
