@@ -13,6 +13,9 @@ class _FakeImageStorageGateway:
         self.saved_calls.append((filename, content_type, data))
         return self._url
 
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        return f"{stored_url}?signed=1"
+
 
 async def test_upload_delegates_to_storage_gateway_and_returns_url():
     gateway = _FakeImageStorageGateway(
@@ -24,5 +27,5 @@ async def test_upload_delegates_to_storage_gateway_and_returns_url():
         ImageUploadCommand(filename="leaf.png", content_type="image/png", data=b"binary-data")
     )
 
-    assert result.url == "https://bucket.s3.ap-northeast-2.amazonaws.com/admin/abc.png"
+    assert result.url == "https://bucket.s3.ap-northeast-2.amazonaws.com/admin/abc.png?signed=1"
     assert gateway.saved_calls == [("leaf.png", "image/png", b"binary-data")]

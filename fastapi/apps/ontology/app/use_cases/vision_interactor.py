@@ -26,5 +26,7 @@ class VisionInteractor(VisionUseCase):
 
     async def process_image(self, schema: VisionImageQuery) -> VisionImageResponse:
         url = await self.storage.save(schema.filename, schema.content_type, schema.data)
+        # 버킷이 Block Public Access라 save()가 돌려준 URL 그대로는 열람 시 403이 난다.
+        viewable_url = await self.storage.presigned_url(url)
         response = await self.repository.process_image(schema)
-        return replace(response, url=url)
+        return replace(response, url=viewable_url)

@@ -12,4 +12,6 @@ class S3ImageUploadInteractor(S3ImageUploadUseCase):
 
     async def upload(self, command: ImageUploadCommand) -> ImageUploadResult:
         url = await self._storage.save(command.filename, command.content_type, command.data)
-        return ImageUploadResult(url=url)
+        # 버킷이 Block Public Access라 save()가 돌려준 URL 그대로는 열람 시 403이 난다.
+        viewable_url = await self._storage.presigned_url(url)
+        return ImageUploadResult(url=viewable_url)
