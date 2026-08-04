@@ -6,6 +6,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../auth/auth_session.dart';
 import 'ledger_models.dart';
@@ -40,7 +41,11 @@ T _parseOrThrow<T>(
 Future<Receipt> uploadReceiptPhoto({
   required Uint8List photoBytes,
   required String photoFilename,
+  String? mimeType,
 }) async {
+  // Gemini는 image/* MIME 타입만 받는다 — 지정 안 하면 http 패키지가
+  // application/octet-stream으로 보내서 백엔드에서 거부당한다.
+  final contentType = MediaType.parse(mimeType ?? 'image/jpeg');
   final res = await AuthSession.authorizedRequest((accessToken) async {
     final req = http.MultipartRequest(
       'POST',
@@ -49,7 +54,12 @@ Future<Receipt> uploadReceiptPhoto({
     if (accessToken != null) {
       req.headers['Authorization'] = 'Bearer $accessToken';
     }
-    req.files.add(http.MultipartFile.fromBytes('file', photoBytes, filename: photoFilename));
+    req.files.add(http.MultipartFile.fromBytes(
+      'file',
+      photoBytes,
+      filename: photoFilename,
+      contentType: contentType,
+    ));
     final streamed = await req.send().timeout(const Duration(seconds: 30));
     return http.Response.fromStream(streamed);
   });

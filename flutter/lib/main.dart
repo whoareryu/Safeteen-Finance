@@ -117,14 +117,16 @@ class _IntroVideoScreenState extends State<_IntroVideoScreen> with WidgetsBindin
 
   // 영상 재생 중에 앱이 백그라운드로 가면 iOS가 그 순간을 스냅샷으로 찍다가 검정 화면으로
   // 멈추는 경우가 있다 — 백그라운드로 갈 때 일시정지하고, 돌아오면 인트로를 이어보지 않고
-  // 바로 앱으로 넘어가 이 문제를 피한다.
+  // 바로 앱으로 넘어가 이 문제를 피한다. 영상이 아직 초기화 전이어도(백그라운드 중 초기화가
+  // 끝났는지 알 수 없음) 무조건 넘어간다 — 인트로는 한 번 보여주면 그만인 장식이지 기다릴
+  // 가치가 없고, 여기서 기다리다 검정 화면에 갇히는 게 훨씬 나쁘다.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
       if (_controller.value.isInitialized && _controller.value.isPlaying) {
         _controller.pause();
       }
-    } else if (!_navigated && _controller.value.isInitialized) {
+    } else if (!_navigated) {
       _goToApp();
     }
   }
@@ -194,6 +196,30 @@ class _IntroVideoScreenState extends State<_IntroVideoScreen> with WidgetsBindin
                 width: _controller.value.size.width,
                 height: _controller.value.size.height,
                 child: VideoPlayer(_controller),
+              ),
+            )
+          else
+            // 영상이 아직 준비되기 전(또는 실패) 잠깐 보이는 화면 — 여기서 아무것도 안 그리면
+            // 그냥 새까만 화면이라 "먹통"처럼 보인다. 로딩 중임을 눈에 보이게 표시한다.
+            const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '새싹',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                  ),
+                ],
               ),
             ),
           Positioned(

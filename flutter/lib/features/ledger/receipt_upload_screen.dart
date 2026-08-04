@@ -42,7 +42,11 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     });
     try {
       final bytes = await picked.readAsBytes();
-      final receipt = await uploadReceiptPhoto(photoBytes: bytes, photoFilename: picked.name);
+      final receipt = await uploadReceiptPhoto(
+        photoBytes: bytes,
+        photoFilename: picked.name,
+        mimeType: picked.mimeType,
+      );
       if (!mounted) return;
       setState(() => _picked = null);
       Navigator.push(
