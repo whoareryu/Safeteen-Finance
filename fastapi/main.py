@@ -106,6 +106,7 @@ from ontology.adapter.inbound.api.v1.sentiment_router import sentiment_router
 from ontology.adapter.inbound.api.v1.video_router import video_router
 from ontology.adapter.inbound.api.v1.anomaly_router import anomaly_router
 from plant.adapter.inbound.api import plant_router
+from ledger.adapter.inbound.api import ledger_router
 from apps.auth.admin_router import admin_router
 # 로그인(Google/Naver/Kakao)·회원가입 동의는 auth_main.py(auth.whoareryu.cloud)로
 # 이동했다 — 이 백엔드는 RS256 공개키로 토큰을 검증만 한다(core.dependencies).
@@ -179,6 +180,25 @@ app.mount(
 )
 # ─────────────────────────────────────────────────────────────────────────
 
+# ── Composition root: ledger 전용 영수증 이미지 저장소(S3) + Gemini Vision 파서 주입 ──
+from ledger.adapter.outbound.llm.gemini_receipt_vision_parser_adapter import (
+    GeminiReceiptVisionParserAdapter,
+)
+from ledger.dependencies.receipt_provider import (
+    register_image_storage_factory as register_ledger_image_storage_factory,
+    register_vision_parser_factory as register_ledger_vision_parser_factory,
+)
+
+register_ledger_image_storage_factory(
+    lambda: S3ImageStorageGateway(
+        bucket=secret_manager.get_secret("LEDGER_S3_BUCKET", ""),
+        region=secret_manager.get_secret("AWS_REGION", "ap-northeast-2"),
+        prefix="receipts",
+    )
+)
+register_ledger_vision_parser_factory(lambda: GeminiReceiptVisionParserAdapter())
+# ─────────────────────────────────────────────────────────────────────────
+
 # ── Composition root: plant 전용 pgvector(plant_knowledge)를 ontology 시맨틱
 #    라우터의 exaone_rag 지식 소스로 주입 ──────────────────────────────────
 from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
@@ -234,6 +254,7 @@ app.include_router(sentiment_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 app.include_router(anomaly_router, prefix="/api")
 app.include_router(plant_router, prefix="/api")
+app.include_router(ledger_router, prefix="/api")
 app.include_router(browser_gate_router)
 app.include_router(admin_router)
 

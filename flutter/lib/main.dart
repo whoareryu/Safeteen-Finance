@@ -7,8 +7,8 @@ import 'auth.dart';
 import 'features/auth/auth_session.dart';
 import 'features/auth/auth_session_store.dart';
 import 'features/clock/clock_screen.dart';
+import 'features/mypage/my_page_screen.dart';
 import 'features/plant/care_calendar_screen.dart';
-import 'features/plant/coming_soon_screen.dart';
 import 'features/plant/diagnosis_upload_screen.dart';
 import 'features/plant/home_screen.dart';
 import 'features/plant/my_plants_screen.dart';
@@ -264,7 +264,7 @@ class _MainShellState extends State<MainShell> {
             color: context.muted,
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ComingSoonScreen(title: '마이페이지')),
+              MaterialPageRoute(builder: (_) => const MyPageScreen()),
             ),
           ),
           const SizedBox(width: 8),

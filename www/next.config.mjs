@@ -88,6 +88,10 @@ const nextConfig = {
         source: "/api/plant/:path*",
         destination: `${backendUrl}/api/plant/:path*`,
       },
+      {
+        source: "/api/ledger/:path*",
+        destination: `${backendUrl}/api/ledger/:path*`,
+      },
     ];
   },
 };
