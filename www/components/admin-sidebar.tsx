@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard, exact: true },
@@ -66,13 +67,15 @@ export function AdminSidebarMobile({
       />
       <aside className="fixed bottom-0 left-0 top-[var(--site-header-height)] z-40 flex w-56 flex-col bg-[#1d1d1f] md:hidden">
         <div className="flex h-14 items-center justify-end px-5">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="rounded p-1 text-white/60 hover:text-white"
+            className="h-auto w-auto rounded p-1 text-white/60 hover:bg-transparent hover:text-white"
             aria-label="메뉴 닫기"
           >
             <X size={18} />
-          </button>
+          </Button>
         </div>
         <div className="flex-1 overflow-y-auto">
           <NavLinks onClose={onClose} />

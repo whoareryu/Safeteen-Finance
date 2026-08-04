@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, Loader2, SendHorizontal, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -74,7 +78,7 @@ export default function LangchainChatPage() {
       </header>
 
       {/* 채팅 영역 */}
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <Card className="flex flex-1 flex-col gap-0 overflow-hidden rounded-2xl p-0">
         {/* 헤더 */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -125,21 +129,23 @@ export default function LangchainChatPage() {
         {/* 추천 질문 */}
         <div className="flex flex-wrap gap-2 border-t border-border px-4 py-2">
           {SUGGESTIONS.map((q) => (
-            <button
+            <Badge
               key={q}
-              type="button"
-              onClick={() => void send(q)}
-              disabled={loading}
-              className="rounded-full bg-muted px-3 py-1 text-xs text-foreground/70 transition hover:bg-muted/70 disabled:opacity-40"
+              variant="secondary"
+              onClick={() => !loading && void send(q)}
+              className={cn(
+                "cursor-pointer rounded-full bg-muted px-3 py-1 text-xs font-normal text-foreground/70 hover:bg-muted/70",
+                loading && "pointer-events-none opacity-40"
+              )}
             >
               {q}
-            </button>
+            </Badge>
           ))}
         </div>
 
         {/* 입력창 */}
         <div className="flex items-end gap-2 border-t border-border px-4 py-3">
-          <textarea
+          <Textarea
             ref={textareaRef}
             rows={1}
             value={input}
@@ -162,18 +168,19 @@ export default function LangchainChatPage() {
               }
             }}
             placeholder="LangChain 어시스턴트에게 질문하기…"
-            className="min-w-0 flex-1 resize-none rounded-xl border border-border bg-input px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
+            className="min-h-9 min-w-0 flex-1 resize-none rounded-xl"
           />
-          <button
+          <Button
             type="button"
+            size="icon"
             onClick={() => void send()}
             disabled={!input.trim() || loading}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition hover:opacity-90 disabled:opacity-40"
+            className="h-9 w-9 shrink-0 rounded-xl"
           >
             <SendHorizontal className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

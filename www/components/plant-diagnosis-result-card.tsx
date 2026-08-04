@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { generateCareGuide, type DiagnosisResult } from "@/lib/plant-api";
 import { translateSpecies, translateSymptom } from "@/lib/plant-labels";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 // 분류기 자체 확신도가 이 미만이면 결과를 단정적으로 보여주지 않고 재촬영을 안내한다.
 const LOW_CONFIDENCE_THRESHOLD = 0.5;
@@ -38,12 +40,15 @@ export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: Dia
       />
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">
+        <Badge className="rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground hover:bg-accent">
           {translateSpecies(diagnosis.detected_species)}
-        </span>
-        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+        </Badge>
+        <Badge
+          variant="secondary"
+          className="rounded-full px-3 py-1 text-sm font-medium hover:bg-secondary"
+        >
           {translateSymptom(diagnosis.symptom_label)}
-        </span>
+        </Badge>
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3">
@@ -84,11 +89,11 @@ export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: Dia
           {prescription}
         </p>
       ) : (
-        <button
+        <Button
           type="button"
           onClick={() => void onGenerateCareGuide()}
           disabled={loading}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+          className="mt-4 rounded-full px-5"
         >
           {loading ? (
             <>
@@ -98,7 +103,7 @@ export default function PlantDiagnosisResultCard({ diagnosis }: { diagnosis: Dia
           ) : (
             "케어 처방 받기"
           )}
-        </button>
+        </Button>
       )}
 
       {error ? (

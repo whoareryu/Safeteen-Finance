@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type TitanicRow = {
   PassengerId: number;
@@ -135,7 +139,7 @@ export default function TitanicAnalysisChat() {
   };
 
   return (
-    <div className="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <Card className="min-w-0 rounded-2xl p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -169,22 +173,22 @@ export default function TitanicAnalysisChat() {
       </div>
 
       <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch">
-        <input
+        <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") send();
           }}
           placeholder="예: 성별 생존률 알려줘"
-          className="min-w-0 flex-1 rounded-xl border border-border bg-input text-foreground px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/30"
+          className="min-w-0 flex-1 rounded-xl"
         />
-        <button
+        <Button
           type="button"
           onClick={send}
-          className="shrink-0 self-end whitespace-nowrap rounded-xl bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 sm:self-auto"
+          className="shrink-0 self-end whitespace-nowrap rounded-xl text-xs sm:self-auto"
         >
           전송
-        </button>
+        </Button>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
@@ -194,17 +198,17 @@ export default function TitanicAnalysisChat() {
           "등급별 생존률",
           "나이 평균/결측치",
         ].map((q) => (
-          <button
+          <Badge
             key={q}
-            type="button"
+            variant="secondary"
             onClick={() => setInput(q)}
-            className="rounded-full bg-muted px-3 py-1.5 text-xs text-foreground/80 hover:bg-muted/70"
+            className="cursor-pointer rounded-full bg-muted px-3 py-1.5 text-xs font-normal text-foreground/80 hover:bg-muted/70"
           >
             {q}
-          </button>
+          </Badge>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 

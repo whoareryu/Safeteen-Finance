@@ -13,6 +13,8 @@ import {
   type MyPlant,
 } from "@/lib/my-plants-api";
 import { cn } from "@/lib/utils";
+import { Badge as StageBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const STAGE_EMOJI: Record<string, string> = {
   새싹: "🌱",
@@ -102,17 +104,17 @@ export default function MyPlantDetailPage() {
 
         <div className="mt-4 flex justify-center gap-2">
           {STAGE_ORDER.map((stage) => (
-            <span
+            <StageBadge
               key={stage}
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium",
                 stage === plant.growth_stage
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground"
+                  ? "bg-primary text-primary-foreground hover:bg-primary"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary"
               )}
             >
               {STAGE_EMOJI[stage]} {stage}
-            </span>
+            </StageBadge>
           ))}
         </div>
 
@@ -157,24 +159,25 @@ export default function MyPlantDetailPage() {
         />
 
         <div className="mt-3 flex justify-center gap-2">
-          <button
+          <Button
             type="button"
             disabled={checkingIn}
             onClick={() => cameraInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            className="rounded-full"
           >
             {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Camera className="h-4 w-4" aria-hidden />}
             사진 찍기
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             disabled={checkingIn}
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground disabled:opacity-50"
+            className="rounded-full border border-border"
           >
             <Upload className="h-4 w-4" aria-hidden />
             앨범에서 선택
-          </button>
+          </Button>
         </div>
 
         {message && <p className="mt-3 text-sm text-primary">{message}</p>}

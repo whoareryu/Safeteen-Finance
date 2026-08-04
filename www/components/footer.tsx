@@ -1,4 +1,8 @@
 import { Github, Linkedin, Mail, Twitter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const SOCIAL_ICON_CLASS =
+  "h-10 w-10 rounded-lg bg-secondary border border-border text-muted-foreground hover:bg-secondary hover:text-primary hover:border-primary/50 transition-all";
 
 export default function Footer() {
   return (
@@ -17,30 +21,26 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4">
-            <a
-              href="#"
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-            >
-              <Github className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-            >
-              <Linkedin className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-            >
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary border border-border text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-            >
-              <Mail className="w-5 h-5" />
-            </a>
+            <Button asChild variant="ghost" size="icon" className={SOCIAL_ICON_CLASS}>
+              <a href="#">
+                <Github className="w-5 h-5" />
+              </a>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className={SOCIAL_ICON_CLASS}>
+              <a href="#">
+                <Linkedin className="w-5 h-5" />
+              </a>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className={SOCIAL_ICON_CLASS}>
+              <a href="#">
+                <Twitter className="w-5 h-5" />
+              </a>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className={SOCIAL_ICON_CLASS}>
+              <a href="#">
+                <Mail className="w-5 h-5" />
+              </a>
+            </Button>
           </div>
         </div>
 

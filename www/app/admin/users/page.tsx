@@ -4,6 +4,22 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { fetchAdminUsers, updateUserRole, type AdminUser } from "@/lib/admin";
 import type { UserRole } from "@/lib/auth";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ROLE_OPTIONS: UserRole[] = ["admin", "user", "partner"];
 
@@ -48,43 +64,47 @@ export default function AdminUsersPage() {
       {loading ? (
         <p className="text-sm text-muted-foreground">불러오는 중…</p>
       ) : (
-        <div className="card-light overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-border text-xs text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">닉네임</th>
-                <th className="px-4 py-3 font-medium">이메일</th>
-                <th className="px-4 py-3 font-medium">가입일</th>
-                <th className="px-4 py-3 font-medium">권한</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card className="p-0">
+          <Table className="min-w-[640px]">
+            <TableHeader>
+              <TableRow className="text-xs text-muted-foreground">
+                <TableHead>닉네임</TableHead>
+                <TableHead>이메일</TableHead>
+                <TableHead>가입일</TableHead>
+                <TableHead>권한</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3">{u.nickname}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                <TableRow key={u.id}>
+                  <TableCell>{u.nickname}</TableCell>
+                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(u.created_at).toLocaleDateString("ko-KR")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
+                  </TableCell>
+                  <TableCell>
+                    <Select
                       value={u.role}
                       disabled={updatingId === u.id || (u.id === currentUser?.id && u.role === "admin")}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                      className="input-light w-28 py-1.5 text-xs disabled:opacity-50"
+                      onValueChange={(value) => handleRoleChange(u.id, value as UserRole)}
                     >
-                      {ROLE_OPTIONS.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
+                      <SelectTrigger size="sm" className="w-28 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLE_OPTIONS.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );

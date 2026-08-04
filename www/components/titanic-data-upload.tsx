@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { FileSpreadsheet, Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type UploadResult = {
   ok: boolean;
@@ -244,11 +245,12 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
           <span className="min-w-0 flex-1 truncate text-sm text-foreground">
             {file.name} ({(file.size / 1024).toFixed(1)} KB)
           </span>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => void upload()}
             disabled={loading}
-            className="apple-cta-primary inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm disabled:opacity-50"
+            className="apple-cta-primary rounded-full px-5 hover:bg-[#0071e3]"
           >
             {loading ? (
               <>
@@ -258,7 +260,7 @@ export default function TitanicDataUpload({ showHeading = true }: TitanicDataUpl
             ) : (
               "저장하기"
             )}
-          </button>
+          </Button>
         </div>
       ) : null}
 

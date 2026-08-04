@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { uploadPlantPhoto } from "@/lib/plant-api";
 import { useAuth } from "@/components/auth-provider";
 
@@ -118,11 +119,11 @@ export default function PlantPhotoUpload() {
           <span className="min-w-0 flex-1 truncate text-sm text-foreground">
             {file.name} ({(file.size / 1024).toFixed(1)} KB)
           </span>
-          <button
+          <Button
             type="button"
             onClick={() => void upload()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+            className="rounded-full px-5"
           >
             {loading ? (
               <>
@@ -132,7 +133,7 @@ export default function PlantPhotoUpload() {
             ) : (
               "진단하기"
             )}
-          </button>
+          </Button>
         </div>
       ) : null}
 

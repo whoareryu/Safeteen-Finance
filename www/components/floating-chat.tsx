@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { MessageCircle, X } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
+import { Button } from "@/components/ui/button";
 
 /**
  * 전역 우하단 AI 채팅 플로팅 버튼.
@@ -22,14 +23,16 @@ export default function FloatingChat() {
         <div className="fixed bottom-36 right-4 z-50 flex h-[60vh] max-h-[520px] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-card shadow-2xl ring-1 ring-border">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold">💬 플랜트 매니저 AI</p>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               aria-label="채팅 닫기"
               onClick={() => setOpen(false)}
-              className="rounded-lg p-1 text-muted-foreground transition hover:bg-muted"
+              className="h-auto w-auto rounded-lg p-1 text-muted-foreground hover:bg-muted"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
           <div className="flex-1 overflow-y-auto px-3 py-3">
             <GeminiChat
@@ -41,18 +44,20 @@ export default function FloatingChat() {
         </div>
       ) : null}
 
-      <button
+      <Button
         type="button"
+        variant="default"
+        size="icon"
         aria-label={open ? "채팅 닫기" : "AI 채팅 열기"}
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-20 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl transition hover:bg-primary/90 active:scale-95"
+        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full text-white shadow-xl active:scale-95"
       >
         {open ? (
           <X className="h-6 w-6" />
         ) : (
           <MessageCircle className="h-6 w-6" />
         )}
-      </button>
+      </Button>
     </>
   );
 }

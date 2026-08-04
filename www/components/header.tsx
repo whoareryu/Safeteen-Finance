@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LogIn, LogOut, ShieldCheck, UserCircle } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthModal from "./auth-modal";
@@ -104,25 +105,27 @@ export default function Header() {
                     <span className="hidden sm:inline">관리자</span>
                   </Link>
                 ) : null}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={logout}
                   aria-label="로그아웃"
-                  className="apple-nav-cta flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 text-xs sm:px-3 md:text-sm"
+                  className="apple-nav-cta h-auto shrink-0 rounded-full px-2 py-1.5 text-xs sm:px-3 md:text-sm"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">로그아웃</span>
-                </button>
+                </Button>
               </>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={openLogin}
-                className="apple-nav-cta flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs md:text-sm"
+                className="apple-nav-cta h-auto shrink-0 rounded-full px-3 py-1.5 text-xs md:text-sm"
               >
                 <LogIn className="h-3.5 w-3.5" />
                 로그인
-              </button>
+              </Button>
             )}
           </div>
         </div>

@@ -13,6 +13,16 @@ const TILE_STYLES = {
     description:
       "타이타닉 승객 데이터로 생존을 예측하는 머신러닝·데이터 분석 프로젝트입니다.",
   },
+  ledger: {
+    gradient:
+      "bg-gradient-to-br from-[#0c291f] via-[#1e5f3a] to-[#0a2818]",
+    pattern:
+      "radial-gradient(ellipse 70% 45% at 50% 110%, rgba(52,211,153,0.3) 0%, transparent 50%), linear-gradient(180deg, transparent 60%, rgba(15,42,23,0.8) 100%)",
+    glow: "shadow-[0_24px_80px_-12px_rgba(16,185,129,0.4)]",
+    icon: "📒",
+    description:
+      "매일의 수입·지출을 기록하고 카테고리별 지출 흐름을 한눈에 보여주는 가계부 웹 애플리케이션입니다.",
+  },
 } as const;
 
 export default function PortfolioProjectTiles({ large = false }: { large?: boolean }) {

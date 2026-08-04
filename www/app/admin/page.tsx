@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Users, ShieldCheck, UserPlus, CalendarDays } from "lucide-react";
 import { fetchAdminStats, type AdminStats } from "@/lib/admin";
+import { Card } from "@/components/ui/card";
 
 function StatCard({
   icon: Icon,
@@ -14,7 +15,7 @@ function StatCard({
   value: number | string;
 }) {
   return (
-    <div className="card-light flex items-center gap-4 p-5">
+    <Card className="flex-row items-center gap-4 p-5">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon size={18} />
       </div>
@@ -22,7 +23,7 @@ function StatCard({
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-2xl font-bold">{value}</p>
       </div>
-    </div>
+    </Card>
   );
 }
 

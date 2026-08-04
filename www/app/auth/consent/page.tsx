@@ -4,6 +4,10 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { checkNicknameAvailable, completeConsent, WR_AUTH_COMPLETE_MESSAGE } from "@/lib/auth";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function ConsentForm() {
   const searchParams = useSearchParams();
@@ -82,9 +86,9 @@ function ConsentForm() {
         <p className="text-center text-sm text-muted-foreground">
           잘못된 접근입니다. 로그인 화면에서 다시 시도해 주세요.
         </p>
-        <Link href="/" className="btn-white mt-6 block w-full py-3 text-center text-sm font-medium">
-          홈으로
-        </Link>
+        <Button asChild variant="outline" className="mt-6 w-full">
+          <Link href="/">홈으로</Link>
+        </Button>
       </div>
     );
   }
@@ -104,23 +108,24 @@ function ConsentForm() {
 
       <div className="modal-divider mb-5" />
 
-      <label className="mb-1 block text-xs font-medium text-muted-foreground">닉네임</label>
+      <Label className="mb-1 block text-xs font-medium text-muted-foreground">닉네임</Label>
       <div className="flex gap-2">
-        <input
+        <Input
           type="text"
           value={nickname}
           onChange={(e) => handleNicknameChange(e.target.value)}
           placeholder="사용할 닉네임"
-          className="input-light min-w-0 flex-1"
+          className="min-w-0 flex-1"
         />
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={handleCheckNickname}
           disabled={checkingNickname || !nickname.trim()}
-          className="btn-white shrink-0 px-3 py-2 text-xs font-medium disabled:opacity-50"
+          className="shrink-0 text-xs"
         >
           {checkingNickname ? "확인 중…" : "중복확인"}
-        </button>
+        </Button>
       </div>
       {nicknameHint ? (
         <p
@@ -135,23 +140,16 @@ function ConsentForm() {
       <div className="modal-divider my-5" />
 
       <label className="mb-4 flex cursor-pointer items-center gap-2 text-sm font-semibold">
-        <input
-          type="checkbox"
-          checked={allAgreed}
-          onChange={(e) => toggleAll(e.target.checked)}
-          className="h-4 w-4"
-        />
+        <Checkbox checked={allAgreed} onCheckedChange={(checked) => toggleAll(checked === true)} />
         전체 동의하기
       </label>
 
       <div className="space-y-3 border-t border-neutral-200 pt-3">
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm">
           <span className="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="h-4 w-4"
+              onCheckedChange={(checked) => setAgreeTerms(checked === true)}
             />
             <span>[필수] 이용약관 동의</span>
           </span>
@@ -162,11 +160,9 @@ function ConsentForm() {
 
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm">
           <span className="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={agreePrivacy}
-              onChange={(e) => setAgreePrivacy(e.target.checked)}
-              className="h-4 w-4"
+              onCheckedChange={(checked) => setAgreePrivacy(checked === true)}
             />
             <span>[필수] 개인정보 수집 및 이용 동의</span>
           </span>
@@ -178,14 +174,14 @@ function ConsentForm() {
 
       {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
 
-      <button
+      <Button
         type="button"
         disabled={!canSubmit || submitting}
         onClick={handleSubmit}
-        className="btn-white mt-6 w-full py-3 text-sm font-medium disabled:opacity-60"
+        className="mt-6 w-full"
       >
         {submitting ? "처리 중…" : "가입 완료"}
-      </button>
+      </Button>
     </div>
   );
 }

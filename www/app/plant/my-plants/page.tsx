@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Camera, Loader2, Plus, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { registerMyPlant, listMyPlants, type MyPlant } from "@/lib/my-plants-api";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const STAGE_EMOJI: Record<string, string> = {
   새싹: "🌱",
@@ -100,21 +102,21 @@ export default function MyPlantsPage() {
 
         <label className="mt-3 block text-sm font-medium text-foreground">
           키우는 장소
-          <input
+          <Input
             value={region}
             onChange={(e) => setRegion(e.target.value)}
             placeholder="예: 거실, 베란다"
-            className="mt-1 block w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            className="mt-1"
           />
         </label>
 
         <label className="mt-3 block text-sm font-medium text-foreground">
           종류 (사진으로 등록하면 생략 가능)
-          <input
+          <Input
             value={speciesName}
             onChange={(e) => setSpeciesName(e.target.value)}
             placeholder="예: 몬스테라"
-            className="mt-1 block w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            className="mt-1"
           />
         </label>
 
@@ -134,34 +136,34 @@ export default function MyPlantsPage() {
             className="hidden"
             onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
           />
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-muted"
+            className="rounded-full border border-border text-xs hover:bg-muted"
           >
             <Upload className="h-3.5 w-3.5" aria-hidden />
             사진 선택
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => cameraInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-muted"
+            className="rounded-full border border-border text-xs hover:bg-muted"
           >
             <Camera className="h-3.5 w-3.5" aria-hidden />
             촬영하기
-          </button>
+          </Button>
           {photo && <span className="truncate text-xs text-muted-foreground">{photo.name}</span>}
         </div>
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-        <button
+        <Button
           type="button"
           onClick={() => void submit()}
           disabled={submitting}
-          className={cn(
-            "mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-          )}
+          className="mt-4 rounded-full px-5"
         >
           {submitting ? (
             <>
@@ -174,7 +176,7 @@ export default function MyPlantsPage() {
               등록하기
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       <h2 className="mt-8 text-sm font-semibold text-foreground">내 식물 목록</h2>
@@ -194,9 +196,9 @@ export default function MyPlantsPage() {
                 <span className="text-2xl" aria-hidden>
                   {STAGE_EMOJI[p.growth_stage] ?? "🌱"}
                 </span>
-                <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+                <Badge className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground hover:bg-accent">
                   {p.growth_stage}
-                </span>
+                </Badge>
               </div>
               <p className="mt-2 font-semibold text-foreground">{p.nickname}</p>
               <p className="text-xs text-muted-foreground">

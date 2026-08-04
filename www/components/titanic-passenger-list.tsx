@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const PAGE_SIZE = 100;
 
@@ -79,25 +88,27 @@ export default function PassengerList() {
           전체 승객 <span className="font-semibold">{total.toLocaleString()}</span>명
         </p>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
-            className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50"
+            variant="outline"
+            size="sm"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
           >
             이전
-          </button>
+          </Button>
           <span className="text-sm text-foreground">
             {page} / {totalPages}
           </span>
-          <button
+          <Button
             type="button"
-            className="rounded-md border border-border px-3 py-1.5 text-sm disabled:opacity-50"
+            variant="outline"
+            size="sm"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
           >
             다음
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -110,32 +121,30 @@ export default function PassengerList() {
           저장된 승객 데이터가 없습니다. 먼저 CSV를 업로드해 주세요.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-muted text-foreground">
-              <tr>
-                <th className="px-4 py-2 font-medium">PassengerId</th>
-                <th className="px-4 py-2 font-medium">Name</th>
-                <th className="px-4 py-2 font-medium">Gender</th>
-                <th className="px-4 py-2 font-medium">Pclass</th>
-                <th className="px-4 py-2 font-medium">Survived</th>
-                <th className="px-4 py-2 font-medium">Age</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, idx) => (
-                <tr key={`${asText(row.passenger_id ?? row.PassengerId)}-${idx}`} className="border-t border-border">
-                  <td className="px-4 py-2">{asText(row.passenger_id ?? row.PassengerId)}</td>
-                  <td className="px-4 py-2">{asText(row.name ?? row.Name)}</td>
-                  <td className="px-4 py-2">{asText(row.gender ?? row.Sex)}</td>
-                  <td className="px-4 py-2">{asText(row.pclass ?? row.Pclass)}</td>
-                  <td className="px-4 py-2">{asText(row.survived ?? row.Survived)}</td>
-                  <td className="px-4 py-2">{asText(row.age ?? row.Age)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead>PassengerId</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Gender</TableHead>
+              <TableHead>Pclass</TableHead>
+              <TableHead>Survived</TableHead>
+              <TableHead>Age</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row, idx) => (
+              <TableRow key={`${asText(row.passenger_id ?? row.PassengerId)}-${idx}`}>
+                <TableCell>{asText(row.passenger_id ?? row.PassengerId)}</TableCell>
+                <TableCell>{asText(row.name ?? row.Name)}</TableCell>
+                <TableCell>{asText(row.gender ?? row.Sex)}</TableCell>
+                <TableCell>{asText(row.pclass ?? row.Pclass)}</TableCell>
+                <TableCell>{asText(row.survived ?? row.Survived)}</TableCell>
+                <TableCell>{asText(row.age ?? row.Age)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </section>
   );

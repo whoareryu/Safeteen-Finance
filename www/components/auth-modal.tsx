@@ -4,6 +4,13 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { WR_AUTH_COMPLETE_MESSAGE } from "@/lib/auth";
 import { useAuth } from "./auth-provider";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,8 +20,6 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { refreshSession } = useAuth();
   const [error, setError] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const resetAndClose = () => {
     setError(null);
@@ -47,28 +52,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="modal-overlay absolute inset-0" onClick={resetAndClose} aria-hidden />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-modal-title"
-        className="modal-panel"
+    <Dialog open={isOpen} onOpenChange={(open) => !open && resetAndClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-md rounded-2xl border-border bg-card p-8 text-foreground shadow-xl"
       >
-        <button
-          type="button"
-          onClick={resetAndClose}
-          className="absolute right-4 top-4 rounded-lg border border-neutral-300 bg-neutral-50 p-2 text-neutral-600 transition-colors hover:border-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
-          aria-label="닫기"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <DialogClose asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 h-auto w-auto rounded-lg border border-neutral-300 bg-neutral-50 p-2 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:border-neutral-400"
+            aria-label="닫기"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </DialogClose>
 
-        <h2 id="auth-modal-title" className="mb-6 text-center text-2xl font-bold">
+        <DialogTitle className="mb-6 text-center text-2xl font-bold">
           <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
             로그인
           </span>
-        </h2>
+        </DialogTitle>
 
         <div className="modal-divider mb-5" />
 
@@ -79,10 +84,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ) : null}
 
         <div className="space-y-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => openSocialPopup("google")}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white py-3 text-sm font-medium text-neutral-800 disabled:opacity-60"
+            className="h-auto w-full justify-center gap-2 rounded-md border border-neutral-300 bg-white py-3 text-sm font-medium text-neutral-800 hover:bg-white disabled:opacity-60"
           >
             <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
               <path
@@ -103,23 +109,25 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               />
             </svg>
             구글로 로그인
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => openSocialPopup("naver")}
-            className="flex w-full items-center justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white disabled:opacity-60"
+            className="h-auto w-full justify-center rounded-md bg-[#03C75A] py-3 text-sm font-medium text-white hover:bg-[#03C75A] disabled:opacity-60"
           >
             네이버로 로그인
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => openSocialPopup("kakao")}
-            className="flex w-full items-center justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black disabled:opacity-60"
+            className="h-auto w-full justify-center rounded-md bg-[#FEE500] py-3 text-sm font-medium text-black hover:bg-[#FEE500] disabled:opacity-60"
           >
             카카오로 로그인
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

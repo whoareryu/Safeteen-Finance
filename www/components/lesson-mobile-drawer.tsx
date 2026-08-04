@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type LessonItem = { href: string; label: string };
@@ -56,14 +57,15 @@ export default function LessonMobileDrawer() {
     <div className="md:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <button
+          <Button
             type="button"
-            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-foreground/85 hover:bg-muted"
+            variant="ghost"
+            className="h-auto gap-2 rounded-md px-2 py-1 text-xs font-medium text-foreground/85 hover:bg-muted"
             aria-label="LESSON 메뉴 열기"
           >
             <Menu className="h-4 w-4" aria-hidden />
             {currentLabel}
-          </button>
+          </Button>
         </SheetTrigger>
         <SheetContent side="left" className="bg-background p-0">
           <SheetHeader className="border-b border-border">

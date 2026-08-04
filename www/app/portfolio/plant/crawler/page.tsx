@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { seedCrawl, scrapeUrl, type CrawlSeedResult, type ScrapeRunResult } from "@/lib/crawler-api";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Tab = "crawler" | "scraper";
 
@@ -34,21 +38,22 @@ function CrawlScrapeForm({ tab }: { tab: Tab }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border border-border bg-card p-5">
+    <Card className="rounded-2xl p-5">
+      <form onSubmit={onSubmit} className="space-y-3">
       <div>
-        <label className="text-sm font-medium text-foreground">URL</label>
-        <input
+        <Label className="text-sm font-medium text-foreground">URL</Label>
+        <Input
           value={seedUrl}
           onChange={(e) => setSeedUrl(e.target.value)}
           required
           type="url"
           placeholder="https://example-plant-forum.com"
-          className="mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/30"
+          className="mt-1"
         />
       </div>
       <div>
-        <label className="text-sm font-medium text-foreground">키워드</label>
-        <input
+        <Label className="text-sm font-medium text-foreground">키워드</Label>
+        <Input
           value={command}
           onChange={(e) => setCommand(e.target.value)}
           required
@@ -57,16 +62,12 @@ function CrawlScrapeForm({ tab }: { tab: Tab }) {
               ? "몬스테라 키우기 정보를 깊이 2단계까지 찾아줘"
               : "이 페이지에서 몬스테라 관련 내용만 뽑아줘"
           }
-          className="mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/30"
+          className="mt-1"
         />
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition disabled:opacity-50"
-      >
+      <Button type="submit" disabled={loading} className="w-full">
         {loading ? "처리 중…" : tab === "crawler" ? "크롤링 시작" : "지금 스크랩하기"}
-      </button>
+      </Button>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -86,7 +87,8 @@ function CrawlScrapeForm({ tab }: { tab: Tab }) {
           {scrapeResult.saved_path && <p>저장 위치: {scrapeResult.saved_path}</p>}
         </div>
       )}
-    </form>
+      </form>
+    </Card>
   );
 }
 
@@ -221,33 +223,30 @@ export default function PlantCrawlerScraperPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-10">
-      <header className="pt-1">
-        <div className="mb-4 inline-flex rounded-full border border-border bg-muted/40 p-1">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition",
-                tab === t.id
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <h1 className="text-2xl font-semibold leading-snug tracking-tight text-foreground">
-          {active.title}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{active.description}</p>
-      </header>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
+        <header className="pt-1">
+          <TabsList className="mb-4 rounded-full border border-border bg-muted/40 p-1">
+            {TABS.map((t) => (
+              <TabsTrigger
+                key={t.id}
+                value={t.id}
+                className="rounded-full px-4 py-1.5 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <h1 className="text-2xl font-semibold leading-snug tracking-tight text-foreground">
+            {active.title}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">{active.description}</p>
+        </header>
 
-      <CrawlScrapeForm tab={tab} />
-
-      {tab === "crawler" ? <CrawlerDoc /> : <ScraperDoc />}
+        <TabsContent value={tab} className="space-y-8">
+          <CrawlScrapeForm tab={tab} />
+          {tab === "crawler" ? <CrawlerDoc /> : <ScraperDoc />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

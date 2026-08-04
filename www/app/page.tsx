@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarCheck, Leaf } from "lucide-react";
 import GeminiChat from "@/components/gemini-chat";
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { uploadPlantPhoto } from "@/lib/plant-api";
 import { translateSpecies, translateSymptom } from "@/lib/plant-labels";
 
@@ -87,12 +88,13 @@ export default function Home() {
             </h2>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (
-                <span
+                <Badge
                   key={s}
-                  className="rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs text-muted-foreground"
+                  variant="outline"
+                  className="rounded-full border-border bg-background/70 px-3 py-1.5 text-xs font-normal text-muted-foreground"
                 >
                   {s}
-                </span>
+                </Badge>
               ))}
             </div>
             <div className="mt-4">

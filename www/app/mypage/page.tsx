@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { checkNicknameAvailable } from "@/lib/auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function MyPage() {
   const { user, ready, updateNickname } = useAuth();
@@ -27,9 +31,9 @@ export default function MyPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
         <p className="text-sm text-muted-foreground">로그인이 필요합니다.</p>
-        <Link href="/" className="btn-white mt-6 inline-block px-6 py-2 text-sm font-medium">
-          홈으로
-        </Link>
+        <Button asChild variant="outline" className="mt-6">
+          <Link href="/">홈으로</Link>
+        </Button>
       </div>
     );
   }
@@ -108,31 +112,33 @@ export default function MyPage() {
     <div className="mx-auto max-w-md px-4 py-24">
       <h1 className="mb-8 text-2xl font-bold">마이페이지</h1>
 
-      <div className="card-light space-y-4 p-6">
+      <Card>
+        <CardContent className="space-y-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">이메일</label>
+          <Label className="mb-1 block text-xs font-medium text-muted-foreground">이메일</Label>
           <p className="text-sm">{user.email}</p>
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">닉네임</label>
+          <Label className="mb-1 block text-xs font-medium text-muted-foreground">닉네임</Label>
           {editing ? (
             <>
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   value={nickname}
                   onChange={(e) => handleNicknameChange(e.target.value)}
-                  className="input-light min-w-0 flex-1"
+                  className="min-w-0 flex-1"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={handleCheckNickname}
                   disabled={checkingNickname || !nickname.trim()}
-                  className="btn-white shrink-0 px-3 py-2 text-xs font-medium disabled:opacity-50"
+                  className="shrink-0 text-xs"
                 >
                   {checkingNickname ? "확인 중…" : "중복확인"}
-                </button>
+                </Button>
               </div>
               {nicknameHint ? (
                 <p
@@ -145,37 +151,40 @@ export default function MyPage() {
               ) : null}
               {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
               <div className="mt-3 flex gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={handleSave}
                   disabled={!canSave || saving}
-                  className="btn-white flex-1 py-2 text-sm font-medium disabled:opacity-50"
+                  className="flex-1"
                 >
                   {saving ? "저장 중…" : "저장"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={cancelEditing}
-                  className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  className="flex-1 text-muted-foreground"
                 >
                   취소
-                </button>
+                </Button>
               </div>
             </>
           ) : (
             <div className="flex items-center justify-between">
               <p className="text-sm">{user.nickname}</p>
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={startEditing}
-                className="text-xs font-medium text-primary hover:underline"
+                className="h-auto p-0 text-xs font-medium"
               >
                 수정
-              </button>
+              </Button>
             </div>
           )}
         </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
