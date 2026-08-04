@@ -49,6 +49,9 @@ class _FakeImageStorage:
     async def save(self, filename: str, content_type: str, data: bytes) -> str:
         return f"https://fake-bucket/receipts/{filename}"
 
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        return f"{stored_url}?signed=1"
+
 
 def _make_extraction() -> ReceiptExtraction:
     return ReceiptExtraction(
@@ -86,7 +89,7 @@ async def test_upload_saves_extracted_receipt_with_items():
     assert result.category == "식비"
     assert len(result.items) == 2
     assert result.items[0].name == "우유"
-    assert result.image_url == "https://fake-bucket/receipts/receipt.jpg"
+    assert result.image_url == "https://fake-bucket/receipts/receipt.jpg?signed=1"
 
 
 async def test_list_by_owner_returns_saved_receipts():

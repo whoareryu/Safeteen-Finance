@@ -27,3 +27,7 @@ class LocalImageStorageAdapter(ImageStorageGateway):
         key = f"{uuid.uuid4().hex}.{ext}"
         (self._base_dir / key).write_bytes(data)
         return f"{self._public_base_url}/{self._url_prefix}/{key}"
+
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        """StaticFiles로 이미 공개 서빙 중이라 서명이 필요 없다 — 그대로 반환."""
+        return stored_url

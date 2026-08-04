@@ -46,22 +46,24 @@ class ReceiptInteractor(ReceiptUseCase):
                 ],
             )
         )
-        return self._to_result(record)
+        return await self._to_result(record)
 
     async def list_by_owner(self, owner_user_id: int) -> list[ReceiptResult]:
         records = await self._receipt_repository.list_by_owner(owner_user_id)
-        return [self._to_result(record) for record in records]
+        return [await self._to_result(record) for record in records]
 
     async def get(self, receipt_id: int) -> ReceiptResult:
         record = await self._receipt_repository.get(receipt_id)
-        return self._to_result(record)
+        return await self._to_result(record)
 
-    @staticmethod
-    def _to_result(record: ReceiptEntity) -> ReceiptResult:
+    async def _to_result(self, record: ReceiptEntity) -> ReceiptResult:
+        # DB에는 save()가 준 원래 URL을 저장해 두고, 응답을 내려줄 때마다 매번
+        # 새로 서명한(퍼블릭 접근 불가 버킷에서도 열리는) URL로 바꿔서 돌려준다.
+        viewable_url = await self._storage.presigned_url(record.image_url)
         return ReceiptResult(
             id=record.id,  # type: ignore[arg-type]
             owner_user_id=record.owner_user_id,
-            image_url=record.image_url,
+            image_url=viewable_url,
             store_name=record.store_name,
             purchase_date=record.purchase_date,
             total_amount=record.total_amount,

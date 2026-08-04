@@ -33,6 +33,9 @@ class _FakeStorageGateway(ImageStorageGateway):
         self.received_data = data
         return self._url
 
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        return stored_url
+
 
 async def test_segment_orchestrates_model_and_storage() -> None:
     output = SegmentModelOutput(

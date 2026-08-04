@@ -31,6 +31,9 @@ class _FakeStorageGateway(ImageStorageGateway):
         self.received_data = data
         return self._url
 
+    async def presigned_url(self, stored_url: str, expires_in: int = 3600) -> str:
+        return stored_url
+
 
 async def test_generate_orchestrates_model_and_storage() -> None:
     model = _FakeModelPort(image_bytes=b"fake-png-bytes", seed=42)
