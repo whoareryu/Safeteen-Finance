@@ -59,4 +59,4 @@ jobs:
               -o ProxyCommand="cloudflared access ssh --hostname ssh.whoareryu.cloud" \
               -i ~/.ssh/deploy_key \
               "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}" \
-              "cd ~/cloud.whoareryu && docker compose --env-file fastapi/.env -f fastapi/docker-compose.yaml pull && for c in whoareryu-backend whoareryu-auth whoareryu-n8n whoareryu-pgvector whoareryu-redis whoareryu-cloudflared whoareryu-adminer whoareryu-neo4j; do docker rm -f \"\$c\" 2>/dev/null || true; done && docker compose --env-file fastapi/.env -f fastapi/docker-compose.yaml up -d && docker image prune -f"
+              "cd ~/cloud.whoareryu && docker compose --env-file fastapi/.env -f fastapi/docker-compose.yaml pull && for c in whoareryu-backend whoareryu-auth; do docker rm -f \"\$c\" 2>/dev/null || true; done && docker compose --env-file fastapi/.env -f fastapi/docker-compose.yaml up -d && docker image prune -f"
