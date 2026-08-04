@@ -36,6 +36,11 @@ const TOPICS: LessonTopic[] = [
     items: [{ href: "/portfolio/plant/crawler", label: "크롤러/스크래퍼" }],
   },
   {
+    id: "ledger",
+    label: "가계부",
+    items: [{ href: "/portfolio/ledger", label: "영수증 목록" }],
+  },
+  {
     id: "chat",
     label: "채팅",
     items: [{ href: "/portfolio/langchain/chat", label: "Langchain과 대화하기" }],

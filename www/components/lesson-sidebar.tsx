@@ -37,6 +37,11 @@ const TOPICS: LessonTopic[] = [
     label: "채팅",
     items: [{ href: "/portfolio/langchain/chat", label: "Langchain과 대화하기" }],
   },
+  {
+    id: "ledger",
+    label: "가계부",
+    items: [{ href: "/portfolio/ledger", label: "영수증 목록" }],
+  },
 ];
 
 export default function LessonSidebar() {
