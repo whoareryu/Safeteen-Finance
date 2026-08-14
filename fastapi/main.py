@@ -27,12 +27,6 @@ logger = logging.getLogger(__name__)
 from core.db_health_adapter import DbHealthAdapter
 from core.database import dispose_engine, get_db, init_db, init_engine
 from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
-from core.infra.secret_manager import secret_manager
-
-try:
-    from doro.app.doro_director import DoroDirector
-except ImportError:
-    DoroDirector = None  # type: ignore[misc, assignment]
 
 _faker = OllamaChatOrchestrator()
 
@@ -86,89 +80,11 @@ async def _google_browser_gate(request: Request, call_next):
     return await call_next(request)
 
 
-from admin.adapter.inbound.api import admin_app_router
-from ontology.adapter.inbound.api import ontology_router
-from community.adapter.inbound.api import chef_router
-
-from ontology.adapter.inbound.api.v1.sentiment_router import sentiment_router
-from ontology.adapter.inbound.api.v1.video_router import video_router
-from ontology.adapter.inbound.api.v1.anomaly_router import anomaly_router
-from ledger.adapter.inbound.api import ledger_router
 from safeteen.adapter.inbound.api import safeteen_router
 from apps.auth.admin_router import admin_router
 # 로그인(Google/Naver/Kakao)·회원가입 동의는 auth_main.py(auth.whoareryu.cloud)로
 # 이동했다 — 이 백엔드는 RS256 공개키로 토큰을 검증만 한다(core.dependencies).
 
-# ── Composition root: ChefTaskDispatcher → Maestro 주입 ──────────────────
-from apps.auth.owner_session import is_valid_owner_token
-from community.adapter.outbound.chef_task_dispatcher import ChefTaskDispatcher
-from community.dependencies.email_provider import get_email_use_case
-from ontology.app.ports.output.owner_gate_port import OwnerGatePort
-from ontology.app.use_cases.maestro_router_interactor import MaestroInteractor
-from ontology.dependencies.maestro_router_provider import (
-    register_dispatch_factory,
-    get_sommelier_use_case,
-    get_lens_use_case,
-)
-
-
-class _OwnerGateAdapter(OwnerGatePort):
-    def is_owner(self, owner_session: str | None) -> bool:
-        return is_valid_owner_token(owner_session)
-
-
-register_dispatch_factory(
-    lambda: MaestroInteractor(
-        sommelier=get_sommelier_use_case(),
-        lens=get_lens_use_case(),
-        llm=OllamaChatOrchestrator(),
-        dispatcher=ChefTaskDispatcher(
-            email=get_email_use_case(),
-        ),
-        owner_gate=_OwnerGateAdapter(),
-    )
-)
-
-from fastapi.staticfiles import StaticFiles
-
-from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
-
-# ── Composition root: ledger 전용 영수증 이미지 저장소(S3) + Gemini Vision 파서 주입 ──
-from ledger.adapter.outbound.llm.gemini_receipt_vision_parser_adapter import (
-    GeminiReceiptVisionParserAdapter,
-)
-from ledger.dependencies.receipt_provider import (
-    register_image_storage_factory as register_ledger_image_storage_factory,
-    register_vision_parser_factory as register_ledger_vision_parser_factory,
-)
-
-register_ledger_image_storage_factory(
-    lambda: S3ImageStorageGateway(
-        bucket=secret_manager.get_secret("LEDGER_S3_BUCKET", ""),
-        region=secret_manager.get_secret("AWS_REGION", "ap-northeast-2"),
-        prefix="receipts",
-    )
-)
-register_ledger_vision_parser_factory(lambda: GeminiReceiptVisionParserAdapter())
-# ─────────────────────────────────────────────────────────────────────────
-
-# ── Composition root: 이미지 생성(SDXL Turbo) 결과물 정적 서빙 ────────────────
-_ontology_generated_media_dir = _backend_root / "apps/ontology/resources/generated_images"
-_ontology_generated_media_dir.mkdir(parents=True, exist_ok=True)
-app.mount(
-    "/media/generated",
-    StaticFiles(directory=str(_ontology_generated_media_dir), check_dir=False),
-    name="ontology-generated-media",
-)
-# ─────────────────────────────────────────────────────────────────────────
-
-app.include_router(ontology_router, prefix="/api")
-app.include_router(admin_app_router, prefix="/api")
-app.include_router(chef_router, prefix="/api")
-app.include_router(sentiment_router, prefix="/api")
-app.include_router(video_router, prefix="/api")
-app.include_router(anomaly_router, prefix="/api")
-app.include_router(ledger_router, prefix="/api")
 app.include_router(safeteen_router, prefix="/api")
 app.include_router(browser_gate_router)
 app.include_router(admin_router)
@@ -183,8 +99,8 @@ def read_root() -> dict[str, str]:
 def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
     """owner_session.py는 RS256 로그인 재작성과 무관해 이 백엔드에 그대로 남긴다.
 
-    www의 lib/auth.ts `checkOwner()`가 이 경로를 호출해 community(이메일 발송·
-    주소록) 등 owner 전용 기능 접근 가능 여부를 판단한다.
+    www의 lib/auth.ts `checkOwner()`가 이 경로를 호출해 owner 전용 기능 접근
+    가능 여부를 판단한다.
     """
     return {"is_owner": is_valid_owner_token(wr_owner_session)}
 

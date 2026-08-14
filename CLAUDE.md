@@ -138,12 +138,11 @@ cloud.whoareryu/
 └── _docs/          # 공통 문서 (architecture.md 등)
 ```
 
-Docker Compose 스택(backend·auth·n8n·pgvector·redis·neo4j·cloudflared·adminer),
-기동/종료 스크립트(`start.sh`/`stop.sh`/`start-tunnel.sh`), QLoRA 학습 코드(`training/`)까지
-전부 `fastapi/` 안에 있다 — `fastapi/`만 있으면 배포가 완결되도록 자기완결형으로 묶여 있다.
-로컬 전용 클라이언트 실행은 더 이상 지원하지 않고, EC2 등 클라우드 호스트에서만 기동한다.
-(`fastapi/training/`은 CUDA가 필요해 GPU가 없는 호스트에서는 실행 자체가 안 된다 — 학습을
-실제로 어디서 돌릴지는 별도 결정 필요.)
+Docker Compose 스택(backend·auth·pgvector·redis·cloudflared·adminer),
+기동/종료 스크립트(`start.sh`/`stop.sh`/`start-tunnel.sh`)까지 전부 `fastapi/` 안에 있다 —
+`fastapi/`만 있으면 배포가 완결되도록 자기완결형으로 묶여 있다.
+백엔드는 AWS/EC2를 쓰지 않는다 — 로컬 머신에서 Docker Compose로 기동하고 Cloudflare
+Tunnel로 외부에 노출한다 (아래 "배포" 절 참고).
 
 `fastapi/ollama-models`는 로컬 Ollama 모델 디렉터리로 가는 심볼릭 링크라 `.gitignore` 대상이다 (로컬 전용, 미추적).
 
@@ -152,19 +151,18 @@ Docker Compose 스택(backend·auth·n8n·pgvector·redis·neo4j·cloudflared·a
 ## 배포
 
 - 프론트엔드(`www/`)는 **Vercel**에 배포된다 (`whoareryu.cloud`, `www.whoareryu.cloud` → Vercel CNAME).
-- 백엔드는 Docker 호스트에서 `fastapi/docker-compose.yaml`로 기동되고, **Cloudflare Tunnel**(named tunnel `whoareryu.cloud`)로 외부에 노출된다. 터널도 `cloudflared` 서비스로 같은 compose 스택 안에서 돈다 (`CLOUDFLARE_TUNNEL_TOKEN` 사용).
+- 백엔드는 **로컬 머신**에서 `fastapi/docker-compose.yaml`로 기동되고(AWS/EC2 미사용), **Cloudflare Tunnel**(named tunnel `whoareryu.cloud`)로 외부에 노출된다. 터널도 `cloudflared` 서비스로 같은 compose 스택 안에서 돈다 (`CLOUDFLARE_TUNNEL_TOKEN` 사용).
 - 서브도메인 라우팅(Cloudflare DNS → Tunnel):
 
   | 서브도메인 | 대상 |
   |-----------|------|
   | `api.whoareryu.cloud` | `backend` 서비스 (`fastapi/main.py`, 8000) |
   | `auth.whoareryu.cloud` | `auth` 서비스 (`fastapi/auth_main.py`, 9000 — 같은 이미지, 다른 엔트리포인트) |
-  | `n8n.whoareryu.cloud` | `n8n` 서비스 |
   | `whoareryu.cloud` / `www.whoareryu.cloud` | Vercel |
 
 - `auth`는 `backend`와 완전히 분리된 컨테이너다. RS256 개인키(`JWT_PRIVATE_KEY`)는 `fastapi/.env.auth`에만 있고, `backend`는 공개키로만 토큰을 검증한다.
 - 배포 절차: `cd fastapi && ./start.sh` → `docker compose --env-file .env -f docker-compose.yaml pull && up -d` → 안 쓰는 이미지 정리 → `./start-tunnel.sh`(Gmail 웹훅 전용 별도 quick tunnel — 메인 API 터널과 무관).
-- 로컬 실행(컨테이너 없는 bare 실행 포함)은 더 이상 지원 대상이 아니다 — 클라우드 호스트(EC2)에서만 기동한다.
+- 로컬 머신이 곧 배포 호스트다. `docker compose ... up -d`로 로컬에서 기동하고 Cloudflare Tunnel로 외부 노출한다 — 별도 클라우드 호스트(EC2 등)는 쓰지 않는다.
 
 ---
 

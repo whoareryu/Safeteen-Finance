@@ -5,7 +5,6 @@ import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart';
 import 'auth.dart';
 import 'features/auth/auth_session.dart';
 import 'features/auth/auth_session_store.dart';
-import 'features/clock/clock_screen.dart';
 import 'features/mypage/my_page_screen.dart';
 
 void main() async {
@@ -25,7 +24,6 @@ class _C {
   static const bg      = Color(0xFFfbfbfd);
   static const ink     = Color(0xFF1d1d1f);
   static const muted   = Color(0xFF86868b);
-  static const border  = Color(0x1A1d1d1f);
   static const indigo  = Color(0xFF4F46E5);
 }
 
@@ -34,7 +32,6 @@ class _DC {
   static const bg      = Color(0xFF0a0a0a);
   static const ink     = Color(0xFFf5f5f7);
   static const muted   = Color(0xFF636366);
-  static const border  = Color(0x1AFFFFFF);
 }
 
 // ─── adaptive color extension ─────────────────────────────────────────────────
@@ -162,9 +159,6 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _tab = 0;
-  static const _titles = ['SafeTeen Finance', '시계'];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,7 +166,7 @@ class _MainShellState extends State<MainShell> {
       appBar: AppBar(
         backgroundColor: context.bg.withAlpha(240),
         surfaceTintColor: Colors.transparent,
-        title: Text(_titles[_tab]),
+        title: const Text('SafeTeen Finance'),
         titleSpacing: 16,
         actions: [
           ValueListenableBuilder<ThemeMode>(
@@ -202,43 +196,7 @@ class _MainShellState extends State<MainShell> {
           const SizedBox(width: 8),
         ],
       ),
-      body: IndexedStack(
-        index: _tab,
-        children: const [
-          _HomePlaceholderScreen(),
-          ClockScreen(),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: context.bg,
-          border: Border(top: BorderSide(color: context.dark ? _DC.border : _C.border, width: 0.5)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _tab,
-          onTap: (i) => setState(() => _tab = i),
-          backgroundColor: Colors.transparent,
-          selectedItemColor: context.dark ? _DC.ink : _C.ink,
-          unselectedItemColor: context.muted,
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          selectedLabelStyle:
-              const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-          unselectedLabelStyle: const TextStyle(fontSize: 10),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.house),
-              activeIcon: Icon(CupertinoIcons.house_fill),
-              label: '홈',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.time),
-              activeIcon: Icon(CupertinoIcons.time_solid),
-              label: '시계',
-            ),
-          ],
-        ),
-      ),
+      body: const _HomePlaceholderScreen(),
     );
   }
 }

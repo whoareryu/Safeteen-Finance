@@ -54,22 +54,6 @@ const nextConfig = {
         destination: `${authUrl}/auth/:path*`,
       },
       {
-        source: "/api/admin/:path*",
-        destination: `${backendUrl}/api/admin/:path*`,
-      },
-      {
-        source: "/api/chef/:path*",
-        destination: `${backendUrl}/api/chef/:path*`,
-      },
-      {
-        source: "/api/ontology/:path*",
-        destination: `${backendUrl}/api/ontology/:path*`,
-      },
-      {
-        source: "/api/ledger/:path*",
-        destination: `${backendUrl}/api/ledger/:path*`,
-      },
-      {
         source: "/api/safeteen/:path*",
         destination: `${backendUrl}/api/safeteen/:path*`,
       },

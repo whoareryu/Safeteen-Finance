@@ -52,17 +52,6 @@ def import_models() -> None:
     Alembic의 env.py 상단에서도 호출되어 autogenerate 감지를 보장합니다.
     """
     models_to_load = [
-        # Chef
-        "chef.adapter.outbound.orm.address_orm",
-        "chef.adapter.outbound.orm.receiver_orm",
-        "community.adapter.outbound.orm.telegram_message_orm",
-        # Soccer
-        "soccer.adapter.outbound.orm.stadium_orm",
-        "soccer.adapter.outbound.orm.team_orm",
-        "soccer.adapter.outbound.orm.schedule_orm",
-        "soccer.adapter.outbound.orm.player_orm",
-        # Admin
-        "admin.adapter.outbound.orm.pdf_document_orm",
         # SafeTeen
         "safeteen.adapter.outbound.orm.policy_document_orm",
     ]

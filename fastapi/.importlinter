@@ -1,54 +1,24 @@
 # .importlinter
-# 목적: 스타 토폴로지 하네스 — Python import 정적 분석으로 스포크 간 직접 참조를 차단.
+# 목적: Python import 정적 분석으로 헥사고날 레이어 순서를 강제한다.
 # 사용법: pip install import-linter && lint-imports
 # 공식 문서: https://import-linter.readthedocs.io/
+#
+# 예전엔 ontology(허브) + admin/titanic(스포크) 스타 토폴로지를 강제했지만,
+# 그 앱들이 모두 제거되면서 지금은 safeteen 하나만 남은 단일 앱 구조다.
+# 스포크 독립성/허브 보호 계약은 더 이상 의미가 없어 제거했다.
 
 [importlinter]
 root_packages =
-    ontology
-    admin
-    titanic
+    safeteen
     auth
     core
 
-# ── Contract 1: 스포크 독립성 ──────────────────────────────────────────────────
-# 핵심 규칙: 스포크 모듈은 서로 직접 import할 수 없다.
-# 허브(ontology)를 통해서만 상호작용해야 한다.
-[importlinter:contract:spoke-independence]
-name = Spoke modules must be independent of each other
-type = independence
-modules =
-    admin
-    titanic
-
-# ── Contract 2: 허브 보호 ──────────────────────────────────────────────────────
-# Hub(ontology)는 포트와 인터페이스만 정의한다.
-# 스포크 구현체를 직접 import하면 의존성 역전 원칙(DIP) 위반.
-# 조합(wiring)은 오직 main.py(Composition Root)에서만 허용.
-[importlinter:contract:hub-does-not-depend-on-spokes]
-name = Hub (ontology) must not import spoke implementations
-type = forbidden
-source_modules =
-    ontology
-forbidden_modules =
-    admin
-    titanic
-
-# ── Contract 3: 헥사고날 레이어 순서 ─────────────────────────────────────────
-# 각 앱 내부의 의존성 방향: adapter → app → domain
+# ── Contract: 헥사고날 레이어 순서 ────────────────────────────────────────
 # adapter(인프라)는 app(유스케이스)을 알 수 있지만, 역방향은 금지.
-[importlinter:contract:hexagonal-layers-titanic]
-name = Titanic hexagonal layers
+[importlinter:contract:hexagonal-layers-safeteen]
+name = SafeTeen hexagonal layers
 type = layers
 layers =
-    titanic.adapter
-    titanic.app
-    titanic.domain
-
-[importlinter:contract:hexagonal-layers-admin]
-name = Admin hexagonal layers
-type = layers
-layers =
-    admin.adapter
-    admin.app
-    admin.domain
+    safeteen.adapter
+    safeteen.app
+    safeteen.domain
