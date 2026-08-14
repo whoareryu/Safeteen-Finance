@@ -43,6 +43,18 @@ export type EmergencyGuide = {
   hotlines: EmergencyHotline[];
 };
 
+export type IncidentReportRequest = {
+  situation: string;
+  file?: File | null;
+};
+
+export type IncidentReportResult = {
+  incident_summary: string;
+  victim_statement: string;
+  evidence_list: string[];
+  requested_action: string;
+};
+
 async function parseOrThrow<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as T & { detail?: unknown };
   if (!res.ok) {
@@ -77,4 +89,16 @@ export async function fetchEmergencyGuide(request: EmergencyGuideRequest = {}): 
     body: JSON.stringify(request),
   });
   return parseOrThrow<EmergencyGuide>(res);
+}
+
+export async function generateIncidentReport(request: IncidentReportRequest): Promise<IncidentReportResult> {
+  const formData = new FormData();
+  formData.set("situation", request.situation);
+  if (request.file) formData.set("file", request.file);
+
+  const res = await fetch("/api/safeteen/incident-report", {
+    method: "POST",
+    body: formData,
+  });
+  return parseOrThrow<IncidentReportResult>(res);
 }

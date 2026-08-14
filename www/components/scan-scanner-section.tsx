@@ -8,22 +8,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { analyzeContent } from "@/lib/safeteen-api";
 import { useScanResult } from "@/components/scan-result-context";
 
-const EXAMPLE_TEXT =
-  "고민 없이 즉시 대출 가능! 신용불량자, 무직자 환영합니다. 선입금(수수료) 10만원만 입금하시면 " +
-  "당일 500만원까지 내구제 대출 진행해드려요. 명의만 빌려주셔도 매달 수익 지급! 카톡 문의 ↓";
+const SAMPLES = [
+  {
+    label: "무직자 당일 대출 광고",
+    text: "신불자·무직자 가능. 서류 없이 당일 300까지. 심사 없이 바로 입금됩니다. 상담은 텔레그램으로만.",
+  },
+  {
+    label: "휴대폰 개통 알바 DM",
+    text: "휴대폰 개통만 도와주시면 현금 200 드립니다. 명의만 빌려주시면 되고 요금은 저희가 냅니다.",
+  },
+  {
+    label: "통장 대여 구인글",
+    text: "단순 입출금 업무. 본인 명의 통장과 체크카드만 있으면 일당 30만원. 초보 가능.",
+  },
+];
 
 export default function ScannerSection() {
   const router = useRouter();
   const { setResult } = useScanResult();
+  const [tab, setTab] = useState<"text" | "image">("text");
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
+  const [showMask, setShowMask] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = text.trim().length > 0 || file !== null;
@@ -52,8 +67,8 @@ export default function ScannerSection() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  async function handleAnalyze() {
-    if (!canSubmit || loading) return;
+  async function runAnalyze() {
+    setShowMask(false);
     setLoading(true);
     setError(null);
     try {
@@ -67,44 +82,68 @@ export default function ScannerSection() {
     }
   }
 
+  function handleSubmit() {
+    if (loading) return;
+    if (!canSubmit) {
+      setInvalid(true);
+      return;
+    }
+    setInvalid(false);
+    // 이미지가 있으면 분석 전에 개인정보 마스킹 확인을 한 번 거친다.
+    if (file) {
+      setShowMask(true);
+      return;
+    }
+    runAnalyze();
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">AI 금융 사기 위험도 진단</h1>
+        <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">AI 스캐너</h1>
         <p className="mt-1 text-sm text-slate-500">
-          SNS에서 받은 대출·구인 광고 문구나 캡처 이미지를 올리면 AI가 위험도를 분석해요.
+          의심되는 대출·구인 광고를 붙여넣거나 캡처 이미지를 올려주세요. 개인정보는 자동으로 가려진 뒤
+          분석됩니다.
         </p>
       </div>
 
       <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">광고 내용 입력</CardTitle>
+        <CardHeader className="sr-only">
+          <CardTitle>광고 내용 입력</CardTitle>
           <CardDescription>텍스트를 붙여넣거나, SNS 캡처 이미지를 업로드하세요.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="text" className="w-full">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "text" | "image")} className="w-full">
             <TabsList>
-              <TabsTrigger value="text">텍스트 직접 입력</TabsTrigger>
-              <TabsTrigger value="image">SNS 캡처 이미지 업로드</TabsTrigger>
+              <TabsTrigger value="text">텍스트 붙여넣기</TabsTrigger>
+              <TabsTrigger value="image">이미지 업로드</TabsTrigger>
             </TabsList>
 
             <TabsContent value="text" className="mt-4 space-y-3">
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="의심스러운 광고 문구를 붙여넣어 주세요"
-                className="min-h-32 resize-none border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
+                placeholder="예: 신불자 가능, 무직자 당일 대출. 휴대폰 개통만 도와주시면 현금 200 드립니다."
+                className="min-h-40 resize-y border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setText(EXAMPLE_TEXT)}
-                className="border-slate-200 text-slate-600 hover:bg-slate-100"
-              >
-                <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                인스타 내구제 대출 광고 예시 불러오기
-              </Button>
+              <div>
+                <div className="text-xs font-semibold text-slate-500">예시로 바로 체험해보기</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {SAMPLES.map((s) => (
+                    <Button
+                      key={s.label}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setText(s.text)}
+                      className="border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="image" className="mt-4">
@@ -140,8 +179,8 @@ export default function ScannerSection() {
                   }`}
                 >
                   <UploadCloud className={`h-8 w-8 ${dragOver ? "text-indigo-500" : "text-slate-400"}`} aria-hidden />
-                  <p className="text-sm font-medium text-slate-700">이미지를 드래그하거나 클릭해서 업로드하세요</p>
-                  <p className="text-xs text-slate-400">PNG, JPG (최대 10MB)</p>
+                  <p className="text-sm font-medium text-slate-700">캡처 이미지를 여기에 끌어다 놓으세요</p>
+                  <p className="text-xs text-slate-400">PNG · JPG · 최대 10MB</p>
                 </button>
               )}
               <input
@@ -153,6 +192,31 @@ export default function ScannerSection() {
               />
             </TabsContent>
           </Tabs>
+
+          <div className="mt-[18px] flex flex-wrap items-center gap-3 border-t border-slate-100 pt-[18px]">
+            <Button
+              type="button"
+              disabled={loading}
+              onClick={handleSubmit}
+              className="h-auto rounded-[11px] bg-indigo-600 px-[22px] py-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700"
+            >
+              {loading ? <Spinner className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" aria-hidden />}
+              위험도 진단하기
+            </Button>
+            {loading ? (
+              <div className="flex items-center gap-2 text-[13px] text-slate-600">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-600" aria-hidden />
+                은어 사전 대조 · 법률 매칭 · 팩트체크 중…
+              </div>
+            ) : invalid ? (
+              <div className="flex items-center gap-2 rounded-[9px] border border-rose-200 bg-rose-50 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-600" aria-hidden />
+                진단할 문구를 붙여넣거나 아래 예시를 선택해 주세요.
+              </div>
+            ) : (
+              <div className="text-[12.5px] text-slate-400">평균 3초 소요 · 입력 내용은 저장되지 않습니다</div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -163,25 +227,41 @@ export default function ScannerSection() {
         </div>
       ) : null}
 
-      <Button
-        type="button"
-        size="lg"
-        disabled={!canSubmit || loading}
-        onClick={handleAnalyze}
-        className="h-12 w-full bg-indigo-600 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
-      >
-        {loading ? (
-          <>
-            <Spinner className="h-4 w-4" />
-            AI가 분석하고 있어요...
-          </>
-        ) : (
-          <>
-            <ShieldAlert className="h-5 w-5" aria-hidden />
-            AI 금융 사기 위험도 진단하기
-          </>
-        )}
-      </Button>
+      <Dialog open={showMask} onOpenChange={setShowMask}>
+        <DialogContent showCloseButton={false} className="max-w-[460px] gap-0 rounded-2xl p-[22px]">
+          <DialogTitle className="text-[17px] font-extrabold tracking-tight text-slate-900">
+            이 이미지를 그대로 분석할까요?
+          </DialogTitle>
+          <DialogDescription className="mt-2 text-[13px] leading-relaxed text-slate-600">
+            업로드한 캡처가 AI 분석 서버로 전송됩니다. 상대방 계좌번호·연락처처럼 신고에 필요한 정보는
+            남겨도 괜찮지만, 본인의 주민등록번호·카드번호처럼 민감한 정보가 함께 찍혀 있다면 가리고
+            올려주세요.
+          </DialogDescription>
+          <div className="mt-3.5 overflow-hidden rounded-[14px] border border-slate-200">
+            {previewUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl} alt="업로드한 캡처 미리보기" className="max-h-40 w-full object-contain bg-slate-50" />
+            )}
+          </div>
+          <div className="mt-[18px] flex gap-[9px]">
+            <Button
+              type="button"
+              onClick={runAnalyze}
+              className="h-auto flex-1 rounded-[11px] bg-indigo-600 py-3 text-[13.5px] font-bold text-white hover:bg-indigo-700"
+            >
+              이대로 분석하기
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowMask(false)}
+              className="h-auto rounded-[11px] border-slate-200 py-3 text-[13.5px] font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              취소
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

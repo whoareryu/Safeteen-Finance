@@ -22,13 +22,13 @@ export default function ScanHeader({ onMenuClick }: ScanHeaderProps) {
 
       <div className="flex items-center gap-2 md:hidden">
         <ShieldCheck className="h-5 w-5 text-indigo-600" aria-hidden />
-        <span className="text-sm font-semibold text-slate-900">FinShield Youth</span>
+        <span className="text-sm font-semibold text-slate-900">SafeTeen Finance</span>
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 sm:inline-flex">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
-          AI 보안 에이전트 가동 중
+        <span className="hidden items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 sm:inline-flex">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-500" aria-hidden />
+          AI 실시간 탐지 가동 중
         </span>
         <button
           type="button"

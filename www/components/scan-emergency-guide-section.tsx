@@ -1,135 +1,171 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, Check, Copy, Phone, ShieldAlert } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import type { EmergencyGuide } from "@/lib/safeteen-api";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, FileText } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { fetchEmergencyGuide, type EmergencyGuide, type EmergencyHotline, type EmergencyStep } from "@/lib/safeteen-api";
 
-// TODO: 실제 연동 시 lib/safeteen-api.ts의 fetchEmergencyGuide()로 교체 — 지금은 UI 스켈레톤용 mock 데이터.
-const MOCK_GUIDE: EmergencyGuide = {
-  account_freeze_steps: [
-    { order: 1, title: "지급정지 신청", description: "피해 계좌로 입금한 금융회사 콜센터(또는 앱)에 즉시 전화해 지급정지를 신청한다." },
-    { order: 2, title: "피해 사실 신고", description: "112 또는 사이버범죄 신고시스템(ECRM)에 신고하고 사건사고사실확인원을 발급받는다." },
-    { order: 3, title: "확인원 제출", description: "발급받은 사건사고사실확인원을 계좌 개설 금융회사에 제출해 지급정지를 연장·확정한다." },
-  ],
-  police_report_steps: [
-    { order: 1, title: "112 또는 사이버수사대 신고", description: "가까운 경찰서 방문 또는 112, 사이버범죄 신고시스템(ECRM)으로 신고한다." },
-    { order: 2, title: "증거자료 확보", description: "대화 캡처, 계좌번호, 통화 녹음, 송금 내역 등 관련 증거를 미리 정리해 둔다." },
-    { order: 3, title: "고소장·진술 접수", description: "경찰서 방문 또는 온라인으로 고소장을 접수하고 담당 수사관 배정을 확인한다." },
-  ],
-  hotlines: [
-    { name: "경찰청 사이버수사국", phone_number: "182", description: "사이버 사기·금융범죄 신고" },
-    { name: "금융감독원", phone_number: "1332", description: "불법 사금융·보이스피싱 상담" },
-    { name: "청소년 사이버 상담센터", phone_number: "1388", description: "청소년 대상 피해 상담" },
-  ],
-};
-
-const INCIDENT_TEMPLATE = `[사건 경위서]
-1. 발생 일시:
-2. 접촉 경로(SNS/메신저):
-3. 상대방 정보(계좌번호, 연락처, 아이디):
-4. 피해 경위(요구받은 내용, 송금 내역):
-5. 보유 증거(캡처, 통화 녹음 등):`;
-
-export default function EmergencyGuideSection() {
-  const guide = MOCK_GUIDE;
-  const [copied, setCopied] = useState(false);
-
-  async function copyTemplate() {
-    await navigator.clipboard.writeText(INCIDENT_TEMPLATE);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+function ChecklistCard({ title, steps }: { title: string; steps: EmergencyStep[] }) {
+  const [done, setDone] = useState<Record<number, boolean>>({});
+  const doneCount = steps.filter((s) => done[s.order]).length;
+  const pct = steps.length ? Math.round((doneCount / steps.length) * 100) : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden />
-        <div>
-          <p className="text-sm font-semibold text-rose-800">이미 금융사기에 휘말리셨나요?</p>
-          <p className="mt-1 text-sm text-rose-700">당황하지 마세요. 아래 순서대로 지금 바로 조치하면 피해를 줄일 수 있습니다.</p>
+    <div className="rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div className="flex items-baseline gap-2">
+        <div className="text-[15px] font-bold text-slate-900">{title}</div>
+        <div className="ml-auto text-xs font-semibold text-slate-500">
+          {doneCount}/{steps.length}
         </div>
       </div>
-
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldAlert className="h-4 w-4 text-indigo-600" aria-hidden />
-            Step 1. 즉시 계좌 지급정지 신청
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {guide.account_freeze_steps.map((step) => (
-            <div key={step.order} className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
-                {step.order}
-              </span>
-              <div>
-                <p className="text-sm font-medium text-slate-800">{step.title}</p>
-                <p className="text-sm text-slate-500">{step.description}</p>
-              </div>
-            </div>
-          ))}
-          <a
-            href="tel:1332"
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-          >
-            <Phone className="h-4 w-4" aria-hidden />
-            금융감독원 1332 바로 연결
-          </a>
-        </CardContent>
-      </Card>
-
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldAlert className="h-4 w-4 text-indigo-600" aria-hidden />
-            Step 2. 경찰 신고 및 증거 수집
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {guide.police_report_steps.map((step) => (
-            <div key={step.order} className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
-                {step.order}
-              </span>
-              <div>
-                <p className="text-sm font-medium text-slate-800">{step.title}</p>
-                <p className="text-sm text-slate-500">{step.description}</p>
-              </div>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={copyTemplate}
-            className="border-slate-200 text-slate-700 hover:bg-slate-100"
-          >
-            {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-            {copied ? "복사됨" : "AI 사건 경위서 템플릿 복사하기"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">긴급 연락처</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-3">
-          {guide.hotlines.map((hotline) => (
-            <a
-              key={hotline.name}
-              href={`tel:${hotline.phone_number}`}
-              className="flex flex-col gap-1 rounded-lg border border-slate-200 p-3 transition hover:border-indigo-300 hover:bg-indigo-50"
+      <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full bg-indigo-600 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-3 flex flex-col gap-0.5">
+        {steps.map((step) => {
+          const isDone = !!done[step.order];
+          return (
+            <button
+              key={step.order}
+              type="button"
+              onClick={() => setDone((prev) => ({ ...prev, [step.order]: !prev[step.order] }))}
+              className="flex items-start gap-[11px] rounded-[10px] px-2 py-2.5 text-left transition hover:bg-slate-50"
             >
-              <span className="text-lg font-bold tabular-nums text-indigo-600">{hotline.phone_number}</span>
-              <span className="text-sm font-medium text-slate-800">{hotline.name}</span>
-              <span className="text-xs text-slate-500">{hotline.description}</span>
-            </a>
-          ))}
-        </CardContent>
-      </Card>
+              <span
+                className={`mt-0.5 h-[18px] w-[18px] shrink-0 rounded-[6px] ${
+                  isDone ? "bg-indigo-600" : "border-[1.5px] border-slate-300"
+                }`}
+              />
+              <span className="text-[13.5px] leading-snug text-slate-700">
+                <span className={isDone ? "text-slate-400 line-through" : "font-medium text-slate-800"}>
+                  {step.title}
+                </span>
+                <span className="block text-xs text-slate-400">{step.description}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function EmergencyGuideSection() {
+  const router = useRouter();
+  const [guide, setGuide] = useState<EmergencyGuide | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [callTarget, setCallTarget] = useState<EmergencyHotline | null>(null);
+
+  useEffect(() => {
+    fetchEmergencyGuide()
+      .then(setGuide)
+      .catch((e) => setError(e instanceof Error ? e.message : "가이드를 불러오지 못했습니다."));
+  }, []);
+
+  return (
+    <div className="max-w-[840px] space-y-0">
+      <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900">비상 대응 가이드</h1>
+      <p className="mt-2.5 text-[14.5px] leading-relaxed text-slate-600">
+        이미 계좌나 명의를 넘겼다면 <b className="font-bold text-slate-900">지급정지가 가장 급합니다.</b> 아래
+        순서대로 진행하세요.
+      </p>
+
+      {error && (
+        <div className="mt-5 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+          {error}
+        </div>
+      )}
+
+      {!guide && !error && (
+        <div className="mt-8 flex items-center gap-2 text-sm text-slate-500">
+          <Spinner className="h-4 w-4" /> 대응 가이드를 불러오는 중…
+        </div>
+      )}
+
+      {guide && (
+        <>
+          <div className="mt-[22px] grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {guide.hotlines.map((h) => (
+              <button
+                key={h.name}
+                type="button"
+                onClick={() => setCallTarget(h)}
+                className="block rounded-2xl border border-slate-200 bg-white p-[18px] text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-indigo-200 hover:bg-indigo-50/40"
+              >
+                <div className="text-[22px] font-extrabold tabular-nums tracking-tight text-indigo-600">
+                  {h.phone_number}
+                </div>
+                <div className="mt-[5px] text-[13.5px] font-bold text-slate-900">{h.name}</div>
+                <div className="mt-[5px] text-xs leading-relaxed text-slate-500">{h.description}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <ChecklistCard title="계좌 지급정지" steps={guide.account_freeze_steps} />
+            <ChecklistCard title="경찰 신고" steps={guide.police_report_steps} />
+          </div>
+
+          <div className="mt-3.5 flex flex-wrap items-center gap-5 rounded-[18px] bg-slate-900 p-6 text-slate-200">
+            <div className="min-w-[260px] flex-1">
+              <div className="text-[11.5px] font-bold tracking-wider text-indigo-300">STEP 3 · 신고 서류 준비</div>
+              <div className="mt-2 text-lg font-bold tracking-tight text-white">
+                사건 경위서, 직접 쓰지 마세요
+              </div>
+              <div className="mt-1.5 max-w-[36em] text-[13.5px] leading-relaxed text-slate-300">
+                피해 상황을 설명하면 AI가 경찰 제출용 진술서 문체로 정리해 드립니다. 증거 목록과 요청
+                조치까지 함께 생성되어 그대로 출력해 제출할 수 있습니다.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/scan/incident-report")}
+              className="flex items-center gap-2 rounded-[11px] bg-indigo-600 px-[22px] py-[13px] text-sm font-bold text-white transition hover:bg-indigo-500"
+            >
+              <FileText className="h-4 w-4" aria-hidden />
+              AI 경위서 작성하기
+            </button>
+          </div>
+        </>
+      )}
+
+      <Dialog open={!!callTarget} onOpenChange={(open) => !open && setCallTarget(null)}>
+        <DialogContent showCloseButton={false} className="max-w-[420px] gap-0 rounded-2xl p-[22px]">
+          {callTarget && (
+            <>
+              <DialogTitle className="text-xs font-bold text-slate-500">전화를 연결할까요?</DialogTitle>
+              <div className="mt-2 text-[30px] font-extrabold tabular-nums tracking-tight text-indigo-600">
+                {callTarget.phone_number}
+              </div>
+              <div className="mt-1 text-sm font-bold text-slate-900">{callTarget.name}</div>
+              <DialogDescription className="mt-1 text-[12.5px] leading-relaxed text-slate-500">
+                {callTarget.description}
+              </DialogDescription>
+              <div className="mt-3.5 rounded-[10px] border border-slate-200 bg-slate-50 p-[11px] text-xs leading-relaxed text-slate-600">
+                통화 전 계좌번호·송금 시각·상대방 아이디를 손에 들고 계시면 상담이 빨라집니다.
+              </div>
+              <div className="mt-[18px] flex gap-[9px]">
+                <a
+                  href={`tel:${callTarget.phone_number}`}
+                  className="flex-1 rounded-[11px] bg-indigo-600 py-3 text-center text-[13.5px] font-bold text-white transition hover:bg-indigo-700"
+                >
+                  통화 연결
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setCallTarget(null)}
+                  className="rounded-[11px] border border-slate-200 px-4 py-3 text-[13.5px] font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  닫기
+                </button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

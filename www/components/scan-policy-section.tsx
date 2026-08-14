@@ -1,69 +1,129 @@
-import { ExternalLink, Landmark } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import type { AlternativePolicy } from "@/lib/safeteen-api";
+"use client";
 
-// TODO: 실제 연동 시 lib/safeteen-api.ts의 listPolicies()로 교체 — 지금은 UI 스켈레톤용 mock 데이터.
-const MOCK_POLICIES: (AlternativePolicy & { rateBadge: string })[] = [
-  {
-    title: "햇살론 유스",
-    description: "만 34세 이하 사회초년생·대학(원)생을 위한 저금리 정책 서민금융상품.",
-    official_link: "https://www.kinfa.or.kr",
-    rateBadge: "연 3.6% · 최대 1,200만원",
-  },
-  {
-    title: "청년 긴급생계비 지원",
-    description: "실직·휴폐업 등으로 생계가 어려운 청년에게 소액 생계비를 무이자로 지원.",
-    official_link: "https://www.kinfa.or.kr",
-    rateBadge: "무이자 · 최대 100만원",
-  },
-  {
-    title: "청년 미소금융",
-    description: "저신용·저소득 청년의 창업·생계자금을 지원하는 미소금융중앙재단 상품.",
-    official_link: "https://www.smilemicrocredit.or.kr",
-    rateBadge: "연 4.5% 이하",
-  },
-];
+import { useEffect, useState } from "react";
+import { AlertCircle, Landmark } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useScanResult } from "@/components/scan-result-context";
+import { listPolicies, type AlternativePolicy } from "@/lib/safeteen-api";
 
 export default function PolicySection() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-          돈이 급할 때 이용할 수 있는 안전한 청년 금융 정책
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          불법 대출 대신, 정부·공공기관이 보증하는 합법 지원 제도를 먼저 확인하세요.
-        </p>
-      </div>
+  const { result } = useScanResult();
+  const [policies, setPolicies] = useState<AlternativePolicy[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [leaveTarget, setLeaveTarget] = useState<AlternativePolicy | null>(null);
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MOCK_POLICIES.map((policy) => (
-          <Card key={policy.title} className="flex flex-col border-slate-200 shadow-sm">
-            <CardHeader>
+  useEffect(() => {
+    listPolicies()
+      .then(setPolicies)
+      .catch((e) => setError(e instanceof Error ? e.message : "정책 목록을 불러오지 못했습니다."));
+  }, []);
+
+  const matched = result?.alternative_policy ?? null;
+  const rest = (policies ?? []).filter((p) => p.title !== matched?.title);
+
+  return (
+    <div className="max-w-[840px] space-y-0">
+      <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900">정부지원 대안 자금</h1>
+      <p className="mt-2.5 text-[14.5px] leading-relaxed text-slate-600">
+        불법 사금융보다 먼저 확인해야 할 합법 청년 금융 지원입니다. 진단 결과와 매칭된 정책을 상단에
+        표시합니다.
+      </p>
+
+      {error && (
+        <div className="mt-5 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+          {error}
+        </div>
+      )}
+
+      {!policies && !error && (
+        <div className="mt-8 flex items-center gap-2 text-sm text-slate-500">
+          <Spinner className="h-4 w-4" /> 정책 목록을 불러오는 중…
+        </div>
+      )}
+
+      {matched && (
+        <div className="mt-[22px] rounded-[20px] border-[1.5px] border-indigo-600 bg-white p-6 shadow-[0_4px_14px_rgba(79,70,229,0.1)]">
+          <div className="inline-block rounded-[6px] bg-indigo-600 px-[9px] py-1 text-[11px] font-extrabold tracking-wide text-white">
+            진단 결과 매칭
+          </div>
+          <div className="mt-3 text-[21px] font-extrabold tracking-tight text-slate-900">{matched.title}</div>
+          <div className="mt-2 max-w-[44em] text-sm leading-relaxed text-slate-600">{matched.description}</div>
+          <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-4">
+            <button
+              type="button"
+              onClick={() => setLeaveTarget(matched)}
+              className="ml-auto rounded-[10px] bg-indigo-600 px-[18px] py-[11px] text-[13.5px] font-bold text-white transition hover:bg-indigo-700"
+            >
+              공식 사이트에서 신청
+            </button>
+          </div>
+        </div>
+      )}
+
+      {policies && (
+        <div className="mt-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          {(matched ? rest : policies).map((p) => (
+            <div
+              key={p.title}
+              className="flex flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+            >
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                <Landmark className="h-5 w-5" aria-hidden />
+                <Landmark className="h-[18px] w-[18px]" aria-hidden />
               </div>
-              <CardTitle className="text-base">{policy.title}</CardTitle>
-              <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 text-indigo-700">
-                {policy.rateBadge}
-              </Badge>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col justify-between gap-4">
-              <CardDescription className="text-sm leading-relaxed">{policy.description}</CardDescription>
-              <a
-                href={policy.official_link}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+              <div className="mt-[7px] text-base font-bold tracking-tight text-slate-900">{p.title}</div>
+              <div className="mt-[7px] flex-1 text-[13px] leading-relaxed text-slate-500">{p.description}</div>
+              <button
+                type="button"
+                onClick={() => setLeaveTarget(p)}
+                className="mt-4 self-start rounded-[9px] border border-slate-200 px-[15px] py-[9px] text-[13px] font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
               >
-                공식 홈페이지 신청하기
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-              </a>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                자세히 보기
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={!!leaveTarget} onOpenChange={(open) => !open && setLeaveTarget(null)}>
+        <DialogContent showCloseButton={false} className="max-w-[420px] gap-0 rounded-2xl p-[22px]">
+          {leaveTarget && (
+            <>
+              <DialogTitle className="text-[16.5px] font-extrabold tracking-tight text-slate-900">
+                공식 사이트로 이동합니다
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-[13px] leading-relaxed text-slate-600">
+                신청은 아래 도메인에서만 진행하세요. 비슷한 이름의 사이트에서 수수료·선입금을 요구하면
+                사칭입니다.
+              </DialogDescription>
+              <div className="mt-3.5 rounded-xl border border-slate-200 p-[14px]">
+                <div className="text-[15px] font-bold text-slate-900">{leaveTarget.title}</div>
+                <div className="mt-2 font-mono text-[12.5px] text-indigo-600">
+                  {leaveTarget.official_link.replace(/^https?:\/\//, "")}
+                </div>
+              </div>
+              <div className="mt-[18px] flex gap-[9px]">
+                <a
+                  href={leaveTarget.official_link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 rounded-[11px] bg-indigo-600 py-3 text-center text-[13.5px] font-bold text-white transition hover:bg-indigo-700"
+                >
+                  이동하기
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setLeaveTarget(null)}
+                  className="rounded-[11px] border border-slate-200 px-4 py-3 text-[13.5px] font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  닫기
+                </button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -176,20 +176,9 @@
 }
 
 /* 메인 페이지 — 흰 배경 + 기존 그라데이션·포인트 색 유지 */
-main.home-main {
-  position: relative;
-}
-
 main.home-main--white {
   isolation: isolate;
   background-color: var(--background);
-}
-
-.home-content-layer {
-  position: relative;
-  z-index: 10;
-  isolation: isolate;
-  transform: translateZ(0);
 }
 
 /* dark 테마 변수 위에서 본문 가독성 (그라데이션 제목은 그대로) */
@@ -525,30 +514,6 @@ header.site-header--light #weather-container.weather-error {
   }
 }
 
-/* SafeTeen — 메인 히어로 배경 (인디고 메쉬 그라데이션) */
-.hero-bg {
-  background:
-    radial-gradient(60% 55% at 15% 15%, oklch(0.88 0.09 265 / 0.6), transparent 60%),
-    radial-gradient(55% 45% at 88% 10%, oklch(0.88 0.08 230 / 0.5), transparent 65%),
-    radial-gradient(70% 60% at 50% 105%, oklch(0.85 0.1 285 / 0.5), transparent 60%),
-    var(--background);
-}
-
-.dark .hero-bg {
-  background:
-    radial-gradient(60% 55% at 15% 15%, oklch(0.3 0.07 265 / 0.5), transparent 60%),
-    radial-gradient(55% 45% at 88% 10%, oklch(0.28 0.06 230 / 0.4), transparent 65%),
-    radial-gradient(70% 60% at 50% 105%, oklch(0.26 0.07 285 / 0.45), transparent 60%),
-    var(--background);
-}
-
-.glass-card {
-  background: color-mix(in oklch, var(--card) 78%, transparent);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
-}
-
 /* SafeTeen — 히어로 위에 떠 있는 큰 유리 패널(채팅 등 실제 콘텐츠를 담는 컨테이너).
    글자 가독성이 필요해 glass-card보다 불투명도를 높였다. */
 .glass-panel {
@@ -567,43 +532,3 @@ header.site-header--light #weather-container.weather-error {
     0 16px 40px -12px oklch(0 0 0 / 0.5);
 }
 
-/* SafeTeen — 콘텐츠 카드(진단 결과 등)의 프리미엄 기본형 */
-.content-card {
-  border-radius: 1.25rem;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow:
-    0 1px 2px oklch(0.2 0.02 265 / 0.04),
-    0 8px 24px -8px oklch(0.2 0.05 265 / 0.12);
-}
-
-/* SafeTeen — 사진을 쓰는 히어로 배너 (홈/서브페이지 공용) */
-.photo-hero {
-  min-height: 22rem;
-}
-
-@media (min-width: 640px) {
-  .photo-hero {
-    min-height: 26rem;
-  }
-}
-
-/* 서브페이지용 짧은 배너 변형 */
-.photo-hero--banner {
-  min-height: 12rem;
-}
-
-@media (min-width: 640px) {
-  .photo-hero--banner {
-    min-height: 14rem;
-  }
-}
-
-.photo-scrim {
-  background: linear-gradient(
-    180deg,
-    oklch(0.15 0.03 265 / 0.55) 0%,
-    oklch(0.15 0.03 265 / 0.35) 45%,
-    oklch(0.15 0.03 265 / 0.75) 100%
-  );
-}
