@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
 from admin.app.ports.output.pdf_summary_generator_port import PdfSummaryGeneratorPort
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _SUMMARY_PROMPT = ChatPromptTemplate.from_messages(
     [

@@ -26,7 +26,7 @@ from apps.auth.user_model import User
 from apps.auth.user_provisioning import create_oauth_user, find_existing_user
 from apps.auth.user_role import UserRole
 from core import security
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _AUD = secret_manager.get_secret("SERVICE_AUD", "whoareryu-api")
 _FRONTEND_URL = secret_manager.get_secret("FRONTEND_URL", "https://whoareryu.cloud")

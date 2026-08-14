@@ -46,7 +46,7 @@ KerriganTopologyRouter          ← inbound port (FastAPI)
         Qdrant (Vector DB)      ← 임베딩 similarity search
             │
             ▼
-    T1MidFakerOrchestrator      ← ExaOne 3.5:7.8b (core/lol/)
+    OllamaChatOrchestrator      ← ExaOne 3.5:7.8b (core/llm/)
     (graph context + vector context → LLM prompt 조합)
             │
             ▼

@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.matrix.gird_oracle_database_manager import get_db
+from core.infra.database_manager import get_db
 from community.adapter.outbound.guardrail.kc_electra_guardrail import get_kc_electra_guardrail
 from community.adapter.outbound.repositories.receiver_repository import ReceiverRepository
 from community.app.ports.input.receiver_use_case import ReceiverUseCase

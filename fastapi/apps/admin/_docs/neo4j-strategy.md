@@ -2,8 +2,7 @@
 type: spoke
 app: admin
 links:
-  - langgragh-harness
-  - neo4j-harness
+  - architect
 ---
 
 # Neo4j 전략 — Docker 배포
@@ -43,7 +42,7 @@ neo4j:
 ## 2. 연결 관례
 
 애플리케이션 코드는 driver를 직접 만들지 않는다 — 다른 인프라 클라이언트와 동일하게
-`core.matrix.secret_manager`를 거친다.
+`core.infra.secret_manager`를 거친다.
 
 ```python
 # apps/ontology/dependencies/sommelier_graph_provider.py

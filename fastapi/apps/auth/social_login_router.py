@@ -22,7 +22,7 @@ from apps.auth.consent_flow import create_pending_signup
 from apps.auth.session_store import SessionStorePort, get_session_store
 from apps.auth.user_provisioning import find_existing_user
 from apps.database import get_sync_db
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _FRONTEND_URL = secret_manager.get_secret("FRONTEND_URL", "https://whoareryu.cloud")
 _BACKEND_URL = os.environ["BACKEND_PUBLIC_URL"]

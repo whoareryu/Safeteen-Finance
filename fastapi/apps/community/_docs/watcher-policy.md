@@ -4,7 +4,7 @@
 
 본 시스템은 허브 앤 스포크(Hub-and-Spoke) 및 온톨로지 기반의 거대 비즈니스 ERP 멀티 에이전트 아키텍처이다.
 
-- **최고 사령탑 (Hub / Brain)**: `core/lol/t1_mid_faker_orchestrator.py`
+- **최고 사령탑 (Hub / Brain)**: `core/llm/ollama_chat_orchestrator.py`
   초거대 AI 모델(EXAONE)이 상주하는 최고 권한의 오케스트레이터 에이전트.
 - **온톨로지 버스 (Ontology Hub)**: `apps/ontology/`
   전사 데이터 흐름, 엔티티 관계(Ontology) 및 전사 컨텍스트를 총괄하는 데이터 허브 버스.
@@ -19,7 +19,7 @@
 - **Case A (일반 업무)**: 중요 거래처가 아니거나 단순 문의인 경우
   ➔ `apps/chef/app/use_cases/` 내의 인터랙터(email_interactor, telegram_interactor 등)가 자체적으로 컨텍스트를 소화하여 처리 및 종결.
 - **Case B (중요/에스컬레이션 업무)**: 중요 거래처이거나 자동 보고서 생성을 요청하는 경우
-  ➔ 상위 온톨로지 버스인 `apps/ontology/`를 경유하여 최고 에이전트인 **페이커(Faker / EXAONE)**에게 격상(Escalation). 페이커가 전사 ERP 데이터를 취합하여 최종 보고서를 생성하고 하향 전달.
+  ➔ 상위 온톨로지 버스인 `apps/ontology/`를 경유하여 최고 에이전트인 **로컬 LLM 오케스트레이터(EXAONE)**에게 격상(Escalation). 오케스트레이터가 전사 ERP 데이터를 취합하여 최종 보고서를 생성하고 하향 전달.
 
 ## 3. Chef Watcher (Watcher Hub / Entry Point) 역할 정의
 
@@ -48,11 +48,11 @@
 
 - 가상 이벤트 생성기에서 발생한 raw 데이터를 `apps/chef/app/chef_watcher.py`가 가로채어 검증하는 라우팅 로직을 구현할 것.
 - **인터랙터 호출 트리거**: Scenario 1 감지 시, `apps/chef/app/use_cases/email_interactor.py` 내의 가상 처리 함수를 호출하고 로그를 남길 것.
-- **페이커 에스컬레이션 트리거**: Scenario 2 감지 시, 상위 허브인 `apps/ontology/` 프로토콜 메커니즘을 거쳐 `core/lol/t1_mid_faker_orchestrator.py`가 최종 활성화(Wake-up)되는 이벤트 버스 파이프라인(가상 MCP Notification 등)을 구현할 것.
+- **오케스트레이터 에스컬레이션 트리거**: Scenario 2 감지 시, 상위 허브인 `apps/ontology/` 프로토콜 메커니즘을 거쳐 `core/llm/ollama_chat_orchestrator.py`가 최종 활성화(Wake-up)되는 이벤트 버스 파이프라인(가상 MCP Notification 등)을 구현할 것.
 
 ### [지시사항 3] 하네스 대시보드 및 검증 로그 출력
 
-- 이벤트 인입부터 최종 처리 완료(`chef_watcher` ➔ `email_interactor` 또는 `chef_watcher` ➔ `ontology` ➔ `t1_mid_faker_orchestrator`)까지의 전체 멀티 에이전트 저니(Journey)를 콘솔 내에 추적 서사 로그(Narrative Log) 형태로 일목요연하게 출력하는 모니터링 기능을 포함할 것.
+- 이벤트 인입부터 최종 처리 완료(`chef_watcher` ➔ `email_interactor` 또는 `chef_watcher` ➔ `ontology` ➔ `ollama_chat_orchestrator`)까지의 전체 멀티 에이전트 저니(Journey)를 콘솔 내에 추적 서사 로그(Narrative Log) 형태로 일목요연하게 출력하는 모니터링 기능을 포함할 것.
 
 ---
 
@@ -60,7 +60,7 @@
 
 | 역할 | 실제 경로 |
 |------|----------|
-| 최고 오케스트레이터 (Faker) | `core/lol/t1_mid_faker_orchestrator.py` |
+| 최고 오케스트레이터 | `core/llm/ollama_chat_orchestrator.py` |
 | 온톨로지 버스 (Ontology Hub) | `apps/ontology/` |
 | 커뮤니케이션 스포크 | `apps/chef/` |
 | Chef Watcher (Watcher Hub) | `apps/chef/app/chef_watcher.py` |

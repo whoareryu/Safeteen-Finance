@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../plant/plant_style.dart';
+import '../../shared/app_style.dart';
 import 'ledger_api.dart';
 import 'receipt_result_screen.dart';
 
@@ -141,8 +141,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             child: FilledButton(
               onPressed: _uploading ? null : _upload,
               style: FilledButton.styleFrom(
-                backgroundColor: PlantColors.primary(dark),
-                foregroundColor: PlantColors.primaryForeground(dark),
+                backgroundColor: AppColors.primary(dark),
+                foregroundColor: AppColors.primaryForeground(dark),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
               ),
@@ -158,7 +158,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
         ],
         if (_error != null) ...[
           const SizedBox(height: 12),
-          Text(_error!, style: TextStyle(color: PlantColors.destructive(dark))),
+          Text(_error!, style: TextStyle(color: AppColors.destructive(dark))),
         ],
       ],
     );

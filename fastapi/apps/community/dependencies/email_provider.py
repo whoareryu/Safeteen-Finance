@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from community.adapter.outbound.llm.exaone_adapter import ExaoneAdapter
 from community.adapter.outbound.smtp.smtp_email_gateway import SmtpEmailGateway
 from community.app.use_cases.email_interactor import EmailInteractor

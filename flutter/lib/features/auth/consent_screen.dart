@@ -83,7 +83,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('새싹에서 쓸 닉네임을 확인해 주세요',
+              const Text('SafeTeen Finance에서 쓸 닉네임을 확인해 주세요',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               const SizedBox(height: 12),
               TextField(

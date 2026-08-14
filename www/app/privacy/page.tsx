@@ -1,4 +1,4 @@
-export const metadata = { title: "개인정보처리방침 | 새싹" };
+export const metadata = { title: "개인정보처리방침 | SafeTeen Finance" };
 
 export default function PrivacyPage() {
   return (

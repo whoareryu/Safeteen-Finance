@@ -27,7 +27,7 @@ from apps.auth.app.use_cases.mobile_kakao_login_interactor import MobileKakaoLog
 from apps.auth.app.use_cases.mobile_logout_interactor import MobileLogoutInteractor
 from apps.auth.app.use_cases.mobile_refresh_interactor import MobileRefreshInteractor
 from apps.database import get_sync_db
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _AUD = secret_manager.get_secret("SERVICE_AUD", "whoareryu-api")
 

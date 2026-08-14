@@ -4,7 +4,6 @@ import { Analytics } from '@vercel/analytics/next'
 import Header from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/components/auth-provider'
-import FloatingChat from '@/components/floating-chat'
 import BottomTabBar from '@/components/bottom-tab-bar'
 import './globals.css'
 
@@ -12,9 +11,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: '새싹 | AI 반려식물 케어 가이드',
+  title: 'SafeTeen Finance | 청소년·청년 불법 금융 AI 팩트체크',
   description:
-    '잎사귀 사진 한 장으로 품종과 상태를 진단하고, 날씨에 맞춘 물주기 알림과 케어 처방을 받는 반려식물 케어 에이전트',
+    'SNS 불법 작업대출·대포통장 광고를 AI가 분석해 위험도를 진단하고, 안전한 합법 청년 금융 대안을 안내하는 서비스',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -49,7 +48,6 @@ export default function RootLayout({
             <div className="site-main-below-header relative z-10 min-h-screen bg-transparent">
               {children}
             </div>
-            <FloatingChat />
             <BottomTabBar />
             {process.env.NODE_ENV === 'production' && <Analytics />}
           </AuthProvider>

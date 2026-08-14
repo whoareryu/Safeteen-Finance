@@ -6,7 +6,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 from ledger.app.ports.output.receipt_vision_parser_port import (
     ExtractedReceiptItem,

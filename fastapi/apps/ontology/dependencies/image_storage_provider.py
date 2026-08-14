@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
 from ontology.app.ports.output.image_storage_gateway import ImageStorageGateway
 

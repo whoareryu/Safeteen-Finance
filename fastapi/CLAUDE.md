@@ -11,7 +11,7 @@ FastAPI 백엔드 프로젝트 규약. 루트 규칙은 [../CLAUDE.md](../CLAUDE
 | 진입점 | `fastapi/main.py` → `uvicorn main:app` |
 | PYTHONPATH | `fastapi/`, `fastapi/apps/` (`main.py`에서 `sys.path` 등록) |
 | 환경변수 | `fastapi/.env` (`DATABASE_URL`, `GEMINI_API_KEY` 등) |
-| DB 모듈 | `core.matrix.gird_oracle_database_manager` (async, PostgreSQL/pgvector) |
+| DB 모듈 | `core.infra.database_manager` (async, PostgreSQL/pgvector) |
 | DB re-export | `core.database`, `apps.database` (동일 심볼 재익스포트) |
 | Docker | `docker-compose.yaml` — `app-network` 브리지, backend:8000 |
 
@@ -19,9 +19,9 @@ FastAPI 백엔드 프로젝트 규약. 루트 규칙은 [../CLAUDE.md](../CLAUDE
 fastapi/
 ├── main.py                        # FastAPI 앱, 라우터 마운트
 ├── core/
-│   ├── database.py                # gird_oracle_database_manager re-export
-│   └── matrix/
-│       ├── gird_oracle_database_manager.py   # Base, get_db (async), init_db
+│   ├── database.py                # database_manager re-export
+│   └── infra/
+│       ├── database_manager.py    # Base, get_db (async), init_db
 │       └── ...
 ├── apps/
 │   ├── database.py                # core re-export + get_sync_database_url
@@ -60,7 +60,7 @@ from apps.friday_13th...             # 삭제된 모듈
 
 `core`는 반드시 전체 경로:
 ```python
-from core.matrix.gird_oracle_database_manager import Base, get_db
+from core.infra.database_manager import Base, get_db
 from core.database import Base   # 위와 동일 (re-export)
 ```
 
@@ -189,7 +189,7 @@ python -c "from restaurant.adapter.inbound.api import restaurant_router; from ti
 | 항목 | 상태 |
 |------|------|
 | restaurant ORM — sync vs titanic async | 통일 미완 |
-| `gird_oracle_database_manager` `import_models()` — restaurant ORM 미등록 | Alembic 감지 누락 |
+| `database_manager` `import_models()` — restaurant ORM 미등록 | Alembic 감지 누락 |
 | `get_current_user` — JWT 미구현, X-User-Id 헤더 임시 사용 | 운영 전 교체 필요 |
 | `google.generativeai` → `google.genai` 마이그레이션 필요 | FutureWarning 발생 중 |
 

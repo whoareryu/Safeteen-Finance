@@ -1,3 +1,3 @@
-﻿"""하위 호환: core.database -> core.matrix.oracle_database."""
+﻿"""하위 호환: core.database -> core.infra.database_manager."""
 
-from core.matrix.gird_oracle_database_manager import *  # noqa: F403
+from core.infra.database_manager import *  # noqa: F403

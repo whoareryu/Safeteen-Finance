@@ -5,7 +5,7 @@ import logging
 import ollama
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from community.adapter.outbound.orm.receiver_orm import ReceiverORM
 from community.app.dtos.receiver_dto import ReceiverCommand, ReceiverResult
 from community.app.ports.output.receiver_port import ReceiverPort

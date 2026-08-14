@@ -9,7 +9,7 @@ import jwt
 from fastapi import Cookie, Depends, Header, HTTPException
 
 from apps.auth.user_role import UserRole
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from core.security import TokenPayload, is_token_blacklisted, verify_token
 
 _SERVICE_AUD = secret_manager.get_secret("SERVICE_AUD", "whoareryu-api")

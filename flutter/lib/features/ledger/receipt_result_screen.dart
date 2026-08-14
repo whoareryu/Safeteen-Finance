@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../plant/plant_style.dart';
+import '../../shared/app_style.dart';
 import 'ledger_models.dart';
 
 class ReceiptResultScreen extends StatelessWidget {
@@ -31,7 +31,7 @@ class ReceiptResultScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: plantCardDecoration(context),
+              decoration: cardDecoration(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -43,14 +43,14 @@ class ReceiptResultScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: PlantColors.accentBg(dark),
+                          color: AppColors.accentBg(dark),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           receipt.category,
                           style: TextStyle(
                             fontSize: 12,
-                            color: PlantColors.accentForeground(dark),
+                            color: AppColors.accentForeground(dark),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -70,7 +70,7 @@ class ReceiptResultScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: plantCardDecoration(context),
+                decoration: cardDecoration(context),
                 child: Column(
                   children: [
                     for (final item in receipt.items)
@@ -98,8 +98,8 @@ class ReceiptResultScreen extends StatelessWidget {
               child: FilledButton(
                 onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
                 style: FilledButton.styleFrom(
-                  backgroundColor: PlantColors.primary(dark),
-                  foregroundColor: PlantColors.primaryForeground(dark),
+                  backgroundColor: AppColors.primary(dark),
+                  foregroundColor: AppColors.primaryForeground(dark),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                 ),

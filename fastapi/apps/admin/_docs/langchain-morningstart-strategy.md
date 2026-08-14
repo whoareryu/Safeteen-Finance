@@ -2,7 +2,7 @@
 type: spoke
 app: admin
 links:
-  - star_craft
+  - architect
 ---
 
 # LangChain 전략 — Morningstar: 맞춤형 금융 인사이트
@@ -43,7 +43,7 @@ dependencies/morningstar_insight_provider.py
 
 ### 환경 변수
 
-로컬 Ollama 서버(`core/lol/t1_mid_faker_orchestrator.py`와 동일한 관례)를 사용한다.
+로컬 Ollama 서버(`core/llm/ollama_chat_orchestrator.py`와 동일한 관례)를 사용한다.
 
 ```
 OLLAMA_BASE_URL=http://localhost:11434   # 선택, 기본값 위와 동일

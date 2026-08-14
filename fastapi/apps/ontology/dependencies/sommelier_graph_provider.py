@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from ontology.adapter.outbound.repositories.sommelier_graph_repository import SommelierRepository
 from ontology.app.use_cases.sommelier_graph_interactor import SommelierInteractor
 

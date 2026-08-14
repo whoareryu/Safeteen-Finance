@@ -4,7 +4,7 @@ import json
 
 from ontology.app.dtos.intent_dto import IntentDto
 from ontology.app.ports.output.intent_classification_gateway import IntentClassificationGateway
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
 
 _EXAONE_MODEL = "exaone3.5:2.4b"
 
@@ -58,7 +58,7 @@ class ExaoneIntentClassifierGateway(IntentClassificationGateway):
     라우팅 전용 시스템 프롬프트만 갈아 끼워 동일 모델로 의도를 분류한다."""
 
     def __init__(self, model: str = _EXAONE_MODEL) -> None:
-        self._llm = T1MidFakerOrchestrator(model=model)
+        self._llm = OllamaChatOrchestrator(model=model)
 
     async def classify(self, question: str) -> IntentDto:
         routing_response = await self._llm.chat(

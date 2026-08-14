@@ -8,7 +8,6 @@ root_packages =
     ontology
     admin
     titanic
-    plant
     auth
     core
 
@@ -21,7 +20,6 @@ type = independence
 modules =
     admin
     titanic
-    plant
 
 # ── Contract 2: 허브 보호 ──────────────────────────────────────────────────────
 # Hub(ontology)는 포트와 인터페이스만 정의한다.
@@ -35,19 +33,10 @@ source_modules =
 forbidden_modules =
     admin
     titanic
-    plant
 
 # ── Contract 3: 헥사고날 레이어 순서 ─────────────────────────────────────────
 # 각 앱 내부의 의존성 방향: adapter → app → domain
 # adapter(인프라)는 app(유스케이스)을 알 수 있지만, 역방향은 금지.
-[importlinter:contract:hexagonal-layers-plant]
-name = Plant hexagonal layers
-type = layers
-layers =
-    plant.adapter
-    plant.app
-    plant.domain
-
 [importlinter:contract:hexagonal-layers-titanic]
 name = Titanic hexagonal layers
 type = layers

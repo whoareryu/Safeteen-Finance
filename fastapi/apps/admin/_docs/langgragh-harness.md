@@ -2,7 +2,7 @@
 type: spoke
 app: admin
 links:
-  - star_craft
+  - architect
 ---
 
 # LangGraph 작업 하네스

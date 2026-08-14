@@ -8,27 +8,30 @@
   --site-header-height: 5.75rem;
   /* LESSON 서브바 포함 높이 */
   --site-header-height-lesson: 8.25rem;
-  /* 새싹 — 따뜻한 종이 톤 배경 + 세이지 그린 */
-  --background: oklch(0.975 0.01 120);
-  --foreground: oklch(0.22 0.02 150);
-  --card: oklch(0.99 0.006 120);
-  --card-foreground: oklch(0.22 0.02 150);
-  --popover: oklch(0.99 0.006 120);
-  --popover-foreground: oklch(0.22 0.02 150);
-  /* 새싹 세이지 그린 액센트 */
-  --primary: oklch(0.58 0.13 145);
+  /* SafeTeen Finance — 클린한 뉴트럴 배경 + 트러스트 인디고
+     (app/scan 하위 컴포넌트들이 이미 indigo-600을 위험도 진단 UI의 액센트로 쓰고
+     있어, 전역 테마도 거기 맞춘다 — rose(DANGER)/amber(WARNING)/emerald(SAFE)는
+     scan-report-section.tsx에서 개별 하드코딩되므로 여기서 별도 정의하지 않는다.) */
+  --background: oklch(0.98 0.005 260);
+  --foreground: oklch(0.2 0.02 260);
+  --card: oklch(0.995 0.003 260);
+  --card-foreground: oklch(0.2 0.02 260);
+  --popover: oklch(0.995 0.003 260);
+  --popover-foreground: oklch(0.2 0.02 260);
+  /* SafeTeen 트러스트 인디고 액센트 */
+  --primary: oklch(0.5 0.19 265);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.94 0.025 145);
-  --secondary-foreground: oklch(0.28 0.03 150);
-  --muted: oklch(0.95 0.015 120);
-  --muted-foreground: oklch(0.46 0.02 150);
-  --accent: oklch(0.92 0.035 145);
-  --accent-foreground: oklch(0.28 0.03 150);
+  --secondary: oklch(0.94 0.02 265);
+  --secondary-foreground: oklch(0.28 0.03 260);
+  --muted: oklch(0.95 0.01 260);
+  --muted-foreground: oklch(0.46 0.02 260);
+  --accent: oklch(0.92 0.03 265);
+  --accent-foreground: oklch(0.28 0.03 260);
   --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.87 0.025 135);
-  --input: oklch(0.98 0.008 120);
-  --ring: oklch(0.58 0.13 145);
+  --border: oklch(0.87 0.02 260);
+  --input: oklch(0.98 0.008 260);
+  --ring: oklch(0.5 0.19 265);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -46,26 +49,26 @@
 }
 
 .dark {
-  --background: oklch(0.1 0.012 150);
-  --foreground: oklch(0.94 0.008 120);
-  --card: oklch(0.13 0.014 150);
-  --card-foreground: oklch(0.94 0.008 120);
-  --popover: oklch(0.13 0.014 150);
-  --popover-foreground: oklch(0.94 0.008 120);
-  /* 새싹 세이지 그린 액센트 (다크) */
-  --primary: oklch(0.68 0.15 145);
-  --primary-foreground: oklch(0.12 0.02 150);
-  --secondary: oklch(0.18 0.018 150);
-  --secondary-foreground: oklch(0.94 0.008 120);
-  --muted: oklch(0.18 0.018 150);
-  --muted-foreground: oklch(0.67 0.02 140);
-  --accent: oklch(0.2 0.03 145);
-  --accent-foreground: oklch(0.94 0.008 120);
+  --background: oklch(0.1 0.015 260);
+  --foreground: oklch(0.94 0.008 260);
+  --card: oklch(0.13 0.018 260);
+  --card-foreground: oklch(0.94 0.008 260);
+  --popover: oklch(0.13 0.018 260);
+  --popover-foreground: oklch(0.94 0.008 260);
+  /* SafeTeen 트러스트 인디고 액센트 (다크) */
+  --primary: oklch(0.68 0.18 265);
+  --primary-foreground: oklch(0.12 0.02 260);
+  --secondary: oklch(0.18 0.02 260);
+  --secondary-foreground: oklch(0.94 0.008 260);
+  --muted: oklch(0.18 0.02 260);
+  --muted-foreground: oklch(0.67 0.02 260);
+  --accent: oklch(0.22 0.035 265);
+  --accent-foreground: oklch(0.94 0.008 260);
   --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.24 0.02 145);
-  --input: oklch(0.18 0.018 150);
-  --ring: oklch(0.68 0.15 145);
+  --border: oklch(0.26 0.025 265);
+  --input: oklch(0.18 0.02 260);
+  --ring: oklch(0.68 0.18 265);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -522,85 +525,85 @@ header.site-header--light #weather-container.weather-error {
   }
 }
 
-/* 새싹 — 메인 히어로 배경 (세이지 그린 메쉬 그라데이션) */
-.saessak-hero-bg {
+/* SafeTeen — 메인 히어로 배경 (인디고 메쉬 그라데이션) */
+.hero-bg {
   background:
-    radial-gradient(60% 55% at 15% 15%, oklch(0.88 0.09 145 / 0.6), transparent 60%),
-    radial-gradient(55% 45% at 88% 10%, oklch(0.9 0.07 100 / 0.5), transparent 65%),
-    radial-gradient(70% 60% at 50% 105%, oklch(0.85 0.09 155 / 0.5), transparent 60%),
+    radial-gradient(60% 55% at 15% 15%, oklch(0.88 0.09 265 / 0.6), transparent 60%),
+    radial-gradient(55% 45% at 88% 10%, oklch(0.88 0.08 230 / 0.5), transparent 65%),
+    radial-gradient(70% 60% at 50% 105%, oklch(0.85 0.1 285 / 0.5), transparent 60%),
     var(--background);
 }
 
-.dark .saessak-hero-bg {
+.dark .hero-bg {
   background:
-    radial-gradient(60% 55% at 15% 15%, oklch(0.3 0.06 145 / 0.5), transparent 60%),
-    radial-gradient(55% 45% at 88% 10%, oklch(0.28 0.05 100 / 0.4), transparent 65%),
-    radial-gradient(70% 60% at 50% 105%, oklch(0.26 0.06 155 / 0.45), transparent 60%),
+    radial-gradient(60% 55% at 15% 15%, oklch(0.3 0.07 265 / 0.5), transparent 60%),
+    radial-gradient(55% 45% at 88% 10%, oklch(0.28 0.06 230 / 0.4), transparent 65%),
+    radial-gradient(70% 60% at 50% 105%, oklch(0.26 0.07 285 / 0.45), transparent 60%),
     var(--background);
 }
 
-.saessak-glass-card {
+.glass-card {
   background: color-mix(in oklch, var(--card) 78%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
 }
 
-/* 새싹 — 히어로 위에 떠 있는 큰 유리 패널(채팅 등 실제 콘텐츠를 담는 컨테이너).
-   글자 가독성이 필요해 saessak-glass-card보다 불투명도를 높였다. */
-.saessak-glass-panel {
+/* SafeTeen — 히어로 위에 떠 있는 큰 유리 패널(채팅 등 실제 콘텐츠를 담는 컨테이너).
+   글자 가독성이 필요해 glass-card보다 불투명도를 높였다. */
+.glass-panel {
   background: color-mix(in oklch, var(--card) 94%, transparent);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   box-shadow:
-    0 1px 2px oklch(0.2 0.02 150 / 0.06),
-    0 16px 40px -12px oklch(0.2 0.05 150 / 0.22);
+    0 1px 2px oklch(0.2 0.02 265 / 0.06),
+    0 16px 40px -12px oklch(0.2 0.05 265 / 0.22);
 }
 
-.dark .saessak-glass-panel {
+.dark .glass-panel {
   box-shadow:
     0 1px 2px oklch(0 0 0 / 0.3),
     0 16px 40px -12px oklch(0 0 0 / 0.5);
 }
 
-/* 새싹 — 콘텐츠 카드(진단 결과, 케어 일정 등)의 프리미엄 기본형 */
-.saessak-card {
+/* SafeTeen — 콘텐츠 카드(진단 결과 등)의 프리미엄 기본형 */
+.content-card {
   border-radius: 1.25rem;
   border: 1px solid var(--border);
   background: var(--card);
   box-shadow:
-    0 1px 2px oklch(0.2 0.02 150 / 0.04),
-    0 8px 24px -8px oklch(0.2 0.05 150 / 0.12);
+    0 1px 2px oklch(0.2 0.02 265 / 0.04),
+    0 8px 24px -8px oklch(0.2 0.05 265 / 0.12);
 }
 
-/* 새싹 — 실제 식물 사진을 쓰는 히어로 배너 (홈/서브페이지 공용) */
-.saessak-photo-hero {
+/* SafeTeen — 사진을 쓰는 히어로 배너 (홈/서브페이지 공용) */
+.photo-hero {
   min-height: 22rem;
 }
 
 @media (min-width: 640px) {
-  .saessak-photo-hero {
+  .photo-hero {
     min-height: 26rem;
   }
 }
 
 /* 서브페이지용 짧은 배너 변형 */
-.saessak-photo-hero--banner {
+.photo-hero--banner {
   min-height: 12rem;
 }
 
 @media (min-width: 640px) {
-  .saessak-photo-hero--banner {
+  .photo-hero--banner {
     min-height: 14rem;
   }
 }
 
-.saessak-photo-scrim {
+.photo-scrim {
   background: linear-gradient(
     180deg,
-    oklch(0.15 0.03 150 / 0.55) 0%,
-    oklch(0.15 0.03 150 / 0.35) 45%,
-    oklch(0.15 0.03 150 / 0.75) 100%
+    oklch(0.15 0.03 265 / 0.55) 0%,
+    oklch(0.15 0.03 265 / 0.35) 45%,
+    oklch(0.15 0.03 265 / 0.75) 100%
   );
 }

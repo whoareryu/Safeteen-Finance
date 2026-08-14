@@ -1,4 +1,4 @@
-export const metadata = { title: "이용약관 | 새싹" };
+export const metadata = { title: "이용약관 | SafeTeen Finance" };
 
 export default function TermsPage() {
   return (

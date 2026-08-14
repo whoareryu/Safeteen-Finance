@@ -5,7 +5,7 @@ from functools import lru_cache
 from redis.asyncio import Redis
 
 from apps.auth.app.ports.output.mobile_nonce_store_port import NonceStorePort
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _KEY_PREFIX = "auth:mobile:nonce:"
 _TTL_SECONDS = 300

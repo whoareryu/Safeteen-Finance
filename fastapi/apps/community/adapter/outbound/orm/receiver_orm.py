@@ -6,8 +6,8 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from core.matrix.grid_neo_theone_base import Base
-from core.matrix.gird_oracle_database_manager import IntIdPrimaryKeyMixin
+from core.infra.domain_declarative_base import Base
+from core.infra.database_manager import IntIdPrimaryKeyMixin
 
 _EMBEDDING_DIM = 1024
 

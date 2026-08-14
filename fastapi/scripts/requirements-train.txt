@@ -1,4 +1,0 @@
-# 하우스플랜트 분류기 재학습 전용 의존성 (Colab 등 학습 환경에서만 설치).
-# 운영 서버(requirements.txt)에는 kaggle을 넣지 않는다 — 학습 시에만 필요.
-ultralytics==8.4.89
-kaggle

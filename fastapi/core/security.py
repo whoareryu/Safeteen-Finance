@@ -24,7 +24,7 @@ import jwt
 from cryptography.hazmat.primitives import serialization
 from redis.asyncio import Redis
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _ALGORITHM = "RS256"
 # 프론트엔드에 자동 refresh 인터셉터가 아직 없어서(추후 과제), 액세스 토큰이 만료되면

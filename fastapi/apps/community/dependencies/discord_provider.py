@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.matrix.gird_oracle_database_manager import get_db
+from core.infra.database_manager import get_db
 from community.adapter.outbound.repositories.discord_repository import DiscordRepository
 from community.app.ports.input.discord_use_case import DiscordUseCase
 from community.app.ports.output.discord_port import DiscordPort

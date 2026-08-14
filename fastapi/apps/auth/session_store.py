@@ -11,7 +11,7 @@ from functools import lru_cache
 from redis.asyncio import Redis
 
 from apps.auth.jwt_service import TOKEN_TTL_SECONDS
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _KEY_PREFIX = "session:"
 

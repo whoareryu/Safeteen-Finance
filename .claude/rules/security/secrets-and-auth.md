@@ -14,11 +14,11 @@ paths:
 
 ## 1. 시크릿은 `secret_manager` 경유
 
-`os.getenv(...)`를 산재해서 호출하지 않는다. `fastapi/core/matrix/secret_manager.py`의
+`os.getenv(...)`를 산재해서 호출하지 않는다. `fastapi/core/infra/secret_manager.py`의
 `secret_manager.get_secret(key, default=...)`를 쓴다.
 
 ```python
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 api_key = secret_manager.get_secret("GEMINI_API_KEY")           # 없으면 즉시 RuntimeError
 base_url = secret_manager.get_secret("OLLAMA_BASE_URL", "http://localhost:11434")  # 폴백

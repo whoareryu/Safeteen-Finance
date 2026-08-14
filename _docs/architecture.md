@@ -301,10 +301,10 @@ fastapi/
 - `apps/` 가 `core/` 를 import합니다. (의존성 방향: `apps` → `core`)
 
 ```
-core/matrix/
-├── gird_oracle_database_manager.py   ← DB 연결 (SQLAlchemy engine/session)
-├── vault_keymaker_secret_manager.py  ← Secret/Key 관리
-└── grid_{name}_manager.py            ← 추가 전역 인프라 (동일 패턴 반복)
+core/infra/
+├── database_manager.py               ← DB 연결 (SQLAlchemy engine/session)
+├── secret_manager.py                 ← Secret/Key 관리
+└── {name}_manager.py                 ← 추가 전역 인프라 (동일 패턴 반복)
 ```
 
 ---

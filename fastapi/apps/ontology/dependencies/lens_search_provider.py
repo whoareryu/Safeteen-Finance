@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from ontology.adapter.outbound.repositories.lens_search_repository import LensRepository
 from ontology.app.use_cases.lens_search_interactor import LensInteractor
 

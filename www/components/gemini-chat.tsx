@@ -25,7 +25,7 @@ function id() {
 
 type GeminiChatProps = {
   variant?: "dark" | "apple";
-  /** 기본 `/api/chat` — 타이타닉은 `/api/titanic/chat` */
+  /** 기본 `/api/chat` */
   apiPath?: string;
   inputPlaceholder?: string;
   /** 기본 exaone3.5:2.4b */

@@ -1,0 +1,31 @@
+---
+description: Authoritative brand & UI design system. Read DESIGN.md before UI work.
+globs:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.vue"
+  - "**/*.svelte"
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/tailwind.config.*"
+  - "**/components/**"
+  - "**/app/**/page.*"
+alwaysApply: false
+---
+
+<!-- omd:start v=1 hash=36cd5c38b013 -->
+The authoritative design spec lives at `@DESIGN.md` (repo root). Open and read before generating/modifying UI.
+
+Pending preference corrections: `@.omd/preferences.md`.
+
+Precedence: DESIGN.md > preferences.md > framework defaults.
+
+If DESIGN.md is missing and the user asks to establish a design system:
+1. Inspect the existing product, routes, and constraints.
+2. Read `.claude/data/reference-fingerprints.json` and only recommend ids present there.
+3. Load the chosen `.claude/data/references/<id>/DESIGN.md`, explain the project-specific delta, and ask before writing root DESIGN.md.
+4. Unknown reference fields stay absent; never substitute a system font, generic component, or guessed token as a brand fact.
+
+When applying DESIGN.md, preserve existing behavior and user copy unless asked, then verify the actual product route and accessibility before reporting completion.
+Cursor receives this rule and the catalog, not OmD named skills or sub-agents; execute the contract directly from natural-language requests.
+<!-- omd:end -->

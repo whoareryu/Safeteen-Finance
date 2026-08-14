@@ -31,9 +31,10 @@ const nextConfig = {
       { source: "/notice", destination: "/", permanent: true },
       { source: "/shopping", destination: "/", permanent: true },
       { source: "/attraction", destination: "/", permanent: true },
-      { source: "/seoulmate", destination: "/portfolio", permanent: true },
-      { source: "/portfolio/seoulmate", destination: "/portfolio", permanent: true },
-      { source: "/titanic", destination: "/portfolio/titanic", permanent: true },
+      { source: "/seoulmate", destination: "/", permanent: true },
+      { source: "/portfolio", destination: "/", permanent: true },
+      { source: "/portfolio/:path*", destination: "/", permanent: true },
+      { source: "/titanic", destination: "/", permanent: true },
     ];
   },
   async rewrites() {
@@ -41,22 +42,6 @@ const nextConfig = {
       {
         source: "/api/chat",
         destination: `${backendUrl}/chat`,
-      },
-      {
-        source: "/api/titanic/chat",
-        destination: `${backendUrl}/api/titanic/chat`,
-      },
-      {
-        source: "/api/titanic/upload",
-        destination: `${backendUrl}/api/titanic/upload`,
-      },
-      {
-        source: "/api/titanic/james/upload",
-        destination: `${backendUrl}/api/titanic/james/upload`,
-      },
-      {
-        source: "/api/titanic/walter/myself",
-        destination: `${backendUrl}/api/titanic/walter/myself`,
       },
       {
         // owner-check는 owner_session.py 기반이라 RS256 auth 서비스로 옮기지 않고
@@ -81,16 +66,12 @@ const nextConfig = {
         destination: `${backendUrl}/api/ontology/:path*`,
       },
       {
-        source: "/api/vision/:path*",
-        destination: `${backendUrl}/api/vision/:path*`,
-      },
-      {
-        source: "/api/plant/:path*",
-        destination: `${backendUrl}/api/plant/:path*`,
-      },
-      {
         source: "/api/ledger/:path*",
         destination: `${backendUrl}/api/ledger/:path*`,
+      },
+      {
+        source: "/api/safeteen/:path*",
+        destination: `${backendUrl}/api/safeteen/:path*`,
       },
     ];
   },

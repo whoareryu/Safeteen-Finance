@@ -5,7 +5,7 @@ from pathlib import Path
 
 from redis.asyncio import Redis
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from ontology.adapter.outbound.filesystem.scrape_result_sink import JsonlScrapeResultSink
 from ontology.adapter.outbound.http.web_fetcher_gateway import HttpxWebFetcherGateway
 from ontology.adapter.outbound.redis.scrape_target_queue_repository import (

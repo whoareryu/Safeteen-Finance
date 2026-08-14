@@ -18,7 +18,7 @@ from apps.auth.user_model import User
 from apps.auth.user_provisioning import find_existing_user
 from apps.auth.user_role import UserRole
 from apps.database import get_sync_db
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 # Google 로그인은 프론트 프록시(whoareryu.cloud)를 거쳐 응답하지만, 네이버·카카오는
 # OAuth state 쿠키 문제로 팝업이 api.whoareryu.cloud를 직접 연다(social_login_router

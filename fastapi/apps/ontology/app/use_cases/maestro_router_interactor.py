@@ -9,7 +9,7 @@ from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.input.lens_search_use_case import LensUseCase
 from ontology.app.ports.output.task_dispatch_port import TaskDispatchPort
 from ontology.app.ports.output.owner_gate_port import OwnerGatePort
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
 
 _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
 _DEFAULT_COLLECTION = "knowledge"
@@ -33,7 +33,7 @@ class MaestroInteractor(MaestroUseCase):
         self,
         sommelier: SommelierUseCase,
         lens: LensUseCase,
-        llm: T1MidFakerOrchestrator,
+        llm: OllamaChatOrchestrator,
         dispatcher: TaskDispatchPort | None = None,
         owner_gate: OwnerGatePort | None = None,
     ) -> None:

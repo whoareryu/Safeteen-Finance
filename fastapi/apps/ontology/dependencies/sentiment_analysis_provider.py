@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 from ontology.adapter.outbound.resource_adapters.sentiment_analysis.sentiment_classifier_model_adapter import (
     SentimentClassifierModelAdapter,
 )

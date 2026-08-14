@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.matrix.gird_oracle_database_manager import (  # noqa: F401
+from core.infra.database_manager import (  # noqa: F401
     AsyncSessionDep,
     AsyncSessionLocal,
     Base,

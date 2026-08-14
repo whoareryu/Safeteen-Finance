@@ -2,7 +2,7 @@
 type: spoke
 app: admin
 links:
-  - star_craft
+  - architect
 ---
 
 # LangChain 전략 — NCL: 최적화된 여행 계획 제공
@@ -42,7 +42,7 @@ dependencies/ncl_trip_planner_provider.py
 
 ### 환경 변수
 
-로컬 Ollama 서버(`core/lol/t1_mid_faker_orchestrator.py`와 동일한 관례)를 사용한다.
+로컬 Ollama 서버(`core/llm/ollama_chat_orchestrator.py`와 동일한 관례)를 사용한다.
 
 ```
 OLLAMA_BASE_URL=http://localhost:11434   # 선택, 기본값 위와 동일

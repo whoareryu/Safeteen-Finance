@@ -11,8 +11,7 @@ from ontology.app.ports.input.semantic_routing_use_case import SemanticRoutingUs
 from ontology.app.ports.input.sommelier_graph_use_case import SommelierUseCase
 from ontology.app.ports.output.intent_classification_gateway import IntentClassificationGateway
 from ontology.app.ports.output.langchain_chatbot_gateway import LangchainChatbotGateway
-from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
 
 _GRAPH_SIGNALS = ["관계", "연결", "이웃", "경로", "링크"]
 
@@ -28,16 +27,14 @@ _RAG_PROMPT_TEMPLATE = """너는 사내 온톨로지 지식에만 기반하여 �
 class SemanticRoutingInteractor(SemanticRoutingUseCase):
     def __init__(
         self,
-        llm: T1MidFakerOrchestrator,
+        llm: OllamaChatOrchestrator,
         intent_gateway: IntentClassificationGateway,
         sommelier: SommelierUseCase,
-        plant_knowledge: PlantKnowledgeSearchPort,
         langchain_chatbot: LangchainChatbotGateway,
     ) -> None:
         self._llm = llm
         self._intent_gateway = intent_gateway
         self._sommelier = sommelier
-        self._plant_knowledge = plant_knowledge
         self._langchain_chatbot = langchain_chatbot
 
     async def route(self, dto: SemanticRoutingQueryDto) -> SemanticRoutingResultDto:
@@ -73,4 +70,4 @@ class SemanticRoutingInteractor(SemanticRoutingUseCase):
             result = await self._sommelier.query(GraphQueryDto(cypher=cypher, params={"keyword": keyword[:20]}))
             return result.records
 
-        return await self._plant_knowledge.search(keyword)
+        return []

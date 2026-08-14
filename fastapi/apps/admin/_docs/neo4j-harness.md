@@ -2,7 +2,7 @@
 type: spoke
 app: admin
 links:
-  - star_craft
+  - architect
 ---
 
 # Neo4j 그래프 DB 운영 하네스

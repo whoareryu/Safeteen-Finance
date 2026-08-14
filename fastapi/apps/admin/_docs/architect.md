@@ -1,6 +1,11 @@
+---
+type: hub
+app: admin
+---
+
 # admin — Architecture Rules
 
-헥사고날(Ports & Adapters) + Clean Architecture 기반. 각 캐릭터(도메인 행위자)가 하나의 수직 슬라이스를 형성한다.
+헥사고날(Ports & Adapters) + Clean Architecture 기반. 각 기능(feature)이 하나의 수직 슬라이스를 형성한다.
 
 ---
 
@@ -14,9 +19,10 @@ admin/
 │   │       ├── schemas/          # HTTP 요청/응답 모델 (Pydantic BaseModel)
 │   │       └── v1/               # FastAPI Router
 │   └── outbound/
-│       ├── mappers/              # ORM ↔ Domain 변환
+│       ├── client/               # 외부 API/서비스 클라이언트 (n8n, PDF 추출·요약 등)
+│       ├── mappers/               # ORM ↔ Domain 변환
 │       ├── orm/                  # SQLAlchemy ORM 모델
-│       └── repositories/        # Output Port 구현체
+│       └── repositories/         # Output Port 구현체
 ├── app/
 │   ├── dtos/                     # 레이어 간 데이터 전달 객체 (frozen dataclass)
 │   ├── ports/
@@ -35,38 +41,38 @@ admin/
 
 ## 파일 네이밍 규칙
 
-모든 파일은 `piper_{character}_{role}_{artifact}.py` 패턴을 따른다.
+모든 파일은 `{feature}_{artifact}.py` 패턴을 따른다 (루트 [[fastapi/CLAUDE\|fastapi/CLAUDE]]의
+헥사고날 네이밍 규칙과 동일). 실제 예시는 `pdf_loader` 기능 슬라이스를 참고한다.
 
 | 아티팩트 | 접미사 | 예시 |
 |---|---|---|
-| Inbound Schema | `_schema.py` | `piper_hendricks_ceo_schema.py` |
-| Router | `_router.py` | `piper_hendricks_ceo_router.py` |
-| DTO | `_dto.py` | `piper_hendricks_ceo_dto.py` |
-| Input Port (UseCase) | `_use_case.py` | `piper_hendricks_ceo_use_case.py` |
-| Output Port | `_port.py` | `piper_hendricks_ceo_port.py` |
-| Interactor | `_interactor.py` | `piper_hendricks_ceo_interactor.py` |
-| Repository | `_repository.py` | `piper_hendricks_ceo_repository.py` |
-| ORM | `_orm.py` | `piper_hendricks_ceo_orm.py` |
-| Mapper | `_mapper.py` | `piper_hendricks_ceo_mapper.py` |
-| DI Provider | `_provider.py` | `piper_hendricks_ceo_provider.py` |
+| Inbound Schema | `_schema.py` | `pdf_loader_schema.py` |
+| Router | `_router.py` | `pdf_loader_router.py` |
+| DTO | `_dto.py` | `pdf_loader_dto.py` |
+| Input Port (UseCase) | `_use_case.py` | `pdf_loader_use_case.py` |
+| Output Port | `_repository.py` / `_port.py` | `pdf_loader_repository.py` |
+| Interactor | `_interactor.py` | `pdf_loader_interactor.py` |
+| Repository 구현체 (Postgres) | `_pg_repository.py` | `pdf_loader_pg_repository.py` |
+| ORM | `_orm.py` (엔티티명 기준) | `pdf_document_orm.py` |
+| Mapper | `_orm_mapper.py` | `pdf_document_orm_mapper.py` |
+| DI Provider | `_provider.py` | `pdf_loader_provider.py` |
 
 ---
 
 ## 클래스 네이밍 규칙
 
-`{Character}{Role}{Artifact}` 형식. `Piper` 접두사는 클래스에 붙이지 않는다.
+`{Feature}{Artifact}` 형식.
 
 | 아티팩트 | 접미사 | 예시 |
 |---|---|---|
-| Schema | `Schema` | `HendricksCeoSchema` |
-| Query DTO | `Query` | `HendricksCeoQuery` |
-| Response DTO | `Response` | `HendricksCeoResponse` |
-| Input Port | `UseCase` | `HendricksCeoUseCase` |
-| Output Port | `Port` | `HendricksCeoPort` |
-| Interactor | `Interactor` | `HendricksCeoInteractor` |
-| Repository | `Repository` | `HendricksCeoRepository` |
-| ORM | `ORM` | `HendricksCeoORM` |
-| Mapper | `Mapper` | `HendricksCeoMapper` |
+| Schema | `Schema` | `PdfLoaderSchema` |
+| Query DTO | `Query` | `PdfLoaderQuery` |
+| Response DTO | `Response` | `PdfLoaderResponse` |
+| Input Port | `UseCase` | `PdfLoaderUseCase` |
+| Output Port | `Repository` / `Port` | `PdfLoaderRepository` |
+| Interactor | `Interactor` | `PdfLoaderInteractor` |
+| Repository 구현체 (Postgres) | `PgRepository` | `PdfLoaderPgRepository` |
+| ORM | `ORM` | `PdfDocumentORM` |
 
 ---
 
@@ -128,23 +134,24 @@ Router → UseCase(Port) → Interactor → OutputPort → Repository
 
 ### `dependencies/` — DI Provider
 - FastAPI `Depends` 체이닝으로 의존성 그래프 조립.
-- `get_{character}_repository` → `get_{character}_use_case` 두 함수 패턴.
+- `get_{feature}_use_case()` 함수 하나로 노출한다 — 반드시 이 이름 (`get_{feature}_service`
+  등 변형 금지, 루트 CLAUDE.md 규칙과 동일).
 - 리턴 타입은 항상 포트(ABC) 타입. 구현체 타입 노출 금지.
-- `AsyncSession`은 `core.matrix.gird_oracle_database_manager.get_db`에서 주입.
+- `AsyncSession`은 `apps.database.get_db`(= `core.infra.database_manager.get_db` 재익스포트)에서 주입.
 
 ---
 
-## 새 캐릭터 추가 체크리스트
+## 새 기능 추가 체크리스트
 
-캐릭터 하나를 추가할 때 생성해야 하는 파일 목록 (순서는 안쪽 → 바깥쪽).
+기능 하나를 추가할 때 생성해야 하는 파일 목록 (순서는 안쪽 → 바깥쪽).
 
-1. `app/dtos/piper_{x}_dto.py` — Query, Response 정의
-2. `app/ports/input/piper_{x}_use_case.py` — Input Port (ABC)
-3. `app/ports/output/piper_{x}_port.py` — Output Port (ABC)
-4. `app/use_cases/piper_{x}_interactor.py` — UseCase 구현
-5. `adapter/outbound/orm/piper_{x}_orm.py` — ORM 모델
-6. `adapter/outbound/mappers/piper_{x}_mapper.py` — Mapper
-7. `adapter/outbound/repositories/piper_{x}_repository.py` — Repository
-8. `adapter/inbound/api/schemas/piper_{x}_schema.py` — Inbound Schema
-9. `adapter/inbound/api/v1/piper_{x}_router.py` — Router
-10. `dependencies/piper_{x}_provider.py` — DI 팩토리
+1. `app/dtos/{feature}_dto.py` — Query, Response 정의
+2. `app/ports/input/{feature}_use_case.py` — Input Port (ABC)
+3. `app/ports/output/{feature}_repository.py` — Output Port (ABC)
+4. `app/use_cases/{feature}_interactor.py` — UseCase 구현
+5. `adapter/outbound/orm/{entity}_orm.py` — ORM 모델
+6. `adapter/outbound/mappers/{entity}_orm_mapper.py` — Mapper
+7. `adapter/outbound/repositories/{feature}_pg_repository.py` — Repository 구현체
+8. `adapter/inbound/api/schemas/{feature}_schema.py` — Inbound Schema
+9. `adapter/inbound/api/v1/{feature}_router.py` — Router
+10. `dependencies/{feature}_provider.py` — DI 팩토리 (`get_{feature}_use_case()`)

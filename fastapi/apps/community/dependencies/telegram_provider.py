@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.matrix.gird_oracle_database_manager import get_db
-from core.matrix.secret_manager import secret_manager
+from core.infra.database_manager import get_db
+from core.infra.secret_manager import secret_manager
 from community.adapter.outbound.repositories.telegram_repository import TelegramRepository
 from community.adapter.outbound.telegram.telegram_bot_gateway import TelegramBotGateway
 from community.app.ports.input.telegram_use_case import TelegramUseCase

@@ -1,1 +1,0 @@
-"""Hexagonal ports (input/output)."""

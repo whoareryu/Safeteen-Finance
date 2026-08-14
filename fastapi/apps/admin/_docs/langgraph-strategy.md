@@ -2,9 +2,7 @@
 type: spoke
 app: admin
 links:
-  - langgragh-harness
-  - neo4j-strategy
-  - star_craft
+  - architect
 ---
 
 # LangGraph + Neo4j 확장 전략 — 로드맵 (아직 미착수)

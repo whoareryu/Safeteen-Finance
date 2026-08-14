@@ -2,7 +2,7 @@
 type: spoke
 app: admin
 links:
-  - star_craft
+  - architect
 ---
 
 # LangChain 작업 하네스
@@ -15,10 +15,10 @@ LangChain의 강점/약점을 이 프로젝트의 헥사고날 구조에 맞춘 
 
 ## 0. 컨텍스트
 
-- 이 저장소에서 LangChain은 현재 `admin` 앱의 Morningstar 인사이트 엔진에서 사용 중이다.
-  ([005-langchain-morningstar-strategy.md](005-langchain-morningstar-strategy.md) 참고)
+- 이 저장소에서 LangChain은 현재 `admin` 앱의 PDF 업로드→텍스트 추출→요약 파이프라인
+  (`pdf_loader` 기능 슬라이스) 등에서 사용된다.
 - 설치된 패키지: `langchain`, `langchain-community`, `langsmith`, `langgraph`. 별도 provider 패키지
-  (`langchain-google-genai` 등)는 없으며, 로컬 Ollama(`core/lol/t1_mid_faker_orchestrator.py`와 동일한
+  (`langchain-google-genai` 등)는 없으며, 로컬 Ollama(`core/llm/ollama_chat_orchestrator.py`와 동일한
   관례, `ChatOllama`)가 기본 LLM 경로다.
 - 헥사고날 구조상 LLM 호출은 항상 `app/ports/output/*_port.py` 뒤에 둔다. LangChain의 구체 클래스는
   `adapter/outbound/client/*`에서만 임포트한다.
@@ -47,17 +47,11 @@ LangChain의 강점/약점을 이 프로젝트의 헥사고날 구조에 맞춘 
 작업을 완료로 보고하기 전에 아래를 확인한다.
 
 - [ ] **성능:** 체인이 실제로 여러 단계(검색 → 프롬프팅 → 생성 등)를 필요로 하는가? 단일 LLM
-      호출로 충분하다면 LangChain 체인 대신 기존 `httpx` 직접 호출(`piper_gilfoyle_llm_client.py`
-      패턴)을 쓴다. 불필요한 체인은 성능 저하와 복잡도만 늘린다.
+      호출로 충분하다면 LangChain 체인 대신 기존 `adapter/outbound/client/*` 직접 호출
+      (`pdf_summary_generator_client.py` 패턴)을 쓴다. 불필요한 체인은 성능 저하와 복잡도만 늘린다.
 - [ ] **러닝 커브:** 새 체인/에이전트 구조를 도입하기 전에, 이미 있는
-      `prompt | llm | StrOutputParser()` LCEL 패턴(`morningstar_insight_generator_client.py`)으로
+      `prompt | llm | StrOutputParser()` LCEL 패턴(`pdf_summary_generator_client.py`)으로
       표현 가능한지 먼저 확인한다. Agents·Tools·Memory 같은 낯선 추상화는 실제로 필요할 때만
       도입한다.
 - [ ] **적합성:** 이 유즈케이스가 LangChain 없이(순수 API 호출 또는 직접 프롬프트 문자열)로 더
       단순하게 풀리지는 않는지 재검토한다. 모든 유즈케이스에 LangChain이 최적은 아니다.
-
----
-
-## 3. 참고
-
-- 실제 적용 예: [005-langchain-morningstar-strategy.md](005-langchain-morningstar-strategy.md)

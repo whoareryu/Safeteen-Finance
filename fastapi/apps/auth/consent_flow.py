@@ -12,7 +12,7 @@ from functools import lru_cache
 
 from redis.asyncio import Redis
 
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _KEY_PREFIX = "pending_signup:"
 _TTL_SECONDS = 600

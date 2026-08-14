@@ -26,20 +26,15 @@ logger = logging.getLogger(__name__)
 
 from core.db_health_adapter import DbHealthAdapter
 from core.database import dispose_engine, get_db, init_db, init_engine
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
-from core.matrix.secret_manager import secret_manager
+from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
+from core.infra.secret_manager import secret_manager
 
 try:
     from doro.app.doro_director import DoroDirector
 except ImportError:
     DoroDirector = None  # type: ignore[misc, assignment]
 
-try:
-    from titanic.app.james_controller import JamesController
-except ImportError:
-    JamesController = None  # type: ignore[misc, assignment]
-
-_faker = T1MidFakerOrchestrator()
+_faker = OllamaChatOrchestrator()
 
 
 class ChatRequest(BaseModel):
@@ -65,11 +60,10 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
+    # whoareryu.cloud는 Vercel 프로젝트 연결을 해제했다 — 새 프로덕션 도메인이 정해지면 여기에 추가한다.
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://whoareryu.cloud",
-        "https://www.whoareryu.cloud",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -92,21 +86,15 @@ async def _google_browser_gate(request: Request, call_next):
     return await call_next(request)
 
 
-from titanic.adapter.inbound.api import titanic_router  # noqa: E402
 from admin.adapter.inbound.api import admin_app_router
 from ontology.adapter.inbound.api import ontology_router
 from community.adapter.inbound.api import chef_router
 
-from ontology.adapter.inbound.api.v1.vision_router import vision_router
-from ontology.adapter.inbound.api.v1.generation_router import generation_router
-from ontology.adapter.inbound.api.v1.detection_router import detection_router
-from ontology.adapter.inbound.api.v1.pose_router import pose_router
-from ontology.adapter.inbound.api.v1.segmentation_router import segmentation_router
 from ontology.adapter.inbound.api.v1.sentiment_router import sentiment_router
 from ontology.adapter.inbound.api.v1.video_router import video_router
 from ontology.adapter.inbound.api.v1.anomaly_router import anomaly_router
-from plant.adapter.inbound.api import plant_router
 from ledger.adapter.inbound.api import ledger_router
+from safeteen.adapter.inbound.api import safeteen_router
 from apps.auth.admin_router import admin_router
 # 로그인(Google/Naver/Kakao)·회원가입 동의는 auth_main.py(auth.whoareryu.cloud)로
 # 이동했다 — 이 백엔드는 RS256 공개키로 토큰을 검증만 한다(core.dependencies).
@@ -133,7 +121,7 @@ register_dispatch_factory(
     lambda: MaestroInteractor(
         sommelier=get_sommelier_use_case(),
         lens=get_lens_use_case(),
-        llm=T1MidFakerOrchestrator(),
+        llm=OllamaChatOrchestrator(),
         dispatcher=ChefTaskDispatcher(
             email=get_email_use_case(),
         ),
@@ -141,44 +129,9 @@ register_dispatch_factory(
     )
 )
 
-# ── Composition root: plant 전용 종(species) 분류기/이미지 저장소를 ontology 허브 어댑터로 주입 ──
 from fastapi.staticfiles import StaticFiles
 
-from ontology.adapter.outbound.resource_adapters.image_classifier.yolo_classifier_model_adapter import (
-    YoloClassifierModelAdapter,
-)
 from ontology.adapter.outbound.s3.s3_image_storage_gateway import S3ImageStorageGateway
-from plant.adapter.outbound.resource_adapters.plant_yolo_model_adapter import (
-    PlantYoloModelAdapter,
-)
-from plant.dependencies.diagnosis_provider import (
-    register_species_classifier_factory,
-    register_image_storage_factory,
-)
-
-register_species_classifier_factory(
-    lambda: YoloClassifierModelAdapter(
-        model_port=PlantYoloModelAdapter(
-            secret_manager.get_secret("PLANT_YOLO_WEIGHTS_PATH", "apps/plant/resources/plant_yolo.pt")
-        )
-    )
-)
-# PLANT_S3_BUCKET 발급 완료 — 진단 사진은 S3ImageStorageGateway로 저장한다.
-# (media/plant 로컬 마운트는 발급 전 업로드된 기존 사진 URL 호환을 위해 그대로 둔다.)
-_plant_diagnosis_media_dir = _backend_root / "apps/plant/resources/diagnosis_uploads"
-register_image_storage_factory(
-    lambda: S3ImageStorageGateway(
-        bucket=secret_manager.get_secret("PLANT_S3_BUCKET", ""),
-        region=secret_manager.get_secret("AWS_REGION", "ap-northeast-2"),
-        prefix="plant",
-    )
-)
-app.mount(
-    "/media/plant",
-    StaticFiles(directory=str(_plant_diagnosis_media_dir), check_dir=False),
-    name="plant-diagnosis-media",
-)
-# ─────────────────────────────────────────────────────────────────────────
 
 # ── Composition root: ledger 전용 영수증 이미지 저장소(S3) + Gemini Vision 파서 주입 ──
 from ledger.adapter.outbound.llm.gemini_receipt_vision_parser_adapter import (
@@ -199,28 +152,6 @@ register_ledger_image_storage_factory(
 register_ledger_vision_parser_factory(lambda: GeminiReceiptVisionParserAdapter())
 # ─────────────────────────────────────────────────────────────────────────
 
-# ── Composition root: plant 전용 pgvector(plant_knowledge)를 ontology 시맨틱
-#    라우터의 exaone_rag 지식 소스로 주입 ──────────────────────────────────
-from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
-from ontology.dependencies.semantic_routing_provider import register_plant_knowledge_factory
-from plant.adapter.outbound.llm.plant_embedding_adapter import PlantEmbeddingAdapter
-from plant.adapter.outbound.pg.plant_knowledge_pg_repository import PlantKnowledgePgRepository
-
-
-class _PlantKnowledgeSearchAdapter(PlantKnowledgeSearchPort):
-    def __init__(self, session: AsyncSession) -> None:
-        self._repository = PlantKnowledgePgRepository(session=session)
-        self._embedding = PlantEmbeddingAdapter()
-
-    async def search(self, query: str, limit: int = 3) -> list[dict]:
-        vector = await self._embedding.embed(query)
-        matches = await self._repository.find_similar(vector, limit=limit)
-        return [{"name": m.name, "description": m.description} for m in matches]
-
-
-register_plant_knowledge_factory(lambda session: _PlantKnowledgeSearchAdapter(session))
-# ─────────────────────────────────────────────────────────────────────────
-
 # ── Composition root: 이미지 생성(SDXL Turbo) 결과물 정적 서빙 ────────────────
 _ontology_generated_media_dir = _backend_root / "apps/ontology/resources/generated_images"
 _ontology_generated_media_dir.mkdir(parents=True, exist_ok=True)
@@ -231,30 +162,14 @@ app.mount(
 )
 # ─────────────────────────────────────────────────────────────────────────
 
-# ── Composition root: 시멘틱 분할(SegFormer) 오버레이 이미지 정적 서빙 ──────────
-_ontology_segmentation_media_dir = _backend_root / "apps/ontology/resources/segmentation_overlays"
-_ontology_segmentation_media_dir.mkdir(parents=True, exist_ok=True)
-app.mount(
-    "/media/segmentation",
-    StaticFiles(directory=str(_ontology_segmentation_media_dir), check_dir=False),
-    name="ontology-segmentation-media",
-)
-# ─────────────────────────────────────────────────────────────────────────
-
 app.include_router(ontology_router, prefix="/api")
-app.include_router(titanic_router, prefix="/api")
 app.include_router(admin_app_router, prefix="/api")
 app.include_router(chef_router, prefix="/api")
-app.include_router(vision_router, prefix="/api")
-app.include_router(generation_router, prefix="/api")
-app.include_router(detection_router, prefix="/api")
-app.include_router(pose_router, prefix="/api")
-app.include_router(segmentation_router, prefix="/api")
 app.include_router(sentiment_router, prefix="/api")
 app.include_router(video_router, prefix="/api")
 app.include_router(anomaly_router, prefix="/api")
-app.include_router(plant_router, prefix="/api")
 app.include_router(ledger_router, prefix="/api")
+app.include_router(safeteen_router, prefix="/api")
 app.include_router(browser_gate_router)
 app.include_router(admin_router)
 
@@ -268,9 +183,8 @@ def read_root() -> dict[str, str]:
 def owner_check(wr_owner_session: str | None = Cookie(default=None)) -> dict:
     """owner_session.py는 RS256 로그인 재작성과 무관해 이 백엔드에 그대로 남긴다.
 
-    www의 app/portfolio/titanic/(lesson)/layout.tsx가 이 경로를
-    NEXT_PUBLIC_BACKEND_URL로 직접 호출한다 — auth 서비스로 옮기면 그 파일도
-    같이 고쳐야 한다.
+    www의 lib/auth.ts `checkOwner()`가 이 경로를 호출해 community(이메일 발송·
+    주소록) 등 owner 전용 기능 접근 가능 여부를 판단한다.
     """
     return {"is_owner": is_valid_owner_token(wr_owner_session)}
 

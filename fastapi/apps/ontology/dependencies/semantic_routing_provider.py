@@ -1,18 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable
-
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from apps.database import get_db
 from ontology.adapter.outbound.llm.gemini_langchain_chatbot_gateway import GeminiLangchainChatbotGateway
 from ontology.adapter.outbound.llm.exaone_intent_classifier_gateway import ExaoneIntentClassifierGateway
 from ontology.app.ports.input.semantic_routing_use_case import SemanticRoutingUseCase
-from ontology.app.ports.output.plant_knowledge_search_port import PlantKnowledgeSearchPort
 from ontology.app.use_cases.semantic_routing_interactor import SemanticRoutingInteractor
 from ontology.dependencies.sommelier_graph_provider import get_sommelier_use_case
-from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
+from core.llm.ollama_chat_orchestrator import OllamaChatOrchestrator
 
 # PoC 단계 + EXAONE 3.5 2.4B 조건이라 QLoRA 파인튜닝 없이, 의도 분류
 # 게이트웨이(라우팅용 프롬프트)와 RAG 답변(답변용 프롬프트)에 같은
@@ -21,24 +14,11 @@ from core.lol.t1_mid_faker_orchestrator import T1MidFakerOrchestrator
 # "gemini" 분기는 LangChain + 실제 Gemini(GeminiLangchainChatbotGateway)로 답한다.
 _EXAONE_MODEL = "exaone3.5:2.4b"
 
-# exaone_rag 분기의 실제 지식 소스는 plant 스포크의 pgvector(plant_knowledge)다.
-# 허브(ontology)가 스포크(plant)를 직접 import할 수 없으므로, composition
-# root(main.py)가 register_plant_knowledge_factory()로 구현체를 주입한다.
-_plant_knowledge_factory: Callable[[AsyncSession], PlantKnowledgeSearchPort] | None = None
 
-
-def register_plant_knowledge_factory(factory: Callable[[AsyncSession], PlantKnowledgeSearchPort]) -> None:
-    global _plant_knowledge_factory
-    _plant_knowledge_factory = factory
-
-
-def get_semantic_routing_use_case(db: AsyncSession = Depends(get_db)) -> SemanticRoutingUseCase:
-    if _plant_knowledge_factory is None:
-        raise RuntimeError("plant_knowledge factory가 등록되지 않았습니다 (main.py 확인).")
+def get_semantic_routing_use_case() -> SemanticRoutingUseCase:
     return SemanticRoutingInteractor(
-        llm=T1MidFakerOrchestrator(model=_EXAONE_MODEL),
+        llm=OllamaChatOrchestrator(model=_EXAONE_MODEL),
         intent_gateway=ExaoneIntentClassifierGateway(model=_EXAONE_MODEL),
         sommelier=get_sommelier_use_case(),
-        plant_knowledge=_plant_knowledge_factory(db),
         langchain_chatbot=GeminiLangchainChatbotGateway(),
     )

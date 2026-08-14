@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from ontology.app.ports.output.langchain_chatbot_gateway import LangchainChatbotGateway
-from core.matrix.secret_manager import secret_manager
+from core.infra.secret_manager import secret_manager
 
 _CHAT_PROMPT = ChatPromptTemplate.from_messages(
     [

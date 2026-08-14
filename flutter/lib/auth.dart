@@ -95,7 +95,7 @@ class _KakaoLoginScreenState extends State<KakaoLoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Saessak',
+                const Text('SafeTeen Finance',
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 const Text('카카오 계정으로 시작해 보세요', style: TextStyle(fontSize: 14, color: Colors.grey)),

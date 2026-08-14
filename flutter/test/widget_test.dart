@@ -10,11 +10,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:saessak/main.dart';
 
 void main() {
-  testWidgets('SaessakApp renders home tab', (WidgetTester tester) async {
+  testWidgets('SafeTeenApp renders splash', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const SaessakApp());
+    await tester.pumpWidget(const SafeTeenApp());
 
-    // Verify that the home tab renders with the app's title visible.
-    expect(find.text('Saessak'), findsWidgets);
+    // Verify that the splash screen renders with the app's title visible.
+    expect(find.text('SafeTeen Finance'), findsWidgets);
   });
 }
